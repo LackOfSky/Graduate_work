@@ -1,0 +1,13 @@
+package com.lackofsky.cloud_s.data.database
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import com.lackofsky.cloud_s.data.dao.UserDao
+import com.lackofsky.cloud_s.data.model.User
+
+@Database(entities = [User::class], version = 1)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun userDao(): UserDao
+}

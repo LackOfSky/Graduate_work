@@ -1,20 +1,14 @@
-package com.lackofsky.cloud_s.ui.components
+package com.lackofsky.cloud_s.ui.profile.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,7 +24,6 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -39,14 +32,14 @@ import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.ui.profile.ProfileViewModel
 
 @Composable
-fun UserInfoContent(modifier: Modifier = Modifier, viewModel: ProfileViewModel, currentUser: User) {
+fun UserInfoContent( viewModel: ProfileViewModel, currentUser: User) {
     val isAboutEdit by viewModel.isAboutEdit.observeAsState(initial = false)
     val isInfoEdit by viewModel.isInfoEdit.observeAsState(initial = false)
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top),
-        modifier = modifier
-            .fillMaxWidth()
-            .background(color = Color(0xfffef7ff))
+        verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
+        modifier = Modifier
+//            .fillMaxWidth()
+//            .background(color = Color(0xfffef7ff))
             .padding(
                 horizontal = 16.dp,
                 vertical = 8.dp
@@ -62,12 +55,13 @@ fun UserInfoContent(modifier: Modifier = Modifier, viewModel: ProfileViewModel, 
     //}
         if(isInfoEdit){
             UserInfoEdit(viewModel, currentUser)
-        }
+        }else {
             UserInfo(viewModel, currentUser)
         }
+    }
 }
 @Composable
-fun AboutUser(viewModel: ProfileViewModel,currentUser:User){
+fun AboutUser(viewModel: ProfileViewModel, currentUser:User){
     Column {
         Row(){
             Text(
@@ -84,6 +78,8 @@ fun AboutUser(viewModel: ProfileViewModel,currentUser:User){
             )
             TextButton(
                 onClick = {
+                    viewModel.closeEdit()
+                    viewModel.onCancelUpdate()
                     viewModel.setIsAboutEdit(true)
                 },
                 modifier = Modifier
@@ -117,7 +113,7 @@ fun AboutUser(viewModel: ProfileViewModel,currentUser:User){
 }
 
 @Composable
-fun AboutUserEdit(viewModel: ProfileViewModel,currentUser:User){
+fun AboutUserEdit(viewModel: ProfileViewModel, currentUser:User){
     Column {
         Row() {
             Text(
@@ -133,26 +129,43 @@ fun AboutUserEdit(viewModel: ProfileViewModel,currentUser:User){
                     .align(alignment = Alignment.CenterVertically)
 //                    .align(alignment = Alignment.)
             )
-
-            TextButton(
-                onClick = {
-                    viewModel.setIsAboutEdit(false)
-                },
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .background(Color.Transparent, RectangleShape)
-            ){
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_check_20),
-                    contentDescription = "Confirm_about_me",
+            Row(){
+                TextButton(
+                    onClick = {
+                        viewModel.closeEdit()
+                        viewModel.onCancelUpdate()
+                    },
                     modifier = Modifier
-                        .clip(shape = RoundedCornerShape(28.dp)))
+                        .align(Alignment.CenterVertically)
+                        .background(Color.Transparent, RectangleShape)
+                ){
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_clear_20),
+                        contentDescription = "Confirm_about_me",
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(28.dp)))
+                }
+                TextButton(
+                    onClick = {
+                        viewModel.closeEdit()
+                        viewModel.onConfirmUpdateAboutUser()
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .background(Color.Transparent, RectangleShape)
+                ){
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_check_20),
+                        contentDescription = "Confirm_about_me",
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(28.dp)))
+                }
             }
         }
     }
         TextField(
             value = currentUser.about,
-            onValueChange = { value -> viewModel.updateAbout(value) },
+            onValueChange = { value -> viewModel.onUserAboutUpdate(value) },
             textStyle = TextStyle(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
@@ -166,7 +179,7 @@ fun AboutUserEdit(viewModel: ProfileViewModel,currentUser:User){
 }
 
 @Composable
-fun UserInfo(viewModel: ProfileViewModel,currentUser:User){
+fun UserInfo(viewModel: ProfileViewModel, currentUser:User){
     Column {
         Row(){
             Text(
@@ -183,6 +196,8 @@ fun UserInfo(viewModel: ProfileViewModel,currentUser:User){
             )
             TextButton(
                 onClick = {
+                    viewModel.closeEdit()
+                    viewModel.onCancelUpdate()
                     viewModel.setIsInfoEdit(true)
                 },
                 modifier = Modifier
@@ -213,7 +228,7 @@ fun UserInfo(viewModel: ProfileViewModel,currentUser:User){
 }
 
 @Composable
-fun UserInfoEdit(viewModel: ProfileViewModel,currentUser:User){
+fun UserInfoEdit(viewModel: ProfileViewModel, currentUser:User){
     Column {
         Row() {
             Text(
@@ -229,10 +244,26 @@ fun UserInfoEdit(viewModel: ProfileViewModel,currentUser:User){
                     .align(alignment = Alignment.CenterVertically)
 //                    .align(alignment = Alignment.)
             )
-
+            Row(){
+                TextButton(
+                    onClick = {
+                        viewModel.closeEdit()
+                        viewModel.onCancelUpdate()
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .background(Color.Transparent, RectangleShape)
+                ){
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_clear_20),
+                        contentDescription = "Clear_user_info",
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(28.dp)))
+                }
             TextButton(
                 onClick = {
-                    viewModel.setIsInfoEdit(false)
+                    viewModel.closeEdit()
+                    viewModel.onConfirmUpdateUserInfo()
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -244,11 +275,12 @@ fun UserInfoEdit(viewModel: ProfileViewModel,currentUser:User){
                     modifier = Modifier
                         .clip(shape = RoundedCornerShape(28.dp)))
             }
+            }
         }
     }
     TextField(
         value = currentUser.info,
-        onValueChange = { value -> viewModel.updateInfo(value) },
+        onValueChange = { value -> viewModel.onUserAdditionalInfoUpdate(value) },
         textStyle = TextStyle(
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
