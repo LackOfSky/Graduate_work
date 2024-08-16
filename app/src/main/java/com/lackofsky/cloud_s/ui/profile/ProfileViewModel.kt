@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.util.copy
 import com.lackofsky.cloud_s.data.model.User
+import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,21 +35,20 @@ class ProfileViewModel @Inject constructor(
     private val _editUser = MutableLiveData<User>()
      val editUser: LiveData<User> get() = _editUser
 
+    private val _userInfo = MutableLiveData<UserInfo>()
+    val userInfo: LiveData<UserInfo> get() = _userInfo
+    private val _editUserInfo = MutableLiveData<UserInfo>()
+    val editUserInfo: LiveData<UserInfo> get() = _editUserInfo
+
     init {
         viewModelScope.launch {
             //todo стартовая страница для ввода этих данных
-            if(userRepository.getUserOwner().isInitialized){
-                userRepository.insert(
-                    User(1,"John Doe", //TODO подхват с БД
-                    "@just_someone",
-                    "     Lorem ipsum dolor sit amet, consectetur adipiscing elit, " +
-                            "sed do eiusmod tempor incididunt " +
-                            "ut labore et dolore magna aliqua incididunt ut labore et dolore magna aliqua. \n",
-
-                    "     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do " +
-                            "eiusmod tempor incididunt ut labore et dolore magna aliqua incididunt ut " +
-                            "labore et dolore magna aliqua. \n",)
-                )}
+//            if(userRepository.getUserOwner().isInitialized){
+//                userRepository.insertUser(
+//                    User(1,"John Doe", //TODO подхват с БД
+//                    "@just_someone",
+//                            "030303030")
+//                )}
             }
         loadUserOwner()
     }
@@ -58,6 +58,11 @@ class ProfileViewModel @Inject constructor(
             _user.value = user
             _editUser.value = _user.value
         }
+        userRepository.getUserInfoById(1).observeForever { userInfo ->
+            _userInfo.value = userInfo
+            _editUserInfo.value = _userInfo.value
+        }
+
     }
 
     fun onUserNameChange(newName: String) {
@@ -67,10 +72,10 @@ class ProfileViewModel @Inject constructor(
         _editUser.value = _editUser.value?.copy(login = newLogin)
     }
     fun onUserAboutUpdate(newAbout: String) {
-        _editUser.value = _editUser.value?.copy(about= newAbout)
+        _editUserInfo.value = _editUserInfo.value?.copy(about= newAbout)
     }
     fun onUserAdditionalInfoUpdate(newInfo: String) {
-        _editUser.value = _editUser.value?.copy(info= newInfo)
+        _editUserInfo.value = _editUserInfo.value?.copy(info= newInfo)
     }
         fun setIsHeaderEdit(newValue: Boolean) {
             _isHeaderEdit.value = newValue
@@ -85,31 +90,32 @@ class ProfileViewModel @Inject constructor(
         }
 
         fun onConfirmUpdate() = viewModelScope.launch {
-            _editUser.value?.let { userRepository.update(it) }
+            _editUser.value?.let { userRepository.updateUser(it) }
         }
     fun onConfirmUpdateNameLogin() = viewModelScope.launch {
         _user.value?.let{
-            userRepository.update(it.copy(
+            userRepository.updateUser(it.copy(
                 login = editUser.value!!.login,
                 fullName = editUser.value!!.fullName))
         }
 
     }
     fun onConfirmUpdateAboutUser() = viewModelScope.launch {
-        _user.value?.let{
-            userRepository.update(it.copy(
-                about = editUser.value!!.about))
+        _userInfo.value?.let{
+            userRepository.updateUserInfo(it.copy(
+                about = editUserInfo.value!!.about))
         }
     }
     fun onConfirmUpdateUserInfo() = viewModelScope.launch {
-        _user.value?.let{
-            userRepository.update(it.copy(
-                info = editUser.value!!.info))
+        _userInfo.value?.let{
+            userRepository.updateUserInfo(it.copy(
+                info = editUserInfo.value!!.info))
         }
     }
 
     fun onCancelUpdate() = viewModelScope.launch {
         _editUser.value = _user.value
+        _editUserInfo.value = _userInfo.value
     }
     fun closeEdit(){
         _isHeaderEdit.value = false

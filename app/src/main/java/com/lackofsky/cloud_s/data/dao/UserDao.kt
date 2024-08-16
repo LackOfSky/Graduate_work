@@ -3,42 +3,54 @@ package com.lackofsky.cloud_s.data.dao
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
+import androidx.room.Embedded
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Relation
+import androidx.room.Transaction
 import androidx.room.Update
 import com.lackofsky.cloud_s.data.model.User
+import com.lackofsky.cloud_s.data.model.UserInfo
 
 @Dao
 interface UserDao {
-//    @Query("SELECT * FROM users")
-//    fun getUsers(): LiveData<List<User>>
-//    @Query("SELECT * FROM users WHERE userId = :id")
-//    fun getUser(id:Int): LiveData<User>
-
-    @Insert
-    fun addUser(user: User)
-
-//    @Query("DELETE FROM users WHERE userId = :id")
-//    fun deleteUser(id:Int)
-    //TODO
-//    @Update
-//    fun updateUser(id:Int)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(user: User): Long
+    suspend fun insertUser(user: User)
     @Update
-    suspend fun update(user: User)
-
+    suspend fun updateUser(user: User)
     @Delete
-    suspend fun delete(user: User)
-
+    suspend fun deleteUser(user: User)
+    @Query("SELECT * FROM users WHERE macAddr = :macAddr")
+    fun getUserByMacAddr(macAddr: String): LiveData<User>
     @Query("SELECT * FROM users WHERE userId = :id")
     fun getUserById(id: Int): LiveData<User>
+    @Query("SELECT COUNT(*) FROM users")
+    suspend fun getUserCount(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUserInfo(userInfo: UserInfo)
+    @Update
+    suspend fun updateUserInfo(userInfo: UserInfo)
 
     @Query("SELECT * FROM users")
     fun getAllUsers(): LiveData<List<User>>
-
     @Query("SELECT * FROM users WHERE userId = 1")
     fun getUserOwner(): LiveData<User>
+
+    @Query("SELECT * FROM usersInfo WHERE userId = :id")
+    fun getUserInfoById(id: Int): LiveData<UserInfo>
+//  @Transaction
+//    @Query("SELECT * FROM users WHERE userId = :id")
+//    fun getUserWithInfoById(id: Int): LiveData<UserWithInfo?>
+//
+//    data class UserWithInfo(
+//        @Embedded val user: User,
+//        @Relation(
+//            parentColumn = "userId",
+//            entityColumn = "userId"
+//        )
+//        val userInfo: UserInfo?
+//    )
 }

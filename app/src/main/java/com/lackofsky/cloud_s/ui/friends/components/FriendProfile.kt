@@ -61,9 +61,9 @@ import kotlinx.coroutines.flow.StateFlow
 @Composable
 fun FriendProfile(modifier: Modifier = Modifier,userId: Int){
     val viewModel: FriendsViewModel = hiltViewModel()
-    viewModel.setCurrentFriend(userId)
-    //TODO USERSERVICE GET BY USER ID
-    val selectedUser by viewModel.currentUser.collectAsState()
+//    viewModel.setCurrentFriend(userId)
+//    //TODO USERSERVICE GET BY USER ID
+    val selectedUser by viewModel.getCurrentUser(userId).collectAsState()
 
     LazyColumn( Modifier.fillMaxSize()){
         item {
@@ -113,14 +113,14 @@ fun FriendProfile(modifier: Modifier = Modifier,userId: Int){
                             .requiredHeight(height = 136.dp)
                             .weight(weight = 8f)
                     ) {
-                        HeaderFriendInfo(selectedUser = selectedUser)
+                        HeaderFriendInfo(selectedUser = selectedUser.user)
                         UserProfileFeachures()
                     }
                 }
             }
         }
         item{
-            FriendInfoContent(selectedUser)
+            FriendInfoContent(selectedUser.user)
         }
     }
 }
@@ -192,15 +192,15 @@ fun AboutFriend( selectedUser:User){
                     .align(alignment = Alignment.CenterVertically)
             )
         }
-        Text(
-            text = selectedUser.about ,
-            color = Color(0xff1d1b20),
-            lineHeight = 1.33.em,
-            fontSize = 14.sp,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier
-                .fillMaxWidth()
-        )
+//        Text(
+//            text = selectedUser.about ,
+//            color = Color(0xff1d1b20),
+//            lineHeight = 1.33.em,
+//            fontSize = 14.sp,
+//            style = MaterialTheme.typography.bodySmall,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//        )
     }
 
 
@@ -224,15 +224,15 @@ fun FriendInfo( selectedUser:User){
                     .align(alignment = Alignment.CenterVertically)
             )
         }
-        Text(
-            text = selectedUser.info,
-            color = Color(0xff1d1b20),
-            lineHeight = 1.33.em,
-            fontSize = 14.sp,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier
-                .fillMaxWidth()
-        )
+//        Text(
+//            text = selectedUser.info,
+//            color = Color(0xff1d1b20),
+//            lineHeight = 1.33.em,
+//            fontSize = 14.sp,
+//            style = MaterialTheme.typography.bodySmall,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//        )
     }
 
 

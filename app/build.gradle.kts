@@ -89,8 +89,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
 
+    //datastore
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
     //JSON
-    implementation("com.google.code.gson:gson:2.8.8")
+    implementation ("com.google.code.gson:gson:2.8.8")
     //p2p
     implementation("com.github.adroitandroid:Near:v2.0")
 // Hilt dependencies

@@ -60,6 +60,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,
     val isHeaderEdit by viewModel.isHeaderEdit.observeAsState(initial = false)
     //val currentUser by viewModel.currentUser.collectAsState()
     val editUser by viewModel.editUser.observeAsState()
+    val editUserInfo by viewModel.editUserInfo.observeAsState()
     editUser?.let {
     LazyColumn( Modifier.fillMaxSize()) {
         item {
@@ -68,6 +69,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,
                 colors = CardDefaults.cardColors(Color.White),
                 modifier = modifier.height(150.dp)
             ) {
+                //todo editUserInfo.banner
                 Image(
                     bitmap = ImageBitmap.imageResource(R.drawable.banner),
                     contentScale = ContentScale.FillWidth,
@@ -94,6 +96,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,
                             vertical = 8.dp
                         )
                 ) {
+                    //todo editUserInfo.ico
                     Image(
                         painter = painterResource(id = R.drawable.atom_ico),
                         contentDescription = "Image",
@@ -122,7 +125,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,
 
         }
         item {
-            UserInfoContent(viewModel = viewModel, currentUser = it)
+            UserInfoContent(viewModel = viewModel, currentUser = it, currentUserInfo = editUserInfo)
         }
     }
     }
@@ -174,7 +177,7 @@ fun HeaderUserInfo(modifier: Modifier = Modifier, viewModel: ProfileViewModel, c
 
         }
         Text(
-            text = currentUser.login,
+            text = "@"+currentUser.login,
             color = Color(0xff49454f),
             textAlign = TextAlign.Left,
             lineHeight = 1.5.em,

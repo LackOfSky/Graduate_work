@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,39 +30,45 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.data.model.User
+import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.ui.profile.ProfileViewModel
 
 @Composable
-fun UserInfoContent( viewModel: ProfileViewModel, currentUser: User) {
+fun UserInfoContent( viewModel: ProfileViewModel, currentUser: User, currentUserInfo: UserInfo?) {
     val isAboutEdit by viewModel.isAboutEdit.observeAsState(initial = false)
     val isInfoEdit by viewModel.isInfoEdit.observeAsState(initial = false)
-    Column(
-        verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
-        modifier = Modifier
+    currentUserInfo?.let {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
+            modifier = Modifier
 //            .fillMaxWidth()
 //            .background(color = Color(0xfffef7ff))
-            .padding(
-                horizontal = 16.dp,
-                vertical = 8.dp
-            )
-    ) {
-        //About User
-    //    Box(){
-            if(isAboutEdit){
-                AboutUserEdit(viewModel,currentUser)
-            }else{
-                AboutUser(viewModel,currentUser)
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 8.dp
+                )
+        ) {
+            //About User
+            //    Box(){
+            if (isAboutEdit) {
+                AboutUserEdit(viewModel, currentUserInfo)
+            } else {
+                AboutUser(viewModel, currentUserInfo)
             }
-    //}
-        if(isInfoEdit){
-            UserInfoEdit(viewModel, currentUser)
-        }else {
-            UserInfo(viewModel, currentUser)
+            //}
+            if (isInfoEdit) {
+                UserInfoEdit(viewModel, currentUserInfo)
+            } else {
+                UserInfo(viewModel, currentUserInfo)
+            }
+            Row(modifier = Modifier.height(60.dp)){
+
+            }
         }
     }
 }
 @Composable
-fun AboutUser(viewModel: ProfileViewModel, currentUser:User){
+fun AboutUser(viewModel: ProfileViewModel, currentUserInfo: UserInfo){
     Column {
         Row(){
             Text(
@@ -98,7 +105,7 @@ fun AboutUser(viewModel: ProfileViewModel, currentUser:User){
             }
         }
         Text(
-            text = currentUser.about ,
+            text = currentUserInfo.about ,
             color = Color(0xff1d1b20),
             lineHeight = 1.33.em,
             fontSize = 14.sp,
@@ -113,7 +120,7 @@ fun AboutUser(viewModel: ProfileViewModel, currentUser:User){
 }
 
 @Composable
-fun AboutUserEdit(viewModel: ProfileViewModel, currentUser:User){
+fun AboutUserEdit(viewModel: ProfileViewModel, currentUserInfo: UserInfo){
     Column {
         Row() {
             Text(
@@ -164,7 +171,7 @@ fun AboutUserEdit(viewModel: ProfileViewModel, currentUser:User){
         }
     }
         TextField(
-            value = currentUser.about,
+            value = currentUserInfo.about,
             onValueChange = { value -> viewModel.onUserAboutUpdate(value) },
             textStyle = TextStyle(
                 fontSize = 14.sp,
@@ -179,7 +186,7 @@ fun AboutUserEdit(viewModel: ProfileViewModel, currentUser:User){
 }
 
 @Composable
-fun UserInfo(viewModel: ProfileViewModel, currentUser:User){
+fun UserInfo(viewModel: ProfileViewModel, currentUserInfo: UserInfo){
     Column {
         Row(){
             Text(
@@ -213,7 +220,7 @@ fun UserInfo(viewModel: ProfileViewModel, currentUser:User){
             }
         }
         Text(
-            text = currentUser.info,
+            text = currentUserInfo.info,
             color = Color(0xff1d1b20),
             lineHeight = 1.33.em,
             fontSize = 14.sp,
@@ -228,7 +235,7 @@ fun UserInfo(viewModel: ProfileViewModel, currentUser:User){
 }
 
 @Composable
-fun UserInfoEdit(viewModel: ProfileViewModel, currentUser:User){
+fun UserInfoEdit(viewModel: ProfileViewModel, currentUserInfo: UserInfo){
     Column {
         Row() {
             Text(
@@ -279,7 +286,7 @@ fun UserInfoEdit(viewModel: ProfileViewModel, currentUser:User){
         }
     }
     TextField(
-        value = currentUser.info,
+        value = currentUserInfo.info,
         onValueChange = { value -> viewModel.onUserAdditionalInfoUpdate(value) },
         textStyle = TextStyle(
             fontSize = 14.sp,

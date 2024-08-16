@@ -59,6 +59,7 @@ import com.lackofsky.cloud_s.ui.friends.components.FriendProfile
 import com.lackofsky.cloud_s.ui.profile.ProfileScreen
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
+import com.lackofsky.cloud_s.ui.friends.components.StrangerItem
 
 //import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -71,16 +72,16 @@ sealed class UserRoutes(val route: String) {
 }
 @Composable
 fun FriendsScreen(viewModel: FriendsViewModel = hiltViewModel()) {
-    val friendPlaceholder by viewModel.currentUser.collectAsState()//TODO friends placeholder
+//    val friendPlaceholder by viewModel.currentUser.collectAsState()//TODO friends placeholder
+    val strangers by viewModel.strangers.collectAsState()
     val navController = rememberNavController()
-    FriendsTabs(friendPlaceholder = friendPlaceholder,
-        viewModel = viewModel,
+    FriendsTabs(viewModel = viewModel,
         navController = navController)
 
 
 }
 @Composable
-fun FriendsTabs(friendPlaceholder: User,
+fun FriendsTabs(
                 viewModel: FriendsViewModel,
                 navController: NavHostController) {
     val tabIndex = remember { mutableStateOf(0) }
@@ -125,7 +126,7 @@ fun FriendsContainer(viewModel: FriendsViewModel,
 @Composable
 fun FriendList(viewModel: FriendsViewModel,navController: NavHostController) {
 
-    val friendList = viewModel.getFriendList()
+    val friendList by viewModel.friends.collectAsState()
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
@@ -138,10 +139,10 @@ fun FriendList(viewModel: FriendsViewModel,navController: NavHostController) {
                     .height(80.dp)
                     .padding(1.dp, 2.dp)
                     .clickable {
-                        navController.navigate(UserRoutes.User.createRoute(friend.id))
+                        navController.navigate(UserRoutes.User.createRoute(friend.user.id))
                     }
             ) {
-                FriendItem(friend)
+                FriendItem(friend.user)
             }
         }
         item{Text(text="",modifier = Modifier.height(80.dp))}
@@ -150,7 +151,7 @@ fun FriendList(viewModel: FriendsViewModel,navController: NavHostController) {
 
 @Composable
 fun StrangersList(viewModel: FriendsViewModel,navController: NavHostController) {
-    val strangers by viewModel.users.collectAsState()
+    val strangers by viewModel.strangers.collectAsState()
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
@@ -166,10 +167,12 @@ fun StrangersList(viewModel: FriendsViewModel,navController: NavHostController) 
                         //navController.navigate(UserRoutes.User.createRoute(friend.id))
                     }
             ) {
-                FriendItem(stranger)
+                //FriendItem(stranger.user)
+                StrangerItem(stranger,viewModel::addToFriends)
             }
         }
         item{Text(text="",modifier = Modifier.height(80.dp))}
+        item{AddFriends()}
     }
 }
 

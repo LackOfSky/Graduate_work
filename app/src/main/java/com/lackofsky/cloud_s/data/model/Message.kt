@@ -8,10 +8,15 @@ import java.sql.Time
 
 @Entity(tableName = "messages")
 data class Message (
+    @PrimaryKey
     @ColumnInfo(name = "messageId") @NotNull
     val id: Int,
-    @ColumnInfo(name = "messageAuthor") @NotNull
-    val author: String,
-    @ColumnInfo(name = "userId") @NotNull
-    val time: Time
+    @ColumnInfo(name = "chatId") @NotNull
+    val chatId: String,
+    @ColumnInfo(name = "senderMac") @NotNull
+    val senderMac: String,
+    @ColumnInfo(name = "messageContent") @NotNull
+    val content: String,
+    @ColumnInfo(name = "time") @NotNull
+    val createdAt: Long = System.currentTimeMillis()
 )
