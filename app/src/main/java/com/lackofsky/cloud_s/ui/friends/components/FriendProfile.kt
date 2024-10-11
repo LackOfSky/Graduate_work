@@ -63,7 +63,7 @@ fun FriendProfile(modifier: Modifier = Modifier,userId: Int){
     val viewModel: FriendsViewModel = hiltViewModel()
 //    viewModel.setCurrentFriend(userId)
 //    //TODO USERSERVICE GET BY USER ID
-    val selectedUser by viewModel.getCurrentUser(userId).collectAsState()
+//    val selectedUser by viewModel.getCurrentUser(userId).collectAsState()
 
     LazyColumn( Modifier.fillMaxSize()){
         item {
@@ -113,14 +113,14 @@ fun FriendProfile(modifier: Modifier = Modifier,userId: Int){
                             .requiredHeight(height = 136.dp)
                             .weight(weight = 8f)
                     ) {
-                        HeaderFriendInfo(selectedUser = selectedUser.user)
+//                        HeaderFriendInfo(selectedUser = selectedUser.user)
                         UserProfileFeachures()
                     }
                 }
             }
         }
         item{
-            FriendInfoContent(selectedUser.user)
+//            FriendInfoContent(selectedUser.user)
         }
     }
 }

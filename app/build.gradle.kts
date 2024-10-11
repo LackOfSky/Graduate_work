@@ -10,6 +10,8 @@ android {
     namespace = "com.lackofsky.cloud_s"
     compileSdk = 34
 
+
+
     defaultConfig {
         applicationId = "com.lackofsky.cloud_s"
         minSdk = 34
@@ -33,11 +35,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
@@ -45,14 +47,21 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
+
     packaging {
+        resources.excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/*"
         }
+
     }
 }
 
+
 dependencies {
+
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -94,7 +103,14 @@ dependencies {
     //JSON
     implementation ("com.google.code.gson:gson:2.8.8")
     //p2p
-    implementation("com.github.adroitandroid:Near:v2.0")
+    implementation("org.jmdns:jmdns:3.5.8")
+    implementation("io.netty:netty-all:4.1.96.Final") // Подключает все необходимые модули
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
+    // Или же можно добавить выборочно
+//    implementation("io.netty:netty-transport:4.1.96.Final")  // Транспорт (TCP/UDP)
+//    implementation("io.netty:netty-handler:4.1.96.Final")    // Для шифрования и обработки данных
+//    implementation("io.netty:netty-buffer:4.1.96.Final")     // Для управления буферами
+//    implementation("io.netty:netty-codec:4.1.96.Final")
 // Hilt dependencies
     implementation("com.google.dagger:hilt-android:2.50")
     kapt("com.google.dagger:hilt-android-compiler:2.50")
@@ -108,6 +124,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     annotationProcessor(libs.androidx.room.room.compiler)
     ksp(libs.androidx.room.room.compiler)
+    implementation(kotlin("script-runtime"))
 }
 
 kapt {

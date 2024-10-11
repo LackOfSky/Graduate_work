@@ -59,7 +59,7 @@ import com.lackofsky.cloud_s.ui.friends.components.FriendProfile
 import com.lackofsky.cloud_s.ui.profile.ProfileScreen
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
-import com.lackofsky.cloud_s.ui.friends.components.StrangerItem
+//import com.lackofsky.cloud_s.ui.friends.components.StrangerItem
 
 //import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -73,7 +73,7 @@ sealed class UserRoutes(val route: String) {
 @Composable
 fun FriendsScreen(viewModel: FriendsViewModel = hiltViewModel()) {
 //    val friendPlaceholder by viewModel.currentUser.collectAsState()//TODO friends placeholder
-    val strangers by viewModel.strangers.collectAsState()
+//    val strangers by viewModel.strangers.collectAsState()
     val navController = rememberNavController()
     FriendsTabs(viewModel = viewModel,
         navController = navController)
@@ -126,51 +126,51 @@ fun FriendsContainer(viewModel: FriendsViewModel,
 @Composable
 fun FriendList(viewModel: FriendsViewModel,navController: NavHostController) {
 
-    val friendList by viewModel.friends.collectAsState()
+//    val friendList by viewModel.friends.collectAsState()
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
-        items(friendList) { friend ->
-            Card(//navigate
-                elevation = CardDefaults.cardElevation(10.dp),
-                colors = CardDefaults.cardColors(Color.White),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier
-                    .height(80.dp)
-                    .padding(1.dp, 2.dp)
-                    .clickable {
-                        navController.navigate(UserRoutes.User.createRoute(friend.user.id))
-                    }
-            ) {
-                FriendItem(friend.user)
-            }
-        }
+//        items(friendList) { friend ->
+//            Card(//navigate
+//                elevation = CardDefaults.cardElevation(10.dp),
+//                colors = CardDefaults.cardColors(Color.White),
+//                shape = RoundedCornerShape(20.dp),
+//                modifier = Modifier
+//                    .height(80.dp)
+//                    .padding(1.dp, 2.dp)
+//                    .clickable {
+//                        navController.navigate(UserRoutes.User.createRoute(friend.user.id))
+//                    }
+//            ) {
+//                FriendItem(friend.user)
+//            }
+//        }
         item{Text(text="",modifier = Modifier.height(80.dp))}
     }
 }
 
 @Composable
 fun StrangersList(viewModel: FriendsViewModel,navController: NavHostController) {
-    val strangers by viewModel.strangers.collectAsState()
+//    val strangers by viewModel.strangers.collectAsState()
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
-        items(strangers.toList()) { stranger ->
-            Card(//navigate
-                elevation = CardDefaults.cardElevation(10.dp),
-                colors = CardDefaults.cardColors(Color.White),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier
-                    .height(80.dp)
-                    .padding(1.dp, 2.dp)
-                    .clickable {
-                        //navController.navigate(UserRoutes.User.createRoute(friend.id))
-                    }
-            ) {
-                //FriendItem(stranger.user)
-                StrangerItem(stranger,viewModel::addToFriends)
-            }
-        }
+//        items(strangers.toList()) { stranger ->
+//            Card(//navigate
+//                elevation = CardDefaults.cardElevation(10.dp),
+//                colors = CardDefaults.cardColors(Color.White),
+//                shape = RoundedCornerShape(20.dp),
+//                modifier = Modifier
+//                    .height(80.dp)
+//                    .padding(1.dp, 2.dp)
+//                    .clickable {
+//                        //navController.navigate(UserRoutes.User.createRoute(friend.id))
+//                    }
+//            ) {
+//                //FriendItem(stranger.user)
+//                StrangerItem(stranger,viewModel::addToFriends)
+//            }
+//        }
         item{Text(text="",modifier = Modifier.height(80.dp))}
         item{AddFriends()}
     }

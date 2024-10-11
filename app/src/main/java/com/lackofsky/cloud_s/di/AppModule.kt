@@ -6,10 +6,6 @@ import com.lackofsky.cloud_s.data.dao.ChatDao
 import com.lackofsky.cloud_s.data.dao.MessageDao
 import com.lackofsky.cloud_s.data.dao.UserDao
 import com.lackofsky.cloud_s.data.database.AppDatabase
-import com.lackofsky.cloud_s.data.repository.UserRepository
-import com.lackofsky.cloud_s.services.p2pService.ConnectByNear
-import com.lackofsky.cloud_s.services.p2pService.DiscoveryByNear
-import com.lackofsky.cloud_s.services.p2pService.Near
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -46,21 +42,21 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
         return database.messageDao()
     }
 
-    @Provides
-    @Singleton
-    fun provideDiscoveryByNear(@ApplicationContext context: Context,userDao: UserDao):DiscoveryByNear{
-        return DiscoveryByNear(userDao,context)
-    }
-    @Provides
-    @Singleton
-    fun provideConnectByNear(@ApplicationContext context: Context,userRepository: UserRepository): ConnectByNear {
-        return ConnectByNear(context,userRepository)
-    }
-    @Provides
-    @Singleton
-    fun provideNear(discovery:DiscoveryByNear,connectByNear: ConnectByNear): Near {
-        return Near(discovery,connectByNear)
-    }
+//    @Provides
+//    @Singleton
+//    fun provideDiscoveryByNear(@ApplicationContext context: Context,userDao: UserDao):DiscoveryByNear{
+//        return DiscoveryByNear(userDao,context)
+//    }
+//    @Provides
+//    @Singleton
+//    fun provideConnectByNear(@ApplicationContext context: Context,userRepository: UserRepository): ConnectByNear {
+//        return ConnectByNear(context,userRepository)
+//    }
+//    @Provides
+//    @Singleton
+//    fun provideNear(discovery:DiscoveryByNear,connectByNear: ConnectByNear): Near {
+//        return Near(discovery,connectByNear)
+//    }
 
 
 }
