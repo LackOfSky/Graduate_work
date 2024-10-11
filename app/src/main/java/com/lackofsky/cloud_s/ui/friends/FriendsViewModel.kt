@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.serviceP2P.client.ClientInterface
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class FriendsViewModel @Inject constructor(
     private val userRepository: UserRepository,
+    private val clientServiceInterface: ClientInterface
 //    private val node: Near
 ) : ViewModel() {
 //    val friends = node.friends//TODO (cделать\проверить логику)

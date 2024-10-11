@@ -2,22 +2,27 @@ package com.lackofsky.cloud_s.serviceP2P
 
 import android.app.Service
 import android.content.Intent
+import android.os.Binder
 import android.os.IBinder
 import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.serviceP2P.client.ClientInterface
 import com.lackofsky.cloud_s.serviceP2P.client.NettyClient
 import com.lackofsky.cloud_s.serviceP2P.model.MessageType
 import com.lackofsky.cloud_s.serviceP2P.model.Peer
 import com.lackofsky.cloud_s.serviceP2P.model.TransportData
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class P2PClient @Inject constructor(
     private val gson: Gson,
     private val userRepository: UserRepository
-): Service()   {
+): Service(), ClientInterface {
+    private val binder = LocalBinder()
     private val clients = mutableMapOf<String,NettyClient>()
 
 
@@ -77,14 +82,14 @@ class P2PClient @Inject constructor(
         return true
     }
 
-    fun connectToPeer(peer: Peer){//TODO basic implementation
+    override fun connectToPeer(peer: Peer){//TODO basic implementation
         clients[peer.name] = NettyClient(host = peer.address, port = peer.port)
 
         sendUser(peer.name)
         sendUserInfo(peer.name)
         //TODO подвязать передачу данных о пользователе
     }
-    fun sendMessage(clientName: String, message: Message):Boolean{
+    override fun sendMessage(clientName: String, message: Message):Boolean{
         try{
             val nettyClient = clients.get(clientName)
             val contentMessage = gson.toJson(message)
@@ -105,6 +110,9 @@ class P2PClient @Inject constructor(
 
 
     override fun onBind(intent: Intent?): IBinder? {
-        TODO("Not yet implemented")
+        return binder
+    }
+    inner class LocalBinder : Binder() {
+        fun getService(): P2PClient = this@P2PClient
     }
 }
