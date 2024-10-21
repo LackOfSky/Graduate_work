@@ -1,4 +1,4 @@
-package com.lackofsky.cloud_s.serviceP2P.model
+package com.lackofsky.cloud_s.service.model
 
 data class Peer(
     val name: String,

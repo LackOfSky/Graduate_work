@@ -1,11 +1,16 @@
 package com.lackofsky.cloud_s.di
 
+import android.app.NotificationManager
 import android.content.Context
 import androidx.room.Room
 import com.lackofsky.cloud_s.data.dao.ChatDao
 import com.lackofsky.cloud_s.data.dao.MessageDao
 import com.lackofsky.cloud_s.data.dao.UserDao
 import com.lackofsky.cloud_s.data.database.AppDatabase
+import com.lackofsky.cloud_s.data.repository.MessageRepository
+import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.service.data.SharedState
+import com.lackofsky.cloud_s.service.server.NettyServer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -41,7 +46,21 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     fun provideMessageDao(database: AppDatabase): MessageDao {
         return database.messageDao()
     }
-
+    @Provides
+    @Singleton
+    fun provideSharedState(): SharedState {
+        return SharedState()
+    }
+    @Provides
+    fun provideNotificationManager(@ApplicationContext context: Context): NotificationManager {
+        return context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    }
+    @Provides
+    fun provideNettyServer(sharedState: SharedState,
+                           messageRepository: MessageRepository,
+                           userRepository: UserRepository): NettyServer {
+        return NettyServer(sharedState, messageRepository,userRepository)
+    }
 //    @Provides
 //    @Singleton
 //    fun provideDiscoveryByNear(@ApplicationContext context: Context,userDao: UserDao):DiscoveryByNear{
@@ -58,5 +77,11 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
 //        return Near(discovery,connectByNear)
 //    }
 
+//@Provides
+//fun provideClientServiceInterface(@ApplicationContext context: Context): ClientInterface {
+//    // Использование Bound Service для получения интерфейса
+//    val serviceConnection = ClientServiceConnectionManager(context)
+//    return serviceConnection.getServiceInterface()
+//}
 
 }

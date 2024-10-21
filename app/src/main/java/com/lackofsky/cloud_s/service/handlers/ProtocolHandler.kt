@@ -1,6 +1,6 @@
-package com.lackofsky.cloud_s.serviceP2P.handlers
+package com.lackofsky.cloud_s.service.handlers
 
-import com.lackofsky.cloud_s.serviceP2P.model.Peer
+import com.lackofsky.cloud_s.service.model.Peer
 
 
 class ProtocolHandler {

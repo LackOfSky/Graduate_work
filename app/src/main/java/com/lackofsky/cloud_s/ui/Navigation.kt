@@ -1,6 +1,5 @@
-package com.lackofsky.cloud_s
+package com.lackofsky.cloud_s.ui
 
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.height
 
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -36,11 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.ui.friends.FriendsScreen
-import com.lackofsky.cloud_s.ui.friends.FriendsViewModel
 import com.lackofsky.cloud_s.ui.profile.ProfileScreen
-import com.lackofsky.cloud_s.ui.profile.ProfileViewModel
-import com.lackofsky.cloud_s.ui.profile.UserProfileFeachures
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

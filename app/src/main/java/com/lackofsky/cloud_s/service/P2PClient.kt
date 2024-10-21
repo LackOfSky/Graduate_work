@@ -1,4 +1,4 @@
-package com.lackofsky.cloud_s.serviceP2P
+package com.lackofsky.cloud_s.service
 
 import android.app.Service
 import android.content.Intent
@@ -6,14 +6,12 @@ import android.os.Binder
 import android.os.IBinder
 import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.model.Message
-import com.lackofsky.cloud_s.data.model.User
-import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.repository.UserRepository
-import com.lackofsky.cloud_s.serviceP2P.client.ClientInterface
-import com.lackofsky.cloud_s.serviceP2P.client.NettyClient
-import com.lackofsky.cloud_s.serviceP2P.model.MessageType
-import com.lackofsky.cloud_s.serviceP2P.model.Peer
-import com.lackofsky.cloud_s.serviceP2P.model.TransportData
+import com.lackofsky.cloud_s.service.client.ClientInterface
+import com.lackofsky.cloud_s.service.client.NettyClient
+import com.lackofsky.cloud_s.service.model.MessageType
+import com.lackofsky.cloud_s.service.model.Peer
+import com.lackofsky.cloud_s.service.model.TransportData
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

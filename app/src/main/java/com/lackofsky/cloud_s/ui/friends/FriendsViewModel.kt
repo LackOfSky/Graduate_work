@@ -1,33 +1,22 @@
 package com.lackofsky.cloud_s.ui.friends
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.repository.UserRepository
-import com.lackofsky.cloud_s.serviceP2P.client.ClientInterface
+import com.lackofsky.cloud_s.service.data.SharedState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class FriendsViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val clientServiceInterface: ClientInterface
+    private val sharedState: SharedState
+//    private val clientServiceInterface: ClientInterface
 //    private val node: Near
 ) : ViewModel() {
 //    val friends = node.friends//TODO (cделать\проверить логику)
-//    val strangers = node.strangers
+    val peers = sharedState.peersFlow
 
     val tabTitlesList = listOf("Friends", "Add Friends", "Tab 3")
-
 //    fun getCurrentUser(id:Int):StateFlow<HostUser>{
 //        lateinit var hostUser: HostUser
 //        for(it in friends.value){

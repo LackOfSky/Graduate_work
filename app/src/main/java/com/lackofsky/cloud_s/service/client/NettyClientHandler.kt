@@ -1,4 +1,4 @@
-package com.lackofsky.cloud_s.serviceP2P.client
+package com.lackofsky.cloud_s.service.client
 
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
