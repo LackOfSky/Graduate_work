@@ -48,8 +48,8 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     }
     @Provides
     @Singleton
-    fun provideSharedState(): SharedState {
-        return SharedState()
+    fun provideSharedState(userRepository: UserRepository): SharedState {
+        return SharedState(userRepository)
     }
     @Provides
     fun provideNotificationManager(@ApplicationContext context: Context): NotificationManager {

@@ -15,11 +15,14 @@ import com.google.gson.Gson
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.service.client.NettyClient
 import com.lackofsky.cloud_s.service.data.SharedState
+import com.lackofsky.cloud_s.service.model.MessageType
+import com.lackofsky.cloud_s.service.model.TransportData
 import com.lackofsky.cloud_s.service.server.NettyServer
 import com.lackofsky.cloud_s.service.server.PeerDiscovery
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -50,13 +53,17 @@ class P2PServer : Service() {
         // Запускаем поиск пиров
         peerDiscovery = PeerDiscovery(
             onPeerResolved = { discoveredPeer ->
-                //sharedState.addPeer(discoveredPeer)
-                sendWHO_AM_I(discoveredPeer.address, discoveredPeer.port)
+                CoroutineScope(Dispatchers.IO).launch{
+                    sendWhoAmI(discoveredPeer.address, discoveredPeer.port)
+                }
+
                 },
             onPeerRemoved = {removePeer ->
                 sharedState.removeActiveUser(removePeer)
                 },
-            serviceName,applicationContext
+                serviceName,
+                nettyServer.getDefaultPort(),
+                applicationContext
 //            onPeerResolved = {resolvedPeer ->
 //                peers.remove(removePeer)
 //                updatePeersLiveData()}
@@ -70,9 +77,7 @@ class P2PServer : Service() {
         Log.d("service $SERVICE_NAME", "IS STARTED")
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // ...
         startForeground(NOTIFICATION_ID, notification)
-            //startForeground(NOTIFICATION_ID, createNotification())
         return START_STICKY
     }
     override fun onDestroy() {
@@ -104,11 +109,26 @@ class P2PServer : Service() {
             notificationManager.createNotificationChannel(channel)//getSystemService(NotificationManager::class.java
         }
     }
-    private fun sendWHO_AM_I(addr:String,port:Int){
-        val client = NettyClient(addr, port)
-        client.connect()
-        val json = gson.toJson(sharedState.userOwner.value)
-        client.sendMessage(json)
-        client.close()
+    private fun sendWhoAmI(addr:String, port:Int){
+        val client = NettyClient(sharedState,addr, port)//
+        try {
+            client.connect()
+            Log.d("service $SERVICE_NAME :client", "connected")
+            val content = gson.toJson(sharedState.userOwner.value)
+            val transportData = TransportData(
+                messageType = MessageType.USER,
+                senderId = sharedState.userOwner.value!!.uniqueID,
+                senderIp = "",
+                content = content
+            )
+            val json = gson.toJson(transportData)
+            client.sendMessage(json)
+            Log.d("service $SERVICE_NAME :client", "SENDED $json")
+        }catch (e: Exception){
+            Log.d("service $SERVICE_NAME :client", "catched $e")
+        }finally {
+            Log.d("service $SERVICE_NAME :client", "finally ")
+            client.close()
+        }
     }
 }

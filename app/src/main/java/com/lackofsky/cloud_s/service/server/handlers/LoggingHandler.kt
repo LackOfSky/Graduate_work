@@ -10,15 +10,15 @@ class LoggingHandler : ChannelInboundHandlerAdapter() {
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         // Преобразуем сообщение в строку для логирования
-        val message = msg.toString()
         // Логирование входящего сообщения
         if (msg is ByteBuf) {
             val message = msg.toString(Charsets.UTF_8)
-            Log.i("service GrimBerry", "Received message from " + ctx.channel().remoteAddress() + message)// : $message
+            Log.i("service GrimBerry LoggHandler", "Received message from " + ctx.channel().remoteAddress() + message)// : $message
+            ctx.fireChannelRead(msg)
         } else {
-            Log.e("service GrimBerry","Invalid message from " + ctx.channel().remoteAddress())//"Получено сообщение неизвестного типа: ${msg::class.java}"
+            Log.e("service GrimBerry LoggHandler","Invalid message from " + ctx.channel().remoteAddress())//"Получено сообщение неизвестного типа: ${msg::class.java}"
         }
-        ctx.fireChannelRead(msg)
+
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {

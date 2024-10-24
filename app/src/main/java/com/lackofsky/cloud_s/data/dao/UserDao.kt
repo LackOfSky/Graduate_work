@@ -22,8 +22,8 @@ interface UserDao {
     suspend fun updateUser(user: User)
     @Delete
     suspend fun deleteUser(user: User)
-    @Query("SELECT * FROM users WHERE macAddr = :macAddr")
-    fun getUserByMacAddr(macAddr: String): LiveData<User>
+    @Query("SELECT * FROM users WHERE uniqueID = :uniqueID")
+    fun getUserByUniqueID(uniqueID: String): LiveData<User>
     @Query("SELECT * FROM users WHERE userId = :id")
     fun getUserById(id: Int): LiveData<User>
     @Query("SELECT COUNT(*) FROM users")

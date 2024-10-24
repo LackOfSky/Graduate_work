@@ -9,6 +9,7 @@ import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.repository.MessageRepository
 import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.data.SharedState
 import com.lackofsky.cloud_s.service.model.MessageType
 import com.lackofsky.cloud_s.service.model.TransportData
@@ -17,6 +18,8 @@ import io.netty.channel.SimpleChannelInboundHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.net.InetSocketAddress
+import java.net.SocketAddress
 import javax.inject.Inject
 
 class NettyServerHandler(
@@ -28,8 +31,9 @@ class NettyServerHandler(
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: String) {
         try {
-                val json = gson.fromJson(msg, TransportData::class.java)
-                processMessage(json)
+                val data = gson.fromJson(msg, TransportData::class.java)
+            Log.d("service $SERVICE_NAME server handler","received: $data")
+                processMessage(ctx, data)
         }catch (e: JsonParseException) {
             Log.e("service GrimBerry SH"+" NettyServerHandler", "Error parsing message: ")
             Log.d("service GrimBerry SH", "non typical message: "+msg)
@@ -42,9 +46,11 @@ class NettyServerHandler(
         ctx.writeAndFlush("Message received from "+ctx.channel().remoteAddress())//TODO обработка логики подтверждения приема сообщенияс
 
     }
-    private fun processMessage(data: TransportData) {
+    private fun processMessage(ctx: ChannelHandlerContext,data: TransportData) {
         // Здесь можно обработать сообщение и взаимодействовать с messageRepository
         CoroutineScope(Dispatchers.IO).launch {
+            val remoteIpAddress = ctx.pipeline().channel().remoteAddress()
+
             when (data.messageType) {
                 MessageType.MESSAGE -> {
                     messageRepository.insertMessage(
@@ -52,8 +58,19 @@ class NettyServerHandler(
                     )
                 }
                 MessageType.USER -> {
+                    if(remoteIpAddress is InetSocketAddress){
+                        Log.d("service $SERVICE_NAME server handler","addr: "+ remoteIpAddress.address +remoteIpAddress.port)
+                          //TODO
                     val user = gson.fromJson(data.content, User::class.java)
+                        user.ipAddr = remoteIpAddress.address.hostAddress!!
+                        user.port = remoteIpAddress.port
+
+                        Log.d("service $SERVICE_NAME server handler","received message-user from: $remoteIpAddress")
+                        Log.d("service $SERVICE_NAME server handler","received: $user")
                     sharedState.addActiveUser(user)
+                    }else{
+                        throw Exception("Sender ip address is unknown")
+                    }
                 }
                 MessageType.USER_INFO -> {
                     TODO("переделать модель БД, реализовать прием данных")

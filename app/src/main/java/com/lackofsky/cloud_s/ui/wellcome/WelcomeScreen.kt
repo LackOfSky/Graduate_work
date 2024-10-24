@@ -31,7 +31,7 @@ fun WelcomeScreen(screenController: NavHostController, viewModel: WelcomeViewMod
     var about by remember { mutableStateOf("") }
     var info by remember { mutableStateOf("") }
     val context = LocalContext.current
-    val macAddress = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+    val uniqueID = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
 
     Column(modifier = Modifier.fillMaxSize()) {
         TextField(
@@ -56,7 +56,7 @@ fun WelcomeScreen(screenController: NavHostController, viewModel: WelcomeViewMod
         )
         Button(onClick = {
             viewModel.saveUser(
-                User(id = 1,fullName = fullName, login = login, macAddr = macAddress),
+                User(id = 1,fullName = fullName, login = login, uniqueID = uniqueID),
                 UserInfo(id = 1, about = about, info = info)
             )
             screenController.navigate("main")

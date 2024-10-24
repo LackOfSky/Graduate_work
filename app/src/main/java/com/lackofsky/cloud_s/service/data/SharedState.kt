@@ -16,11 +16,6 @@ class SharedState @Inject constructor(
     private val userRepository: UserRepository
 ) {
     // Поток данных для обмена между компонентами
-    /*** потенциально тут можна передавать сообщения с ошибками от сервера*/
-    //deprecated
-//    private val _peersFlow = MutableStateFlow<MutableSet<Peer>>(mutableSetOf()) //TODO превратить в set
-//    val peersFlow: StateFlow<MutableSet<Peer>> = _peersFlow
-
 
     private val _activeFriends = MutableStateFlow<MutableSet<User>>(mutableSetOf())
     val activeFriends: StateFlow<MutableSet<User>> = _activeFriends
@@ -28,10 +23,10 @@ class SharedState @Inject constructor(
     val activeStrangers: StateFlow<MutableSet<User>> = _activeStrangers
     /*** добавить флоу пиров (friends+strangers)
      *
-     * сервер -- принимает whoami - передает пользователя сюда. на onRemove мы его изымаем
+     *  сервер -- принимает whoami - передает пользователя сюда. на onRemove мы его изымаем
      *
      *
-     * активные - друзья
+     * активные - друзья,
      *            посторонние
      *
      * */
@@ -40,19 +35,9 @@ class SharedState @Inject constructor(
         userOwner = userRepository.getUserOwner() //TODO( ISSUE:при смене данных о пользователе будут отправлятся изначальные данные  bad flow)
         userOwner.observeForever {  }
     }
-    //friends
-    //peers
-
-//    fun addPeer(peer: Peer) {
-//        _peersFlow.value.add(peer)
-//    }
-//    fun removePeer(peer: Peer) {
-//        _peersFlow.value.remove(peer)
-//    }
-//    val ownerFlow: StateFlow<User> = _ownerFlow
 
     suspend fun addActiveUser(user: User){
-        if(userRepository.getUserByMacAddr(user.macAddr).isInitialized){
+        if(userRepository.getUserByUniqueID(user.uniqueID).isInitialized){
             userRepository.updateUser(user)
             _activeFriends.value.add(user)
         }else{

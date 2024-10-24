@@ -81,7 +81,7 @@ class P2PClient @Inject constructor(
     }
 
     override fun connectToPeer(peer: Peer){//TODO basic implementation
-        clients[peer.name] = NettyClient(host = peer.address, port = peer.port)
+        //clients[peer.name] = NettyClient(host = peer.address, port = peer.port)
 
         sendUser(peer.name)
         sendUserInfo(peer.name)

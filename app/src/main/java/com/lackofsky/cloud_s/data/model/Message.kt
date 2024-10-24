@@ -12,7 +12,7 @@ data class Message (
     @ColumnInfo(name = "messageId") @NotNull
     val id: Int,
     @ColumnInfo(name = "chatId") @NotNull
-    val chatId: String,
+    val chatId: String,                             /***chatId = Owner+Sender ID */
     @ColumnInfo(name = "senderMac") @NotNull
     val senderMac: String,
     @ColumnInfo(name = "messageContent") @NotNull

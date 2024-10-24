@@ -13,7 +13,7 @@ import com.lackofsky.cloud_s.data.model.User
 
 import com.lackofsky.cloud_s.data.model.UserInfo
 
-@Database(entities = [User::class,ChatParticipant::class, UserInfo::class, Chat::class,  Message::class], version = 2)
+@Database(entities = [User::class,ChatParticipant::class, UserInfo::class, Chat::class,  Message::class], version = 3)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun messageDao(): MessageDao

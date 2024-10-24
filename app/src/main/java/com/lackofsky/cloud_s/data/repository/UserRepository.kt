@@ -24,7 +24,7 @@ class UserRepository @Inject constructor(private val userDao: UserDao) {
     suspend fun updateUserInfo(userInfo: UserInfo) = userDao.updateUserInfo(userInfo)
 
     fun getUserById(id: Int): LiveData<User> = userDao.getUserById(id)
-    suspend fun getUserByMacAddr(macAddr: String): LiveData<User> = userDao.getUserByMacAddr(macAddr)
+    suspend fun getUserByUniqueID(uniqueID: String): LiveData<User> = userDao.getUserByUniqueID(uniqueID)
     fun getUserInfoById(id: Int): LiveData<UserInfo> = userDao.getUserInfoById(id)
 
     fun getAllUsers(): LiveData<List<User>> = userDao.getAllUsers()

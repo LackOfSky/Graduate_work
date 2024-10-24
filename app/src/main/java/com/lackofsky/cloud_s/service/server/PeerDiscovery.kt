@@ -16,6 +16,7 @@ class PeerDiscovery(private val onPeerResolved: (Peer) -> Unit,
                     //private val onPeerDiscovered: (Peer) -> Unit,
                     private val onPeerRemoved: (Peer) -> Unit,
                     private val SERIVCE_NAME:String,
+                    private val DEFAULT_PORT:Int,
                     private val context: Context
 ) {
     private lateinit var jmdns: JmDNS
@@ -53,10 +54,10 @@ class PeerDiscovery(private val onPeerResolved: (Peer) -> Unit,
                 // Обработка разрешения пира
                 //todo de-facto: добавить проверку условия в рабочей версии
                 //if(SERIVCE_NAME != event.name) {
-                    val peer = Peer(event.name, event.info.hostAddresses.first(), event.info.port)
+                    val peer = Peer(event.name, event.info.hostAddresses.first(), DEFAULT_PORT)
                     Log.i(
                         "service GrimBerry resolved",
-                        event.name + event.info.hostAddresses.first() + event.info.port
+                        "resolved id +port:" +event.name + event.info.hostAddresses.first() + event.info.port
                     )
                     onPeerResolved(peer)
 
