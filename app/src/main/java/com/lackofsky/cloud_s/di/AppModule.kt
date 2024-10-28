@@ -3,13 +3,14 @@ package com.lackofsky.cloud_s.di
 import android.app.NotificationManager
 import android.content.Context
 import androidx.room.Room
+import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.dao.ChatDao
 import com.lackofsky.cloud_s.data.dao.MessageDao
 import com.lackofsky.cloud_s.data.dao.UserDao
 import com.lackofsky.cloud_s.data.database.AppDatabase
 import com.lackofsky.cloud_s.data.repository.MessageRepository
 import com.lackofsky.cloud_s.data.repository.UserRepository
-import com.lackofsky.cloud_s.service.data.SharedState
+import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.server.NettyServer
 import dagger.Module
 import dagger.Provides
@@ -31,7 +32,11 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     )   .fallbackToDestructiveMigration()
         .build()
 }
-
+    @Provides
+    @Singleton
+    fun provideGson():Gson{
+        return Gson()
+    }
     @Provides
     fun provideUserDao(database: AppDatabase): UserDao {
         return database.userDao()
@@ -48,18 +53,18 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     }
     @Provides
     @Singleton
-    fun provideSharedState(userRepository: UserRepository): SharedState {
-        return SharedState(userRepository)
+    fun provideClientPartP2P(gson: Gson, userRepository: UserRepository): ClientPartP2P {
+        return ClientPartP2P(gson, userRepository)
     }
     @Provides
     fun provideNotificationManager(@ApplicationContext context: Context): NotificationManager {
         return context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
     @Provides
-    fun provideNettyServer(sharedState: SharedState,
+    fun provideNettyServer(clientPartP2P: ClientPartP2P,
                            messageRepository: MessageRepository,
                            userRepository: UserRepository): NettyServer {
-        return NettyServer(sharedState, messageRepository,userRepository)
+        return NettyServer(clientPartP2P, messageRepository,userRepository)
     }
 //    @Provides
 //    @Singleton

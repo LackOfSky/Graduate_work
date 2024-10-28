@@ -114,7 +114,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,
                             .weight(weight = 8f)
                     ) {
                         if (isHeaderEdit) {
-                            EditHeaderUserInfo(viewModel = viewModel, it)
+                            EditHeaderUserInfo(viewModel = viewModel, currentUser = it)
                         } else {
                             HeaderUserInfo(viewModel = viewModel, currentUser = it)
                         }

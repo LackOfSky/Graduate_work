@@ -66,6 +66,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onUserNameChange(newName: String) {
+        Log.d("GrimBerry vm", newName)
         _editUser.value = _editUser.value?.copy(fullName = newName)
     }
     fun onUserLoginChange(newLogin: String) {
@@ -93,7 +94,7 @@ class ProfileViewModel @Inject constructor(
             _editUser.value?.let { userRepository.updateUser(it) }
         }
     fun onConfirmUpdateNameLogin() = viewModelScope.launch {
-        _user.value?.let{
+        _user.value!!.let{
             userRepository.updateUser(it.copy(
                 login = editUser.value!!.login,
                 fullName = editUser.value!!.fullName))

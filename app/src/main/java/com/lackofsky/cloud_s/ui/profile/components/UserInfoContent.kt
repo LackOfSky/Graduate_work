@@ -48,14 +48,11 @@ fun UserInfoContent( viewModel: ProfileViewModel, currentUser: User, currentUser
                     vertical = 8.dp
                 )
         ) {
-            //About User
-            //    Box(){
             if (isAboutEdit) {
                 AboutUserEdit(viewModel, currentUserInfo)
             } else {
                 AboutUser(viewModel, currentUserInfo)
             }
-            //}
             if (isInfoEdit) {
                 UserInfoEdit(viewModel, currentUserInfo)
             } else {

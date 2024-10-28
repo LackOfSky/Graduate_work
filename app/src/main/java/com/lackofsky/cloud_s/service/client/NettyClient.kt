@@ -1,11 +1,6 @@
 package com.lackofsky.cloud_s.service.client
 
-import SecurityHandler
 import android.util.Log
-import com.google.gson.Gson
-import com.lackofsky.cloud_s.service.data.SharedState
-import com.lackofsky.cloud_s.service.model.MessageType
-import com.lackofsky.cloud_s.service.model.TransportData
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
@@ -13,8 +8,6 @@ import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder
-import io.netty.handler.codec.LengthFieldPrepender
 import io.netty.handler.codec.string.StringDecoder
 import io.netty.handler.codec.string.StringEncoder
 import java.nio.charset.Charset
@@ -24,7 +17,7 @@ import java.nio.charset.Charset
  * как к ним стучаться - вопрос следующий..
  * */
 
-class NettyClient(private val sharedState: SharedState, private val host: String, private val port: Int) {//
+class NettyClient( private val host: String, private val port: Int) {//private val sharedState: SharedState,
     private lateinit var channel: Channel
     private val group = NioEventLoopGroup()
     fun connect() {
@@ -53,7 +46,7 @@ class NettyClient(private val sharedState: SharedState, private val host: String
                         //todo почитать об этом. у нас не используется protocol handler
                         //pipeline.addLast(SecurityHandler(isClient = true))  // Обработчик Noise для шифрования todo
                         /*** abandoned*///pipeline.addLast(MplexHandler())
-                        pipeline.addLast(NettyClientHandler(sharedState))  // Основной обработчик сообщений
+                        pipeline.addLast(NettyClientHandler())  // Основной обработчик сообщений sharedState
                     }
 
                     override fun channelInactive(ctx: ChannelHandlerContext?) {
@@ -73,7 +66,7 @@ class NettyClient(private val sharedState: SharedState, private val host: String
     fun sendMessage(message: String) {
         if (this::channel.isInitialized && channel.isActive) {
             channel.writeAndFlush(message)
-//            Log.d("service GrimBerry :client","sended message: $message")
+//            Log.d("service GrimBerry :client","sent message: $message")
         } else {
             Log.e("service GrimBerry :client "," Channel is not active")
             throw Exception()//todo отобразить ошибку в интерфейс

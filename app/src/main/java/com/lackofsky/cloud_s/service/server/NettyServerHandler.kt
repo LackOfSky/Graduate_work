@@ -3,14 +3,13 @@ package com.lackofsky.cloud_s.service.server
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonParseException
-import com.google.gson.JsonSyntaxException
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.repository.MessageRepository
 import com.lackofsky.cloud_s.data.repository.UserRepository
 import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
-import com.lackofsky.cloud_s.service.data.SharedState
+import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.MessageType
 import com.lackofsky.cloud_s.service.model.TransportData
 import io.netty.channel.ChannelHandlerContext
@@ -19,13 +18,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
-import java.net.SocketAddress
-import javax.inject.Inject
 
 class NettyServerHandler(
     private val messageRepository: MessageRepository,
     private val userRepository: UserRepository,
-    private val sharedState: SharedState
+    private val clientPartP2P: ClientPartP2P
 ) : SimpleChannelInboundHandler<String>() {
     val gson = Gson()
 
@@ -61,13 +58,14 @@ class NettyServerHandler(
                     if(remoteIpAddress is InetSocketAddress){
                         Log.d("service $SERVICE_NAME server handler","addr: "+ remoteIpAddress.address +remoteIpAddress.port)
                           //TODO
-                    val user = gson.fromJson(data.content, User::class.java)
-                        user.ipAddr = remoteIpAddress.address.hostAddress!!
-                        user.port = remoteIpAddress.port
+                        val user = gson.fromJson(data.content, User::class.java)
+                            .copy(ipAddr = remoteIpAddress.address.hostAddress!!, port = remoteIpAddress.port)
+//                        user.ipAddr =
+//                        user.port = remoteIpAddress.port
 
                         Log.d("service $SERVICE_NAME server handler","received message-user from: $remoteIpAddress")
                         Log.d("service $SERVICE_NAME server handler","received: $user")
-                    sharedState.addActiveUser(user)
+                    clientPartP2P.addActiveUser(user)
                     }else{
                         throw Exception("Sender ip address is unknown")
                     }

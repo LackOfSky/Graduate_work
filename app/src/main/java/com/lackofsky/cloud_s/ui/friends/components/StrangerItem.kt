@@ -101,6 +101,7 @@ fun StrangerItem(userStranger: User,addToFriend: (hostUser:User)->Unit){
         TextButton(
             onClick = {
                 addToFriend(userStranger)
+                isExpandedItemMenu = !isExpandedItemMenu
             },
             elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
             contentPadding = PaddingValues(

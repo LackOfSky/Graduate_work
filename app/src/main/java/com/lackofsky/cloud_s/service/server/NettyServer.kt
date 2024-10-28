@@ -1,33 +1,26 @@
 package com.lackofsky.cloud_s.service.server
 
-import SecurityHandler
+import android.net.wifi.p2p.WifiP2pManager
 import android.util.Log
 import com.lackofsky.cloud_s.data.repository.MessageRepository
 import com.lackofsky.cloud_s.data.repository.UserRepository
-import com.lackofsky.cloud_s.service.data.SharedState
+import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.Peer
 import com.lackofsky.cloud_s.service.server.handlers.LoggingHandler
-import dagger.hilt.android.AndroidEntryPoint
 import io.netty.bootstrap.ServerBootstrap
-import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInitializer
-import io.netty.channel.ChannelProgressiveFutureListener
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder
-import io.netty.handler.codec.LengthFieldPrepender
 import io.netty.handler.codec.string.StringDecoder
 import io.netty.handler.codec.string.StringEncoder
-import io.netty.util.CharsetUtil
-import java.io.IOException
 import java.net.InetAddress
-import java.net.ServerSocket
 import java.nio.charset.Charset
 import javax.inject.Inject
+import java.net.NetworkInterface
 
 class NettyServer @Inject constructor(
-    private val sharedState: SharedState,
+    private val clientPartP2P: ClientPartP2P,
     private val messageRepository: MessageRepository,
     private val userRepository: UserRepository
 )  {
@@ -38,7 +31,7 @@ class NettyServer @Inject constructor(
     private lateinit var workerGroup: NioEventLoopGroup
 
     fun start() {
-
+        Log.d("service $serviceName"+ " ip-addr :",getLocalIpAddress()!!)
         bossGroup = NioEventLoopGroup(1)
         workerGroup = NioEventLoopGroup()
         Log.d("service $serviceName", "started at " + InetAddress.getLocalHost() +" $DEFAULT_PORT")
@@ -63,10 +56,10 @@ class NettyServer @Inject constructor(
                         pipeline.addLast(NettyServerHandler( // Основной обработчик сообщений
                             messageRepository,
                             userRepository,
-                            sharedState)
+                            clientPartP2P)
                         )
                         ch.closeFuture().addListener { future ->//TODO (обработку ошибок)
-                            sharedState.removeActiveUser(Peer(name = "",
+                            clientPartP2P.removeActiveUser(Peer(name = "",
                                                         address = ch.remoteAddress().address.hostAddress!!,
                                                         port = ch.remoteAddress().port) )
                             Log.i("service $serviceName", "Connection closed: ${ch.remoteAddress()}")
@@ -92,5 +85,39 @@ class NettyServer @Inject constructor(
     }
     fun getDefaultPort():Int{
         return DEFAULT_PORT
+    }
+
+
+    fun getLocalIpAddress(): String? {
+
+        Log.d(
+            "service $serviceName" + " ip-addr :",
+            NetworkInterface.getNetworkInterfaces().toString()
+        )
+        for (networkInterface in NetworkInterface.getNetworkInterfaces()) {
+            Log.d("service $serviceName"+ " ip-addr :",networkInterface.name.toString()+networkInterface.inetAddresses.toString()+networkInterface.interfaceAddresses.toString())
+            when {
+                networkInterface.name.startsWith("p2p") -> {
+                    /* Wi-Fi Direct */ }
+                networkInterface.name.startsWith("bnep") -> { /* Bluetooth PAN */ }
+                networkInterface.name.startsWith("rndis") -> { /* USB Tethering */ }
+                else -> { /* Other */ }
+            }
+        }
+
+        val interfaces = NetworkInterface.getNetworkInterfaces()
+        for (networkInterface in interfaces) {
+            val addresses = networkInterface.inetAddresses
+            for (address in addresses) {
+                if (!address.isLoopbackAddress && address is InetAddress) {
+                    val hostAddress = address.hostAddress
+                    // Проверяем, что это IPv4-адрес
+                    if (hostAddress.indexOf(':') < 0) {
+                        return hostAddress
+                    }
+                }
+            }
+        }
+        return null
     }
 }

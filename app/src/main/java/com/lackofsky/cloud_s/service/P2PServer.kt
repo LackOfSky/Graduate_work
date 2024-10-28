@@ -14,7 +14,6 @@ import androidx.core.app.NotificationCompat
 import com.google.gson.Gson
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.service.client.NettyClient
-import com.lackofsky.cloud_s.service.data.SharedState
 import com.lackofsky.cloud_s.service.model.MessageType
 import com.lackofsky.cloud_s.service.model.TransportData
 import com.lackofsky.cloud_s.service.server.NettyServer
@@ -22,7 +21,6 @@ import com.lackofsky.cloud_s.service.server.PeerDiscovery
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,16 +31,14 @@ class P2PServer : Service() {
         const val NOTIFICATION_ID = 1
         const val SERVICE_NAME ="GrimBerry"
     }
-    @Inject lateinit var sharedState: SharedState
+    @Inject lateinit var clientPartP2P: ClientPartP2P
     @Inject lateinit var notificationManager: NotificationManager
 
     @Inject lateinit var nettyServer: NettyServer
     private lateinit var peerDiscovery: PeerDiscovery
-    private val gson = Gson()
+    @Inject lateinit var gson: Gson
   //private lateinit var protocolHandler: ProtocolHandler //TODO выбор протокола передачи данных
-//    nettyClient.sendMessage(
-//    gson.toJson(transportData)
-//    )
+
     private lateinit var notification:Notification
     override fun onCreate() {
         Log.d("service $SERVICE_NAME", "WAS LOGGED")
@@ -59,7 +55,7 @@ class P2PServer : Service() {
 
                 },
             onPeerRemoved = {removePeer ->
-                sharedState.removeActiveUser(removePeer)
+                clientPartP2P.removeActiveUser(removePeer)
                 },
                 serviceName,
                 nettyServer.getDefaultPort(),
@@ -110,14 +106,14 @@ class P2PServer : Service() {
         }
     }
     private fun sendWhoAmI(addr:String, port:Int){
-        val client = NettyClient(sharedState,addr, port)//
+        val client = NettyClient(addr, port)//
         try {
             client.connect()
             Log.d("service $SERVICE_NAME :client", "connected")
-            val content = gson.toJson(sharedState.userOwner.value)
+            val content = gson.toJson(clientPartP2P.userOwner.value)
             val transportData = TransportData(
                 messageType = MessageType.USER,
-                senderId = sharedState.userOwner.value!!.uniqueID,
+                senderId = clientPartP2P.userOwner.value!!.uniqueID,
                 senderIp = "",
                 content = content
             )
