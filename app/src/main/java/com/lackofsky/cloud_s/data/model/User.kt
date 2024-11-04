@@ -19,7 +19,7 @@ data class User(
     @Ignore
     val ipAddr: String = "",
     @Ignore
-    val port: Int = 0){
+    val port: Int = 15015){
     constructor(id: Int, fullName: String, login: String, uniqueID: String) : this(
         id, fullName, login, uniqueID, "", 0
     )

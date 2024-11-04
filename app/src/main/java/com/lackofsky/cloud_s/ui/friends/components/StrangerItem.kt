@@ -40,14 +40,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.data.model.User
+import com.lackofsky.cloud_s.ui.friends.FriendsViewModel
+
 //import com.lackofsky.cloud_s.services.p2pService.HostUser
 
 @Composable
-fun StrangerItem(userStranger: User,addToFriend: (hostUser:User)->Unit){
-    var isExpandedItemMenu by remember { mutableStateOf(false) }
-//TOdo hostUser ЧЕРЕЗ РОДИТЕЛЬСКИЙ ЕЛЕМЕНТ
+fun StrangerItem(userStranger: User, viewModel: FriendsViewModel,isRequested:Boolean){
+    var isPeerRequested by remember { mutableStateOf(isRequested) }
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
@@ -98,25 +100,49 @@ fun StrangerItem(userStranger: User,addToFriend: (hostUser:User)->Unit){
             )
 
         }
-        TextButton(
-            onClick = {
-                addToFriend(userStranger)
-                isExpandedItemMenu = !isExpandedItemMenu
-            },
-            elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
-            contentPadding = PaddingValues(
-                horizontal = 16.dp, // Set horizontal padding to 20dp
-                vertical = 5.dp // Set vertical padding to 10dp
-            ), border = BorderStroke(1.dp, Color.Transparent),
-            modifier = Modifier.background(Color.Transparent, RectangleShape)
+        if(!isPeerRequested){
+            TextButton(
+                onClick = {
+                    viewModel.sendFriendRequest(userStranger)
+                    isPeerRequested = !isPeerRequested
+                },
+                elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
+                contentPadding = PaddingValues(
+                    horizontal = 16.dp, // Set horizontal padding to 20dp
+                    vertical = 5.dp // Set vertical padding to 10dp
+                ), border = BorderStroke(1.dp, Color.Transparent),
+                modifier = Modifier.background(Color.Transparent, RectangleShape)
 
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_more_vert_24),
-                contentDescription = "Icon",
-                modifier = Modifier
-                //tint = Color(0xff1d1b20)
-            )
+            ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_add_24),
+                        contentDescription = "Icon",
+                        modifier = Modifier
+                        //tint = Color(0xff1d1b20)
+                    )
+            }
+        }else {
+                TextButton(
+                    onClick = {
+                        viewModel.cancelFriendRequest(userStranger)
+                        isPeerRequested = !isPeerRequested
+                    },
+                    elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
+                    contentPadding = PaddingValues(
+                        horizontal = 16.dp, // Set horizontal padding to 20dp
+                        vertical = 5.dp // Set vertical padding to 10dp
+                    ), border = BorderStroke(1.dp, Color.Transparent),
+                    modifier = Modifier.background(Color.Transparent, RectangleShape)
+
+                ) {
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_check_16),
+                        contentDescription = "Icon",
+                        modifier = Modifier
+                        //tint = Color(0xff1d1b20)
+                    )
+                }
         }
 
     }

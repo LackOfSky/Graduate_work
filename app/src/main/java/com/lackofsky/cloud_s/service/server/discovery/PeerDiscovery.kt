@@ -1,4 +1,4 @@
-package com.lackofsky.cloud_s.service.server
+package com.lackofsky.cloud_s.service.server.discovery
 
 import android.content.Context
 import android.net.wifi.WifiManager
@@ -45,21 +45,23 @@ class PeerDiscovery(private val onPeerResolved: (Peer) -> Unit,
 
             override fun serviceRemoved(event: ServiceEvent) {
                 // Обработка удаления пира
-                val peer = Peer(event.name, event.info.hostAddresses.first(), event.info.port)
-                Log.i("service GrimBerry removed","name: "+event.name +event.info.hostAddresses.first() +event.info.port)
-                onPeerRemoved(peer)
+                TODO()
+//                val peer = Peer(event.name, event.info.hostAddresses.first(), event.info.port)
+//                Log.i("service GrimBerry removed","name: "+event.name +event.info.hostAddresses.first() +event.info.port)
+//                onPeerRemoved(peer)
             }
 
             override fun serviceResolved(event: ServiceEvent) {
                 // Обработка разрешения пира
                 //todo de-facto: добавить проверку условия в рабочей версии
                 //if(SERIVCE_NAME != event.name) {
-                    val peer = Peer(event.name, event.info.hostAddresses.first(), DEFAULT_PORT)
-                    Log.i(
-                        "service GrimBerry resolved",
-                        "resolved id +port:" +event.name + event.info.hostAddresses.first() + event.info.port
-                    )
-                    onPeerResolved(peer)
+                TODO()
+//                    val peer = Peer(event.name, event.info.hostAddresses.first(), DEFAULT_PORT)
+//                    Log.i(
+//                        "service GrimBerry resolved",
+//                        "resolved id +port:" +event.name + event.info.hostAddresses.first() + event.info.port
+//                    )
+//                    onPeerResolved(peer)
 
                 //}
 

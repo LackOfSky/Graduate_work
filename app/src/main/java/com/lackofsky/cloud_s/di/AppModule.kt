@@ -11,7 +11,9 @@ import com.lackofsky.cloud_s.data.database.AppDatabase
 import com.lackofsky.cloud_s.data.repository.MessageRepository
 import com.lackofsky.cloud_s.data.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
+import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.server.NettyServer
+import com.lackofsky.cloud_s.service.server.discovery.WiFiDirectManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,8 +55,9 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     }
     @Provides
     @Singleton
-    fun provideClientPartP2P(gson: Gson, userRepository: UserRepository): ClientPartP2P {
-        return ClientPartP2P(gson, userRepository)
+    fun provideClientPartP2P(gson: Gson, userRepository: UserRepository,
+                             metadata: Metadata): ClientPartP2P {
+        return ClientPartP2P(gson, userRepository,metadata)
     }
     @Provides
     fun provideNotificationManager(@ApplicationContext context: Context): NotificationManager {
@@ -63,30 +66,18 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     @Provides
     fun provideNettyServer(clientPartP2P: ClientPartP2P,
                            messageRepository: MessageRepository,
-                           userRepository: UserRepository): NettyServer {
-        return NettyServer(clientPartP2P, messageRepository,userRepository)
+                           userRepository: UserRepository,
+                           metadata: Metadata): NettyServer {
+        return NettyServer(clientPartP2P, messageRepository,userRepository, metadata)
     }
-//    @Provides
-//    @Singleton
-//    fun provideDiscoveryByNear(@ApplicationContext context: Context,userDao: UserDao):DiscoveryByNear{
-//        return DiscoveryByNear(userDao,context)
-//    }
-//    @Provides
-//    @Singleton
-//    fun provideConnectByNear(@ApplicationContext context: Context,userRepository: UserRepository): ConnectByNear {
-//        return ConnectByNear(context,userRepository)
-//    }
-//    @Provides
-//    @Singleton
-//    fun provideNear(discovery:DiscoveryByNear,connectByNear: ConnectByNear): Near {
-//        return Near(discovery,connectByNear)
-//    }
-
-//@Provides
-//fun provideClientServiceInterface(@ApplicationContext context: Context): ClientInterface {
-//    // Использование Bound Service для получения интерфейса
-//    val serviceConnection = ClientServiceConnectionManager(context)
-//    return serviceConnection.getServiceInterface()
-//}
+    @Provides
+    @Singleton
+    fun provideMetadata():Metadata{
+        return Metadata(15015,"GrimBerry")
+    }
+    @Provides
+    fun provideWiFiDirectManager(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): WiFiDirectManager {
+        return WiFiDirectManager(context,clientPartP2P)
+    }
 
 }

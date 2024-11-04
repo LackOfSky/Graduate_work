@@ -1,13 +1,16 @@
 package com.lackofsky.cloud_s.service
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.client.NettyClient
 import com.lackofsky.cloud_s.service.model.MessageType
+import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.model.Peer
 import com.lackofsky.cloud_s.service.model.TransportData
 import dagger.hilt.android.AndroidEntryPoint
@@ -21,7 +24,8 @@ import javax.inject.Inject
 
 class ClientPartP2P @Inject constructor(
     private val gson: Gson,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val metadata: Metadata
 ) {
     // Поток данных для обмена между компонентами
 
@@ -62,7 +66,7 @@ class ClientPartP2P @Inject constructor(
 
      fun removeActiveUser(peer: Peer) {
          _activeFriends.update { users ->
-             val userToRemove = users.keys.find { it.ipAddr == peer.address && it.port == peer.port }
+             val userToRemove = users.keys.find { it.ipAddr == peer.address }
              if (userToRemove != null) {
                  users.remove(userToRemove)
                      ?.close()
@@ -72,7 +76,7 @@ class ClientPartP2P @Inject constructor(
              users
          }
             _activeStrangers.update { users ->
-                users.removeIf { it.ipAddr == peer.address && it.port == peer.port }
+                users.removeIf { it.ipAddr == peer.address }
                 users
             }
 
@@ -99,5 +103,26 @@ class ClientPartP2P @Inject constructor(
     fun addFriendInfo(userInfo: UserInfo){
         TODO()
     }
-
+    fun sendWhoAmI(addr: String){
+        val client = NettyClient(addr, metadata.defaultPort)//
+        try {
+            client.connect()
+            Log.d("service $SERVICE_NAME :client", "connected")
+            val content = gson.toJson(userOwner.value)
+            val transportData = TransportData(
+                messageType = MessageType.USER,
+                senderId = userOwner.value!!.uniqueID,
+                senderIp = "",
+                content = content
+            )
+            val json = gson.toJson(transportData)
+            client.sendMessage(json)
+            Log.d("service $SERVICE_NAME :client", "SENDED $json")
+        }catch (e: Exception){
+            Log.d("service $SERVICE_NAME :client", "catched $e")
+        }finally {
+            Log.d("service $SERVICE_NAME :client", "finally ")
+            client.close()
+        }
+    }
 }

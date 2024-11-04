@@ -59,6 +59,7 @@ import com.lackofsky.cloud_s.ui.friends.components.FriendProfile
 import com.lackofsky.cloud_s.ui.profile.ProfileScreen
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.setValue
 import com.lackofsky.cloud_s.ui.friends.components.StrangerItem
 
 //import com.lackofsky.cloud_s.ui.friends.components.StrangerItem
@@ -74,6 +75,7 @@ sealed class UserRoutes(val route: String) {
 }
 @Composable
 fun FriendsScreen(viewModel: FriendsViewModel = hiltViewModel()) {
+    var isPeerRequested by remember { mutableStateOf(false) }
 //    val friendPlaceholder by viewModel.currentUser.collectAsState()//TODO friends placeholder
 //    val strangers by viewModel.strangers.collectAsState()
     val navController = rememberNavController()
@@ -120,7 +122,7 @@ fun FriendsContainer(viewModel: FriendsViewModel,
         when (tabIndex.value) {
             0 -> FriendList(viewModel,navController)
             1 -> PeerList(viewModel,navController)//AddFriends()
-            2 -> TabContent3()
+            2 -> WaitingForConnection(viewModel,navController)
         }
     }
 }
@@ -128,25 +130,27 @@ fun FriendsContainer(viewModel: FriendsViewModel,
 @Composable
 fun FriendList(viewModel: FriendsViewModel,navController: NavHostController) {
 
-//    val friendList by viewModel.friends.collectAsState()
+    val friendList by viewModel.friends.observeAsState()
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
-//        items(friendList) { friend ->
-//            Card(//navigate
-//                elevation = CardDefaults.cardElevation(10.dp),
-//                colors = CardDefaults.cardColors(Color.White),
-//                shape = RoundedCornerShape(20.dp),
-//                modifier = Modifier
-//                    .height(80.dp)
-//                    .padding(1.dp, 2.dp)
-//                    .clickable {
-//                        navController.navigate(UserRoutes.User.createRoute(friend.user.id))
-//                    }
-//            ) {
-//                FriendItem(friend.user)
-//            }
-//        }
+        friendList?.let {
+            items(it.toList()) { friend ->
+                Card(//navigate
+                    elevation = CardDefaults.cardElevation(10.dp),
+                    colors = CardDefaults.cardColors(Color.White),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .height(80.dp)
+                        .padding(1.dp, 2.dp)
+                        .clickable {
+                            navController.navigate(UserRoutes.User.createRoute(friend.id))
+                        }
+                ) {
+                    FriendItem(friend)
+                }
+            }
+        }
         item{Text(text="",modifier = Modifier.height(80.dp))}
     }
 }
@@ -166,11 +170,12 @@ fun PeerList(viewModel: FriendsViewModel,navController: NavHostController) {
                     .height(80.dp)
                     .padding(1.dp, 2.dp)
                     .clickable {
-                        //navController.navigate(UserRoutes.User.createRoute(friend.id))
+                        navController.navigate(UserRoutes.User.createRoute(peer.id))
                     }
             ) {
                 //FriendItem(peer.user)
-                StrangerItem(peer,viewModel::addToFriends)
+                    StrangerItem(peer,viewModel,viewModel.isPeerInRequested(peer))
+
             }
         }
         item{Text(text="",modifier = Modifier.height(80.dp))}
@@ -216,11 +221,29 @@ fun AddFriends() {
 }
 
 @Composable
-fun TabContent3() {
-    Box(modifier = Modifier
+fun WaitingForConnection(viewModel: FriendsViewModel,navController:NavHostController) {
+    val requestedPeers by viewModel.requestedStrangers.collectAsState()
+    LazyColumn(modifier = Modifier
         .fillMaxSize()
-        .padding(16.dp)) {
-        BasicText(text = "Content for Tab 3")
+        .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
+        items(requestedPeers.toList()) { peer ->
+            Card(//navigate
+                elevation = CardDefaults.cardElevation(10.dp),
+                colors = CardDefaults.cardColors(Color.White),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .height(80.dp)
+                    .padding(1.dp, 2.dp)
+                    .clickable {
+                        navController.navigate(UserRoutes.User.createRoute(peer.id))
+                    }
+            ) {
+                //FriendItem(peer.user)
+                    StrangerItem(peer,viewModel,true)
+
+            }
+        }
+        item{Text(text="",modifier = Modifier.height(80.dp))}
     }
 }
 

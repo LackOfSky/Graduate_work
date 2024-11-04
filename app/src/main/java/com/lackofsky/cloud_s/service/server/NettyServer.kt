@@ -1,10 +1,10 @@
 package com.lackofsky.cloud_s.service.server
 
-import android.net.wifi.p2p.WifiP2pManager
 import android.util.Log
 import com.lackofsky.cloud_s.data.repository.MessageRepository
 import com.lackofsky.cloud_s.data.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
+import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.model.Peer
 import com.lackofsky.cloud_s.service.server.handlers.LoggingHandler
 import io.netty.bootstrap.ServerBootstrap
@@ -22,10 +22,11 @@ import java.net.NetworkInterface
 class NettyServer @Inject constructor(
     private val clientPartP2P: ClientPartP2P,
     private val messageRepository: MessageRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val metadata: Metadata
 )  {
-    private val DEFAULT_PORT = 15015
-    private val serviceName = "GrimBerry"
+    private val DEFAULT_PORT = metadata.defaultPort
+    private val serviceName = metadata.serviceName
 
     private lateinit var bossGroup: NioEventLoopGroup
     private lateinit var workerGroup: NioEventLoopGroup
@@ -60,8 +61,8 @@ class NettyServer @Inject constructor(
                         )
                         ch.closeFuture().addListener { future ->//TODO (обработку ошибок)
                             clientPartP2P.removeActiveUser(Peer(name = "",
-                                                        address = ch.remoteAddress().address.hostAddress!!,
-                                                        port = ch.remoteAddress().port) )
+                                                        address = ch.remoteAddress().address.address.toString())
+                            )
                             Log.i("service $serviceName", "Connection closed: ${ch.remoteAddress()}")
 
                         }

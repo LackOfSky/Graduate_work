@@ -5,7 +5,11 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
+import android.net.wifi.p2p.WifiP2pDevice
+import android.net.wifi.p2p.WifiP2pManager
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
@@ -17,7 +21,8 @@ import com.lackofsky.cloud_s.service.client.NettyClient
 import com.lackofsky.cloud_s.service.model.MessageType
 import com.lackofsky.cloud_s.service.model.TransportData
 import com.lackofsky.cloud_s.service.server.NettyServer
-import com.lackofsky.cloud_s.service.server.PeerDiscovery
+import com.lackofsky.cloud_s.service.server.discovery.PeerDiscovery
+import com.lackofsky.cloud_s.service.server.discovery.WiFiDirectManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,42 +36,33 @@ class P2PServer : Service() {
         const val NOTIFICATION_ID = 1
         const val SERVICE_NAME ="GrimBerry"
     }
+    inner class LocalBinder : Binder() {
+        fun getService(): P2PServer = this@P2PServer
+    }
     @Inject lateinit var clientPartP2P: ClientPartP2P
     @Inject lateinit var notificationManager: NotificationManager
 
     @Inject lateinit var nettyServer: NettyServer
-    private lateinit var peerDiscovery: PeerDiscovery
+//    private lateinit var peerDiscovery: PeerDiscovery
     @Inject lateinit var gson: Gson
+
+    @Inject lateinit var wifiDirectManager: WiFiDirectManager
+
   //private lateinit var protocolHandler: ProtocolHandler //TODO выбор протокола передачи данных
 
     private lateinit var notification:Notification
     override fun onCreate() {
+        //wifiDirectManager
+
         Log.d("service $SERVICE_NAME", "WAS LOGGED")
         super.onCreate()
         createNotificationChannel()
-        val serviceName = Settings.Secure.getString(contentResolver,
+        val serviceName = Settings.Secure.getString(contentResolver, //TODO
             Settings.Secure.ANDROID_ID)
-        // Запускаем поиск пиров
-        peerDiscovery = PeerDiscovery(
-            onPeerResolved = { discoveredPeer ->
-                CoroutineScope(Dispatchers.IO).launch{
-                    sendWhoAmI(discoveredPeer.address, discoveredPeer.port)
-                }
-
-                },
-            onPeerRemoved = {removePeer ->
-                clientPartP2P.removeActiveUser(removePeer)
-                },
-                serviceName,
-                nettyServer.getDefaultPort(),
-                applicationContext
-//            onPeerResolved = {resolvedPeer ->
-//                peers.remove(removePeer)
-//                updatePeersLiveData()}
-        )
         CoroutineScope(Dispatchers.IO).launch {
             // Запускаем сервер для входящих подключений
-            peerDiscovery.startDiscovery()
+//            peerDiscovery.startDiscovery()
+            wifiDirectManager.startPeerDiscovery()
             nettyServer.start()
 
         }
@@ -78,8 +74,9 @@ class P2PServer : Service() {
     }
     override fun onDestroy() {
         super.onDestroy()
-        peerDiscovery.stopDiscovery()
+//        peerDiscovery.stopDiscovery()
         nettyServer.stop()
+        wifiDirectManager.stopPeerDiscovery()
         stopForeground(STOP_FOREGROUND_REMOVE)
         Log.d("service $SERVICE_NAME", "WAS ENDED")
     }
@@ -88,7 +85,7 @@ class P2PServer : Service() {
         return null
     }
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val channel = NotificationChannel(CHANNEL_ID, SERVICE_NAME, NotificationManager.IMPORTANCE_DEFAULT)
             channel.description = "Описание канала"
             channel.enableLights(true)
@@ -127,4 +124,5 @@ class P2PServer : Service() {
             client.close()
         }
     }
+
 }

@@ -1,0 +1,4 @@
+package com.lackofsky.cloud_s.service.model
+
+data class Metadata(val  defaultPort:Int = 15015,
+                    val serviceName: String = "GrimBerry")

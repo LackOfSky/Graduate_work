@@ -50,7 +50,8 @@ class MainActivity : ComponentActivity() {
         Manifest.permission.FOREGROUND_SERVICE,
         Manifest.permission.FOREGROUND_SERVICE_DATA_SYNC,
         Manifest.permission.POST_NOTIFICATIONS,
-        Manifest.permission.CHANGE_WIFI_MULTICAST_STATE
+        Manifest.permission.CHANGE_WIFI_MULTICAST_STATE,
+        Manifest.permission.NEARBY_WIFI_DEVICES
     )
 
 

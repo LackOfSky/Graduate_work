@@ -10,7 +10,7 @@ class ProtocolHandler {
 
     fun chooseProtocol(peer: Peer): Protocol {
         return when {
-            peer.port == 12345 -> Protocol.NOISE_TCP
+            //peer.port == 12345 -> Protocol.NOISE_TCP
             peer.name.contains("udp") -> Protocol.NOISE_UDP
             else -> Protocol.NOISE_TCP
         }
