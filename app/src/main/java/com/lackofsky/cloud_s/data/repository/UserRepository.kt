@@ -2,6 +2,8 @@ package com.lackofsky.cloud_s.data.repository
 
 import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import com.lackofsky.cloud_s.data.dao.UserDao
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
@@ -13,6 +15,7 @@ import javax.inject.Singleton
 
 @Singleton
 class UserRepository @Inject constructor(private val userDao: UserDao) {
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertUser(user: User) = userDao.insertUser(user)
     suspend fun updateUser(user: User) = userDao.updateUser(user)
     suspend fun deleteUser(user: User) = userDao.deleteUser(user)

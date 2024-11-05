@@ -4,5 +4,6 @@ data class TransportData(
     val messageType: MessageType,
     val senderId: String,
     val senderIp: String = "",
+    val sender: String,
     val content: String
 )

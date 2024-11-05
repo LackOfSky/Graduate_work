@@ -20,8 +20,8 @@ class FriendsViewModel @Inject constructor(
 //    private val node: Near
 ) : ViewModel() {
 //    val friends = node.friends//TODO (cделать\проверить логику)
-      val peers1 = clientPartP2P.activeStrangers
-      val peers = MutableStateFlow<MutableSet<User>>(mutableSetOf()) //placeholder for strangers peers1
+      val peers = clientPartP2P.activeStrangers
+      val peers1 = MutableStateFlow<MutableSet<User>>(mutableSetOf()) //placeholder for strangers peers1
       val friends = userRepository.getAllUsers()
 
       val requestedStrangers = MutableStateFlow<MutableSet<User>>(mutableSetOf())// в дальнейшем изменить на set
@@ -30,7 +30,7 @@ class FriendsViewModel @Inject constructor(
         val user = User(2,"Named nature","logic_A","fadfd213a2ek1")// не ставить id=1
         val user2 = User(3,"JohnDOe","logo","dsdsds33")// не ставить id=1
         val user3 = User(4,"Jeremy Sparks","kicked","ewewewe22")// не ставить id=1
-        peers.value = mutableSetOf(user,user2,user3)
+        //peers1.value = mutableSetOf(user,user2,user3)//placeholder for strangers peers1
     }
     val tabTitlesList = listOf("Friends", "Add Friends", "Tab 3")
 //    fun getCurrentUser(id:Int):StateFlow<HostUser>{

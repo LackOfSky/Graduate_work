@@ -85,10 +85,12 @@ class ClientPartP2P @Inject constructor(
         val client = _activeFriends.value.get(activeFriend)
         if(client !=null){
             val content = gson.toJson(message)
+            val sender = gson.toJson(userOwner.value)
             val transportData = TransportData(
                 messageType = MessageType.MESSAGE,
                 senderId = activeFriend.uniqueID,
                 senderIp = "",
+                sender = sender,
                 content = content
             )
             val json = gson.toJson(transportData)
@@ -109,10 +111,12 @@ class ClientPartP2P @Inject constructor(
             client.connect()
             Log.d("service $SERVICE_NAME :client", "connected")
             val content = gson.toJson(userOwner.value)
+            val sender = gson.toJson(userOwner.value)
             val transportData = TransportData(
                 messageType = MessageType.USER,
                 senderId = userOwner.value!!.uniqueID,
                 senderIp = "",
+                sender= sender,
                 content = content
             )
             val json = gson.toJson(transportData)

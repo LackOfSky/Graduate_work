@@ -11,6 +11,7 @@ import com.lackofsky.cloud_s.data.repository.UserRepository
 import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.MessageType
+import com.lackofsky.cloud_s.service.model.Request
 import com.lackofsky.cloud_s.service.model.TransportData
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
@@ -79,6 +80,24 @@ class NettyServerHandler(
                     TODO("Not implemented")
                 }
                 MessageType.HANDSHAKE->{
+                    TODO("Not implemented")
+                }
+                MessageType.REQUEST->{
+                    val request = gson.fromJson(data.content, Request::class.java)
+                    when(request!!){
+                        Request.ADD -> {
+                            userRepository.insertUser(
+                            gson.fromJson(data.sender, User::class.java) )
+                            clientPartP2P
+                        }
+                        Request.CANCEL ->{ //FriendResponseUseCase CANCEL data.sender
+                    }
+                        Request.REJECT -> TODO()
+                        Request.DELETE -> TODO()
+                    }
+
+                }
+                MessageType.RESPONSE->{
                     TODO("Not implemented")
                 }
             }

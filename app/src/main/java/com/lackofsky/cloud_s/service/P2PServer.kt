@@ -102,27 +102,27 @@ class P2PServer : Service() {
             notificationManager.createNotificationChannel(channel)//getSystemService(NotificationManager::class.java
         }
     }
-    private fun sendWhoAmI(addr:String, port:Int){
-        val client = NettyClient(addr, port)//
-        try {
-            client.connect()
-            Log.d("service $SERVICE_NAME :client", "connected")
-            val content = gson.toJson(clientPartP2P.userOwner.value)
-            val transportData = TransportData(
-                messageType = MessageType.USER,
-                senderId = clientPartP2P.userOwner.value!!.uniqueID,
-                senderIp = "",
-                content = content
-            )
-            val json = gson.toJson(transportData)
-            client.sendMessage(json)
-            Log.d("service $SERVICE_NAME :client", "SENDED $json")
-        }catch (e: Exception){
-            Log.d("service $SERVICE_NAME :client", "catched $e")
-        }finally {
-            Log.d("service $SERVICE_NAME :client", "finally ")
-            client.close()
-        }
-    }
+//    private fun sendWhoAmI(addr:String, port:Int){
+//        val client = NettyClient(addr, port)//
+//        try {
+//            client.connect()
+//            Log.d("service $SERVICE_NAME :client", "connected")
+//            val content = gson.toJson(clientPartP2P.userOwner.value)
+//            val transportData = TransportData(
+//                messageType = MessageType.USER,
+//                senderId = clientPartP2P.userOwner.value!!.uniqueID,
+//                senderIp = "",
+//                content = content
+//            )
+//            val json = gson.toJson(transportData)
+//            client.sendMessage(json)
+//            Log.d("service $SERVICE_NAME :client", "SENDED $json")
+//        }catch (e: Exception){
+//            Log.d("service $SERVICE_NAME :client", "catched $e")
+//        }finally {
+//            Log.d("service $SERVICE_NAME :client", "finally ")
+//            client.close()
+//        }
+//    }
 
 }
