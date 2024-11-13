@@ -1,6 +1,7 @@
 package com.lackofsky.cloud_s.service.server
 
 import android.util.Log
+import com.lackofsky.cloud_s.data.repository.ChatRepository
 import com.lackofsky.cloud_s.data.repository.MessageRepository
 import com.lackofsky.cloud_s.data.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
@@ -23,7 +24,9 @@ class NettyServer @Inject constructor(
     private val clientPartP2P: ClientPartP2P,
     private val messageRepository: MessageRepository,
     private val userRepository: UserRepository,
-    private val metadata: Metadata
+    private val chatRepository: ChatRepository,
+    private val metadata: Metadata,
+//    private val friendResponseUseCase: FriendResponseUseCase
 )  {
     private val DEFAULT_PORT = metadata.defaultPort
     private val serviceName = metadata.serviceName
@@ -57,6 +60,7 @@ class NettyServer @Inject constructor(
                         pipeline.addLast(NettyServerHandler( // Основной обработчик сообщений
                             messageRepository,
                             userRepository,
+                            chatRepository,
                             clientPartP2P)
                         )
                         ch.closeFuture().addListener { future ->//TODO (обработку ошибок)

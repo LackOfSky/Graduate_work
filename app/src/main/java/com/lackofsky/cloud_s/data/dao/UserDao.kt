@@ -39,8 +39,8 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE userId = 1")
     fun getUserOwner(): LiveData<User>
 
-    @Query("SELECT * FROM usersInfo WHERE userId = :id")
-    fun getUserInfoById(id: Int): LiveData<UserInfo>
+    @Query("SELECT * FROM usersInfo WHERE userId = :uniqueID")
+    fun getUserInfoById(uniqueID: String?): LiveData<UserInfo>
 //  @Transaction
 //    @Query("SELECT * FROM users WHERE userId = :id")
 //    fun getUserWithInfoById(id: Int): LiveData<UserWithInfo?>

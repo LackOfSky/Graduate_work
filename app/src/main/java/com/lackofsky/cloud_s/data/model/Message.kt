@@ -2,21 +2,38 @@ package com.lackofsky.cloud_s.data.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import org.jetbrains.annotations.NotNull
-import java.sql.Time
+import java.util.Date
 
-@Entity(tableName = "messages")
+import java.util.UUID
+
+@Entity(
+    tableName = "messages",
+    foreignKeys = [
+        ForeignKey(entity = User::class, parentColumns = ["uniqueId"], childColumns = ["userId"], onDelete = ForeignKey.CASCADE),
+        ForeignKey(entity = Chat::class, parentColumns = ["chatId"], childColumns = ["chatId"], onDelete = ForeignKey.CASCADE)
+    ],
+    indices = [Index(value = ["chatId"]), Index(value = ["userId"])]
+)
 data class Message (
     @PrimaryKey
-    @ColumnInfo(name = "messageId") @NotNull
-    val id: Int,
-    @ColumnInfo(name = "chatId") @NotNull
-    val chatId: String,                             /***chatId = Owner+Sender ID */
-    @ColumnInfo(name = "senderMac") @NotNull
-    val senderMac: String,
-    @ColumnInfo(name = "messageContent") @NotNull
+    @ColumnInfo(name = "messageId")
+    val id: Int = 0,
+    @ColumnInfo(name = "chatId")
+    val chatId: String,//nullable for send message    /***chatId = Owner+Sender ID */
+    @ColumnInfo(name = "userId")
+    val userId: String,//unique user ID
+    @ColumnInfo(name = "messageContent")
     val content: String,
-    @ColumnInfo(name = "time") @NotNull
-    val createdAt: Long = System.currentTimeMillis()
+    @ColumnInfo(name = "sentAt")
+    val sentAt: Date = Date(),
+//    val version: Int = 1,
+    @ColumnInfo(name = "syncStatus")
+    val syncStatus: SyncStatus = SyncStatus.PENDING
 )
+enum class SyncStatus {
+    PENDING, SYNCED, FAILED
+}

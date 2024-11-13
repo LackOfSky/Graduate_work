@@ -3,6 +3,7 @@ package com.lackofsky.cloud_s.data.repository
 import androidx.lifecycle.LiveData
 import com.lackofsky.cloud_s.data.dao.MessageDao
 import com.lackofsky.cloud_s.data.model.Message
+import com.lackofsky.cloud_s.data.model.SyncStatus
 import javax.inject.Inject
 
 class MessageRepository @Inject constructor(
@@ -13,11 +14,19 @@ class MessageRepository @Inject constructor(
         messageDao.insertMessage(message)
     }
 
-    fun getMessagesForChat(chatId: String): LiveData<List<Message>> {
-        return messageDao.getMessagesForChat(chatId)
+    fun getMessageById(messageId: Int): LiveData<Message> {
+        return messageDao.getMessageById(messageId)
     }
 
-    suspend fun getMessageById(messageId: Int): Message? {
-        return messageDao.getMessageById(messageId)
+    fun getMessagesByChat(chatId: String): LiveData<List<Message>> {
+        return messageDao.getMessagesByChat(chatId)
+    }
+
+    fun getPendingMessages(): LiveData<List<Message>> {
+        return messageDao.getMessagesBySyncStatus(SyncStatus.PENDING)
+    }
+
+    suspend fun markMessageAsSynced(messageId: String) {
+        messageDao.updateMessageSyncStatus(messageId, SyncStatus.SYNCED)
     }
 }

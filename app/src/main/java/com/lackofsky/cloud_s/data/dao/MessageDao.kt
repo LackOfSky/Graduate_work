@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.lackofsky.cloud_s.data.model.Message
+import com.lackofsky.cloud_s.data.model.SyncStatus
 
 @Dao
 interface MessageDao {
@@ -13,8 +14,17 @@ interface MessageDao {
     suspend fun insertMessage(message: Message)
 
     @Query("SELECT * FROM messages WHERE chatId = :chatId")
-    fun getMessagesForChat(chatId: String): LiveData<List<Message>>
+    fun getMessagesByChat(chatId: String): LiveData<List<Message>>
 
     @Query("SELECT * FROM messages WHERE messageId = :messageId")
-    suspend fun getMessageById(messageId: Int): Message?
+    fun getMessageById(messageId: Int): LiveData<Message>
+
+    @Query("SELECT * FROM messages WHERE syncStatus = :status")
+    fun getMessagesBySyncStatus(status: SyncStatus): LiveData<List<Message>>
+
+    @Query("UPDATE messages SET syncStatus = :status WHERE messageId = :messageId")
+    suspend fun updateMessageSyncStatus(messageId: String, status: SyncStatus)
+
+    @Query("DELETE FROM messages WHERE chatId = :chatId")
+    suspend fun deleteMessagesByChatId(chatId: String)
 }

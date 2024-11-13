@@ -4,14 +4,16 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import org.jetbrains.annotations.NotNull
+import java.util.UUID
 
 @Entity(tableName = "chats")
 data class Chat(
     @PrimaryKey
-    @ColumnInfo(name = "chatName")
-    val chatName: String,
-    @ColumnInfo(name = "chatId") @NotNull
-    val chatId: String, // Можно использовать комбинацию мак-адресов для уникальности
-    @ColumnInfo(name = "created_at")
-    val createdAt: Long = System.currentTimeMillis()
+    @ColumnInfo(name = "chatId")
+    val chatId: String = UUID.randomUUID().toString(),
+    @ColumnInfo(name = "chatName") val name: String?,// for 1-1 chat name = userName
+    @ColumnInfo(name = "type")  val type: ChatType,
 )
+enum class ChatType {
+    PRIVATE,GROUP
+}

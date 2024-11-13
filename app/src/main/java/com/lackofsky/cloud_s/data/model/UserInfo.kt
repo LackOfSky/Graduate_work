@@ -8,14 +8,14 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "usersInfo",
     foreignKeys = [ForeignKey(
     entity = User::class,
-    parentColumns = ["userId"],
+    parentColumns = ["uniqueId"],
     childColumns = ["userId"],
     onDelete = ForeignKey.CASCADE)]
 )
 data class UserInfo (
-    @PrimaryKey(autoGenerate = false)
+    @PrimaryKey
     @ColumnInfo(name = "userId")
-    val id: Int = 0,
+    val userId: String,
     @ColumnInfo(name = "userAbout")
     var about: String = "",
     @ColumnInfo(name = "userInfo")

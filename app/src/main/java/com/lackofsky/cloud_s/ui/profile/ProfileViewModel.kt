@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.util.copy
 import com.lackofsky.cloud_s.data.model.User
+import com.lackofsky.cloud_s.data.model.UserDTO
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,8 +33,8 @@ class ProfileViewModel @Inject constructor(
 
     private val _user = MutableLiveData<User>()
     val user: LiveData<User> get() = _user
-    private val _editUser = MutableLiveData<User>()
-     val editUser: LiveData<User> get() = _editUser
+    private val _editUser = MutableLiveData<UserDTO>()
+     val editUser: LiveData<UserDTO> get() = _editUser
 
     private val _userInfo = MutableLiveData<UserInfo>()
     val userInfo: LiveData<UserInfo> get() = _userInfo
@@ -56,12 +57,14 @@ class ProfileViewModel @Inject constructor(
     private fun loadUserOwner() = viewModelScope.launch {
         userRepository.getUserOwner().observeForever { user ->
             _user.value = user
-            _editUser.value = _user.value
+            _editUser.value = UserDTO(_user.value!!.id,_user.value!!.fullName,_user.value!!.login,_user.value!!.ipAddr )
+
+            userRepository.getUserInfoById(user.uniqueID).observeForever { userInfo ->
+                _userInfo.value = userInfo
+                _editUserInfo.value = _userInfo.value
+            }
         }
-        userRepository.getUserInfoById(1).observeForever { userInfo ->
-            _userInfo.value = userInfo
-            _editUserInfo.value = _userInfo.value
-        }
+
 
     }
 
@@ -91,7 +94,7 @@ class ProfileViewModel @Inject constructor(
         }
 
         fun onConfirmUpdate() = viewModelScope.launch {
-            _editUser.value?.let { userRepository.updateUser(it) }
+            _editUser.value?.let { userRepository.updateUser(_user.value!!.copy(login =it.login, fullName = it.fullName,)) }
         }
     fun onConfirmUpdateNameLogin() = viewModelScope.launch {
         _user.value!!.let{
@@ -115,7 +118,11 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onCancelUpdate() = viewModelScope.launch {
-        _editUser.value = _user.value
+        _editUser.value = UserDTO(_user.value!!.id,
+            _user.value!!.fullName,
+            _user.value!!.login,
+            _user.value!!.ipAddr
+        )
         _editUserInfo.value = _userInfo.value
     }
     fun closeEdit(){

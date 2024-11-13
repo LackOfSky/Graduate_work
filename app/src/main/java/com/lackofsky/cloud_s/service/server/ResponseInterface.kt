@@ -3,9 +3,9 @@ package com.lackofsky.cloud_s.service.server
 import com.lackofsky.cloud_s.data.model.User
 
 interface ResponseInterface {
-
-    fun approveFriendResponse(user: User):Boolean    //Response.APPROVE
-    fun cancelFriendResponse(user: User):Boolean   //Response.CANCELED
-    fun rejectFriendResponse(user: User):Boolean   //Response.REJECTED
-    fun deleteFriendResponse(user: User):Boolean   //Response.DELETED
+    fun addedFriendResponse(user: User):Boolean       //Response.ADDED
+    fun approvedFriendResponse(user: User):Boolean    //Response.APPROVED
+    fun canceledFriendResponse(user: User):Boolean    //Response.CANCELED
+    fun rejectedFriendResponse(user: User):Boolean    //Response.REJECTED
+    fun deletedFriendResponse(user: User):Boolean     //Response.DELETED
 }

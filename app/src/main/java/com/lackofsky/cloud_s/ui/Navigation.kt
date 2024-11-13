@@ -31,11 +31,20 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.lackofsky.cloud_s.R
+import com.lackofsky.cloud_s.ui.chats.ChatDialogScreen
+import com.lackofsky.cloud_s.ui.chats.ChatList
+import com.lackofsky.cloud_s.ui.chats.ChatRoutes
+import com.lackofsky.cloud_s.ui.chats.ChatsScreen
+import com.lackofsky.cloud_s.ui.friends.FriendProfile
+import com.lackofsky.cloud_s.ui.friends.FriendsContainer
 import com.lackofsky.cloud_s.ui.friends.FriendsScreen
+import com.lackofsky.cloud_s.ui.friends.UserRoutes
 import com.lackofsky.cloud_s.ui.profile.ProfileScreen
 
 import kotlinx.coroutines.CoroutineScope
@@ -69,8 +78,26 @@ fun Navigation(modifier: Modifier = Modifier//, viewModel: ProfileViewModel = hi
                         scope = scope)
                 NavHost(navController, startDestination = "profile") {
                     composable("profile") { ProfileScreen() }
-                    composable("friends") { FriendsScreen() }
-//                    composable("data_share") { DataShareScreen() }
+                    composable("friends") { FriendsScreen( navController = navController)}//  FriendsScreen(navController = navController) }
+                    composable("messages") { ChatsScreen(navController = navController) }//TODO (исправить дубль)
+//                    composable(ChatRoutes.Chats.route) { ChatList(navController = navController) }//
+                    composable(
+                        route = ChatRoutes.Chat.route,
+                        arguments = listOf(navArgument("chatId") { type = NavType.IntType })
+                    ) { backStackEntry ->
+                        val chatId = backStackEntry.arguments?.getString("chatId") ?: "-1"
+                        //ChatList(viewModel = viewModel, navController = navController)
+                        ChatDialogScreen(chatId = chatId)
+                    }
+//                    composable(UserRoutes.Users.route) { FriendsContainer( navController = navController) }
+                    composable(
+                        route = UserRoutes.User.route,
+                        arguments = listOf(navArgument("userId") { type = NavType.IntType })
+                    ) { backStackEntry ->
+                        val userId = backStackEntry.arguments?.getInt("userId") ?: -1
+                        FriendProfile(userId = userId)
+                    }
+
 //                    composable("qr") { QRScreen() }
                 }
             }
@@ -169,8 +196,8 @@ fun DrawerContent(onMenuItemClick: (String) -> Unit) {
         Button(onClick = { onMenuItemClick("Friends") }) {
             Text(text = "Friends")
         }
-        Button(onClick = { onMenuItemClick("Data share") }) {
-            Text(text = "Data share")
+        Button(onClick = { onMenuItemClick("Messages") }) {
+            Text(text = "Messages")
         }
         Button(onClick = { onMenuItemClick("QR") }) {
             Text(text = "QR")

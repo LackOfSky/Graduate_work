@@ -2,6 +2,7 @@ package com.lackofsky.cloud_s.ui.wellcome
 
 import android.content.Context
 import android.preference.PreferenceManager
+import android.provider.Settings
 import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -24,6 +25,8 @@ import javax.inject.Inject
 class WelcomeViewModel @Inject constructor(private val userRepository: UserRepository) : ViewModel() {
 
     fun saveUser(user: User, userInfo: UserInfo) {
+
+        //user.uniqueID = android (welcomeScreen)
         viewModelScope.launch {
             userRepository.insertUser(user)
             userRepository.insertUserInfo(userInfo)

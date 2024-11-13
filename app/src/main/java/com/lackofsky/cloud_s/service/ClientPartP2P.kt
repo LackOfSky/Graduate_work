@@ -33,6 +33,15 @@ class ClientPartP2P @Inject constructor(
     val activeFriends: StateFlow<MutableMap<User, NettyClient>> = _activeFriends
     private val _activeStrangers = MutableStateFlow<MutableSet<User>>(mutableSetOf())
     val activeStrangers: StateFlow<MutableSet<User>> = _activeStrangers
+    /***
+     * outgoing requests */
+    private val _requestedStrangers = MutableStateFlow<MutableSet<User>>(mutableSetOf())
+    val requestedStrangers: StateFlow<MutableSet<User>> = _requestedStrangers
+    /***
+     * incoming requests */
+    private val _pendingStrangers = MutableStateFlow<MutableSet<User>>(mutableSetOf())
+    val pendingStrangers: StateFlow<MutableSet<User>> = _pendingStrangers
+
     /*** добавить флоу пиров (friends+strangers)
      *
      *  сервер -- принимает whoami - передает пользователя сюда. на onRemove мы его изымаем
@@ -42,6 +51,19 @@ class ClientPartP2P @Inject constructor(
      *            посторонние
      *
      * */
+    fun addPendingStranger(user: User){
+        _pendingStrangers.value.add(user)
+    }
+    fun removePendingStranger(user: User){
+        _pendingStrangers.value.remove(user)
+    }
+    fun addRequestedStranger(user: User){
+        _requestedStrangers.value.add(user)
+    }
+    fun removeRequestedStranger(user: User){
+        _requestedStrangers.value.remove(user)
+    }
+
     lateinit var userOwner: LiveData<User>
     lateinit var userInfo :LiveData<UserInfo>
     init{

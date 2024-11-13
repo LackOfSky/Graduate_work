@@ -17,6 +17,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
 import android.provider.Settings
+import android.util.Log
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
@@ -57,7 +58,7 @@ fun WelcomeScreen(screenController: NavHostController, viewModel: WelcomeViewMod
         Button(onClick = {
             viewModel.saveUser(
                 User(id = 1,fullName = fullName, login = login, uniqueID = uniqueID),
-                UserInfo(id = 1, about = about, info = info)
+                UserInfo(userId = uniqueID, about = about, info = info)
             )
             screenController.navigate("main")
         }) {

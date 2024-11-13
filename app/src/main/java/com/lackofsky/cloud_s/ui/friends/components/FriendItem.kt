@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -51,16 +53,20 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.data.model.User
+import com.lackofsky.cloud_s.ui.ShowToast
 import com.lackofsky.cloud_s.ui.friends.FriendsViewModel
 import com.lackofsky.cloud_s.ui.friends.UserRoutes
 import com.lackofsky.cloud_s.ui.profile.EditHeaderUserInfo
 import com.lackofsky.cloud_s.ui.profile.HeaderUserInfo
+import com.lackofsky.cloud_s.ui.profile.ProfileViewModel
 import com.lackofsky.cloud_s.ui.profile.UserProfileFeachures
 
 @Composable
-fun FriendItem(userFriend: User){
+fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel()){
     var isExpandedItemMenu by remember { mutableStateOf(false) }
 
             Row(
@@ -113,25 +119,55 @@ fun FriendItem(userFriend: User){
                     )
 
                 }
-                TextButton(
-                    onClick = {
-                        isExpandedItemMenu = true
-                    },
-                    elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
-                    contentPadding = PaddingValues(
-                        horizontal = 16.dp, // Set horizontal padding to 20dp
-                        vertical = 5.dp // Set vertical padding to 10dp
-                    ), border = BorderStroke(1.dp, Color.Transparent),
-                    modifier = Modifier.background(Color.Transparent, RectangleShape)
-
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_more_vert_24),
-                        contentDescription = "Icon",
+                Row(){
+                    Button(
+                        onClick = {
+                            //TODO()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            contentColor = Color(0xff004D40),       // цвет текста
+                            containerColor = Color(0xffffffff)
+                        ),elevation = ButtonDefaults.elevatedButtonElevation(1.dp),
                         modifier = Modifier
-                        //tint = Color(0xff1d1b20)
-                    )
+//                                contentPadding = PaddingValues(
+//                                horizontal = 16.dp, // Set horizontal padding to 20dp
+//                        vertical = 5.dp // Set vertical padding to 10dp
+//                    ), border = BorderStroke(1.dp, Color.Transparent),
+//                    modifier = Modifier.background(Color.Transparent, RectangleShape)
+
+                    ){
+                        Image(
+                            painter = painterResource(id = R.drawable.baseline_mail_24),
+                            contentDescription = "Image",
+                            modifier = Modifier
+//                    .padding(all = 10.dp)
+                                .width(width = 24.dp)
+                                .height(height = 24.dp)
+                                .clip(shape = RoundedCornerShape(28.dp)))
+                    }
+
+                    TextButton(
+                        onClick = {
+                            isExpandedItemMenu = true
+                        },
+                        elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
+                        contentPadding = PaddingValues(
+                            horizontal = 16.dp, // Set horizontal padding to 20dp
+                            vertical = 5.dp // Set vertical padding to 10dp
+                        ), border = BorderStroke(1.dp, Color.Transparent),
+                        modifier = Modifier.background(Color.Transparent, RectangleShape)
+
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_more_vert_24),
+                            contentDescription = "Icon",
+                            modifier = Modifier
+                            //tint = Color(0xff1d1b20)
+                        )
+                    }
+                    //
                 }
+
 
                 DropdownMenu(
                     expanded = isExpandedItemMenu,
@@ -151,9 +187,39 @@ fun FriendItem(userFriend: User){
                     Text("Обмен данными", fontSize=18.sp, modifier = Modifier.padding(10.dp))}
                         //todo иконки под поля
                     Text("Закрепить", fontSize=18.sp, modifier = Modifier.padding(10.dp))
-                    Text("Редактировать ник", fontSize=18.sp, modifier = Modifier.padding(10.dp))
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteFriend(userFriend)
+                        },
+                        elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
+                        contentPadding = PaddingValues(
+                            horizontal = 16.dp, // Set horizontal padding to 20dp
+                            vertical = 5.dp // Set vertical padding to 10dp
+                        ), border = BorderStroke(1.dp, Color.Transparent),
+                        modifier = Modifier.background(Color.Transparent, RectangleShape)
+
+                    ) {
+                        Text(
+                            "edit name",
+                            fontSize = 18.sp, color = Color.Black
+                        )
+                    }
                     Divider()
-                    Text("Удалить", fontSize=18.sp, modifier = Modifier.padding(10.dp))
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteFriend(userFriend)
+                        },
+                        elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
+                        contentPadding = PaddingValues(
+                            horizontal = 16.dp, // Set horizontal padding to 20dp
+                            vertical = 5.dp // Set vertical padding to 10dp
+                        ), border = BorderStroke(1.dp, Color.Transparent),
+                        modifier = Modifier.background(Color.Transparent, RectangleShape)
+
+                    ) {
+                        Text("delete",
+                            fontSize = 18.sp,color = Color.Black)
+                    }
                 }
             }
 }

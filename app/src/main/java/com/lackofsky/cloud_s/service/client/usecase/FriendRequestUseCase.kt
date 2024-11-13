@@ -10,23 +10,27 @@ import com.lackofsky.cloud_s.service.model.TransportData
 import javax.inject.Inject
 
 class FriendRequestUseCase @Inject constructor( val gson: Gson, val clientPartP2P: ClientPartP2P) :RequestInterface {
-    override fun sendFriendRequest(user: User):Boolean {
-        return defaultFriendRequest(user,Request.ADD)
+    override fun sendFriendRequest(sendTo: User):Boolean {
+        return defaultFriendRequest(sendTo,Request.ADD)
     }
 
-    override fun cancelFriendRequest(user: User):Boolean {
-        return defaultFriendRequest(user,Request.CANCEL)
+    override fun approveFriendRequest(sendTo: User): Boolean {
+        return defaultFriendRequest(sendTo,Request.APPROVE)
     }
 
-    override fun rejectFriendRequest(user: User):Boolean {
-        return defaultFriendRequest(user,Request.REJECT)
+    override fun cancelFriendRequest(sendTo: User):Boolean {
+        return defaultFriendRequest(sendTo,Request.CANCEL)
     }
 
-    override fun deleteFriendRequest(user: User):Boolean {
-        return defaultFriendRequest(user,Request.DELETE)
+    override fun rejectFriendRequest(sendTo: User):Boolean {
+        return defaultFriendRequest(sendTo,Request.REJECT)
     }
-    private fun defaultFriendRequest(user: User, request: Request):Boolean{
-        val client = clientPartP2P.activeFriends.value.get(user)
+
+    override fun deleteFriendRequest(sendTo: User):Boolean {
+        return defaultFriendRequest(sendTo,Request.DELETE)
+    }
+    private fun defaultFriendRequest(sendTo: User, request: Request):Boolean{
+        val client = clientPartP2P.activeFriends.value.get(sendTo)
         if(client !=null){
             val content = gson.toJson(request)
             val sender = gson.toJson(clientPartP2P.userOwner.value)

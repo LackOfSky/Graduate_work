@@ -50,6 +50,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.lackofsky.cloud_s.data.model.UserDTO
 import com.lackofsky.cloud_s.ui.profile.components.UserInfoContent
 import dagger.hilt.android.internal.lifecycle.HiltViewModelFactory
 
@@ -133,7 +134,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,
 }
 
 @Composable
-fun HeaderUserInfo(modifier: Modifier = Modifier, viewModel: ProfileViewModel, currentUser: User) {
+fun HeaderUserInfo(modifier: Modifier = Modifier, viewModel: ProfileViewModel, currentUser: UserDTO) {
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.Top),
         modifier = modifier
@@ -191,7 +192,7 @@ fun HeaderUserInfo(modifier: Modifier = Modifier, viewModel: ProfileViewModel, c
     }
 }
 @Composable
-fun EditHeaderUserInfo(viewModel: ProfileViewModel, currentUser: User){
+fun EditHeaderUserInfo(viewModel: ProfileViewModel, currentUser: UserDTO){
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.Top),
         modifier = Modifier

@@ -1,4 +1,4 @@
-package com.lackofsky.cloud_s.ui.friends.components
+package com.lackofsky.cloud_s.ui.friends
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,23 +15,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
@@ -42,25 +37,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.data.model.User
-import com.lackofsky.cloud_s.ui.friends.FriendsViewModel
-import com.lackofsky.cloud_s.ui.profile.EditHeaderUserInfo
-import com.lackofsky.cloud_s.ui.profile.HeaderUserInfo
-import com.lackofsky.cloud_s.ui.profile.ProfileViewModel
+import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.ui.profile.UserProfileFeachures
-import com.lackofsky.cloud_s.ui.profile.components.AboutUser
-import com.lackofsky.cloud_s.ui.profile.components.AboutUserEdit
-import com.lackofsky.cloud_s.ui.profile.components.UserInfo
-import com.lackofsky.cloud_s.ui.profile.components.UserInfoContent
-import com.lackofsky.cloud_s.ui.profile.components.UserInfoEdit
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
-fun FriendProfile(modifier: Modifier = Modifier,userId: Int){
-    val viewModel: FriendsViewModel = hiltViewModel()
+fun FriendProfile(modifier: Modifier = Modifier,userId: Int,
+                  viewModel: FriendViewModel = hiltViewModel()){
+    val user = viewModel.getFriend(userId).observeAsState()
+    val userInfo = viewModel.getFriendInfo(user.value?.uniqueID.orEmpty()).observeAsState()
 //    viewModel.setCurrentFriend(userId)
 //    //TODO USERSERVICE GET BY USER ID
 //    val selectedUser by viewModel.getCurrentUser(userId).collectAsState()
@@ -113,20 +99,20 @@ fun FriendProfile(modifier: Modifier = Modifier,userId: Int){
                             .requiredHeight(height = 136.dp)
                             .weight(weight = 8f)
                     ) {
-//                        HeaderFriendInfo(selectedUser = selectedUser.user)
+                        HeaderFriendInfo(selectedUser = user)
                         UserProfileFeachures()
                     }
                 }
             }
         }
         item{
-//            FriendInfoContent(selectedUser.user)
+            FriendInfoContent(userInfo)
         }
     }
 }
 
 @Composable
-fun HeaderFriendInfo(modifier: Modifier = Modifier, selectedUser: User) {
+fun HeaderFriendInfo(modifier: Modifier = Modifier, selectedUser: State<User?>) {
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.Top),
         modifier = modifier
@@ -135,7 +121,7 @@ fun HeaderFriendInfo(modifier: Modifier = Modifier, selectedUser: User) {
     ) {
         Box(){
             Text(
-                text = selectedUser.fullName,
+                text = selectedUser.value?.fullName.orEmpty(),
                 color = Color(0xff1d1b20),
                 textAlign = TextAlign.Left,
                 lineHeight = 1.33.em,
@@ -146,7 +132,7 @@ fun HeaderFriendInfo(modifier: Modifier = Modifier, selectedUser: User) {
                     .wrapContentHeight(align = Alignment.CenterVertically))
         }
         Text(
-            text = selectedUser.login,
+            text = selectedUser.value?.login.orEmpty(),
             color = Color(0xff49454f),
             textAlign = TextAlign.Left,
             lineHeight = 1.5.em,
@@ -161,7 +147,7 @@ fun HeaderFriendInfo(modifier: Modifier = Modifier, selectedUser: User) {
 }
 
 @Composable
-fun FriendInfoContent( selectedUser: User) {
+fun FriendInfoContent( userInfo: State<UserInfo?>) {
     Column(
         verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
         modifier = Modifier
@@ -170,13 +156,13 @@ fun FriendInfoContent( selectedUser: User) {
                 vertical = 8.dp
             )
     ) {
-        AboutFriend(selectedUser)
-        FriendInfo(selectedUser)
+        AboutFriend(userInfo)
+        FriendInfo(userInfo)
     }
 }
 
 @Composable
-fun AboutFriend( selectedUser:User){
+fun AboutFriend( userInfo: State<UserInfo?>){
     Column {
         Row(){
             Text(
@@ -192,15 +178,15 @@ fun AboutFriend( selectedUser:User){
                     .align(alignment = Alignment.CenterVertically)
             )
         }
-//        Text(
-//            text = selectedUser.about ,
-//            color = Color(0xff1d1b20),
-//            lineHeight = 1.33.em,
-//            fontSize = 14.sp,
-//            style = MaterialTheme.typography.bodySmall,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//        )
+        Text(
+            text = userInfo.value?.about.orEmpty() ,
+            color = Color(0xff1d1b20),
+            lineHeight = 1.33.em,
+            fontSize = 14.sp,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier
+                .fillMaxWidth()
+        )
     }
 
 
@@ -208,7 +194,7 @@ fun AboutFriend( selectedUser:User){
 }
 
 @Composable
-fun FriendInfo( selectedUser:User){
+fun FriendInfo( userInfo: State<UserInfo?>){
     Column {
         Row(){
             Text(
@@ -224,15 +210,15 @@ fun FriendInfo( selectedUser:User){
                     .align(alignment = Alignment.CenterVertically)
             )
         }
-//        Text(
-//            text = selectedUser.info,
-//            color = Color(0xff1d1b20),
-//            lineHeight = 1.33.em,
-//            fontSize = 14.sp,
-//            style = MaterialTheme.typography.bodySmall,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//        )
+        Text(
+            text = userInfo.value?.info.orEmpty(),
+            color = Color(0xff1d1b20),
+            lineHeight = 1.33.em,
+            fontSize = 14.sp,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier
+                .fillMaxWidth()
+        )
     }
 
 

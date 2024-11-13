@@ -5,9 +5,12 @@ import android.content.Context
 import androidx.room.Room
 import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.dao.ChatDao
+import com.lackofsky.cloud_s.data.dao.ChatMemberDao
 import com.lackofsky.cloud_s.data.dao.MessageDao
+import com.lackofsky.cloud_s.data.dao.ReadMessageDao
 import com.lackofsky.cloud_s.data.dao.UserDao
 import com.lackofsky.cloud_s.data.database.AppDatabase
+import com.lackofsky.cloud_s.data.repository.ChatRepository
 import com.lackofsky.cloud_s.data.repository.MessageRepository
 import com.lackofsky.cloud_s.data.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
@@ -54,9 +57,18 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
         return database.messageDao()
     }
     @Provides
+    fun provideChatMemberDao(database: AppDatabase): ChatMemberDao {
+        return database.chatMemberDao()
+    }
+    @Provides
+    fun provideReadMessageDao(database: AppDatabase): ReadMessageDao {
+        return database.readMessageDao()
+    }
+    @Provides
     @Singleton
     fun provideClientPartP2P(gson: Gson, userRepository: UserRepository,
-                             metadata: Metadata): ClientPartP2P {
+                             metadata: Metadata
+    ): ClientPartP2P {
         return ClientPartP2P(gson, userRepository,metadata)
     }
     @Provides
@@ -67,8 +79,10 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     fun provideNettyServer(clientPartP2P: ClientPartP2P,
                            messageRepository: MessageRepository,
                            userRepository: UserRepository,
-                           metadata: Metadata): NettyServer {
-        return NettyServer(clientPartP2P, messageRepository,userRepository, metadata)
+                           chatRepository: ChatRepository,
+                           metadata: Metadata
+                           ): NettyServer {//friendResponseUseCase: FriendResponseUseCase
+        return NettyServer(clientPartP2P, messageRepository,userRepository, chatRepository, metadata)
     }
     @Provides
     @Singleton

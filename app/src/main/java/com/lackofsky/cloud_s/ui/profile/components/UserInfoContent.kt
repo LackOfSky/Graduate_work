@@ -30,11 +30,12 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.data.model.User
+import com.lackofsky.cloud_s.data.model.UserDTO
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.ui.profile.ProfileViewModel
 
 @Composable
-fun UserInfoContent( viewModel: ProfileViewModel, currentUser: User, currentUserInfo: UserInfo?) {
+fun UserInfoContent(viewModel: ProfileViewModel, currentUser: UserDTO, currentUserInfo: UserInfo?) {
     val isAboutEdit by viewModel.isAboutEdit.observeAsState(initial = false)
     val isInfoEdit by viewModel.isInfoEdit.observeAsState(initial = false)
     currentUserInfo?.let {
