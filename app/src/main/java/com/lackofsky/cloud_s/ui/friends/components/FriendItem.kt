@@ -80,7 +80,7 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel()){
                     )
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.atom_ico),
+                    painter = painterResource(id = R.drawable.clouds_night_angle20),
                     contentDescription = "Image",
                     modifier = Modifier
                         .align(alignment = Alignment.Top)

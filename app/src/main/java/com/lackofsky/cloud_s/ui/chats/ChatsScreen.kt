@@ -34,13 +34,6 @@ sealed class ChatRoutes(val route: String) {
 }
 @Composable
 fun ChatsScreen(viewModel: ChatsViewModel = hiltViewModel(),navController: NavHostController) {
-    //var isPeerRequested by remember { mutableStateOf(false) }
-//    val friendPlaceholder by viewModel.currentUser.collectAsState()//TODO friends placeholder
-//    val strangers by viewModel.strangers.collectAsState()
-
-    //val tabIndex = remember { mutableStateOf(0) }
-//    FriendsTabs(viewModel = viewModel,
-//        navController = navController)
     ChatList(viewModel,navController)
 }
 @Composable
@@ -50,7 +43,6 @@ fun ChatList(viewModel: ChatsViewModel = hiltViewModel(), navController: NavHost
         .fillMaxSize()
         .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
         chatList?.let {
-            item{  Text("20303030")}
             items(it.toList()) { chat ->
                 Card(//navigate
                     elevation = CardDefaults.cardElevation(10.dp),
@@ -64,9 +56,11 @@ fun ChatList(viewModel: ChatsViewModel = hiltViewModel(), navController: NavHost
                         }
                 ) {
                     ChatItem(viewModel,chat)
+
                 }
             }
         }
+
         item{ Text(text="",modifier = Modifier.height(80.dp)) }
     }
 }

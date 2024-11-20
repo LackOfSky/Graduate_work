@@ -83,9 +83,9 @@ fun Navigation(modifier: Modifier = Modifier//, viewModel: ProfileViewModel = hi
 //                    composable(ChatRoutes.Chats.route) { ChatList(navController = navController) }//
                     composable(
                         route = ChatRoutes.Chat.route,
-                        arguments = listOf(navArgument("chatId") { type = NavType.IntType })
+                        arguments = listOf(navArgument("chatId") { type = NavType.StringType })
                     ) { backStackEntry ->
-                        val chatId = backStackEntry.arguments?.getString("chatId") ?: "-1"
+                        val chatId = backStackEntry.arguments?.getString("chatId") ?: "messages"
                         //ChatList(viewModel = viewModel, navController = navController)
                         ChatDialogScreen(chatId = chatId)
                     }

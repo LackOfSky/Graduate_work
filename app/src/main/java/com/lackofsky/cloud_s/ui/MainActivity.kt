@@ -1,8 +1,12 @@
 package com.lackofsky.cloud_s.ui
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -60,9 +64,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 //        near.start()
         p2PServer = Intent(applicationContext, P2PServer::class.java)
-        //startService(p2PServer)
 
-        //startForegroundService(i)
+        val broadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val message = intent?.getStringExtra("message")
+                ?: "Ошибка"
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+// Регистрация BroadcastReceiver в onCreate() Activity
+        val intentFilter = IntentFilter("com.lackofsky.cloud_s.SHOW_TOAST")
+        registerReceiver(broadcastReceiver, intentFilter, RECEIVER_EXPORTED)
+
         enableEdgeToEdge()
         setContent {
             CLOUD_sTheme {

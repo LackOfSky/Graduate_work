@@ -75,7 +75,6 @@ class FriendsViewModel @Inject constructor(
         if(friendRequestUseCase.approveFriendRequest(peer)){
             CoroutineScope(Dispatchers.IO).launch{
                 userRepository.insertUser(peer)
-                chatRepository.createPrivateChat(userRepository.getUserOwner().value!!.uniqueID,peer.uniqueID) //mirror for serverHandler
                 clientPartP2P.removePendingStranger(peer)
             }
             return true

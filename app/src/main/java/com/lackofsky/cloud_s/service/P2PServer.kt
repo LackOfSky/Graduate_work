@@ -26,6 +26,7 @@ import com.lackofsky.cloud_s.service.server.discovery.WiFiDirectManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -50,7 +51,7 @@ class P2PServer : Service() {
 
   //private lateinit var protocolHandler: ProtocolHandler //TODO выбор протокола передачи данных
 
-    private lateinit var notification:Notification
+    private lateinit var notification: Notification
     override fun onCreate() {
         //wifiDirectManager
 
@@ -124,5 +125,4 @@ class P2PServer : Service() {
 //            client.close()
 //        }
 //    }
-
 }

@@ -15,9 +15,6 @@ interface ChatMemberDao {
     @Query("SELECT * FROM chat_members WHERE chatId = :chatId")
     fun getMembersByChat(chatId: String): LiveData<List<ChatMember>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertChatMembers(members: List<ChatMember>)
-
     @Query("DELETE FROM chat_members WHERE chatId = :chatId")
     suspend fun deleteMembersByChatId(chatId: String)
 }

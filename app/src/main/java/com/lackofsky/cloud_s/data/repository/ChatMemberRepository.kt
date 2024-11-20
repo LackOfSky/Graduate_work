@@ -5,11 +5,25 @@ import com.lackofsky.cloud_s.data.dao.ChatMemberDao
 import com.lackofsky.cloud_s.data.model.ChatMember
 
 class ChatMemberRepository(private val chatMemberDao: ChatMemberDao) {
-    suspend fun addChatMember(chatMember: ChatMember) {
-        chatMemberDao.insertChatMember(chatMember)
+    suspend fun addChatMember(chatMember: ChatMember):Boolean {
+        try{
+            chatMemberDao.insertChatMember(chatMember)
+            return true
+        }catch (e:Exception){
+            return false
+        }
     }
 
-    suspend fun getMembersByChat(chatId: String): LiveData<List<ChatMember>> {
+    fun getMembersByChat(chatId: String): LiveData<List<ChatMember>> {
         return chatMemberDao.getMembersByChat(chatId)
+    }
+    suspend fun deleteMembersByChatId(chatId: String):Boolean{
+        try{
+            chatMemberDao.deleteMembersByChatId(chatId)
+            return true
+        }catch (e:Exception){
+            return false
+        }
+
     }
 }

@@ -27,39 +27,38 @@ interface ChatDao {
     @Query("SELECT * FROM chats WHERE chatId = :chatId")
     fun getChatById(chatId: String): LiveData<Chat>
 
-    @Query("""
-        SELECT 
-            c.chatId AS chatId, 
-            c.chatName AS chatName,
-            c.type AS chatType,
-            u.uniqueID AS userId,
-            u.userName AS userName,
-            ui.userAbout AS userAbout,
-            ui.userIcon AS userIcon,
-            m.messageContent AS lastMessageText,
-            m.sentAt AS lastMessageDate
-        FROM chats c
-        LEFT JOIN chat_members cm ON cm.chatId = c.chatId
-        LEFT JOIN users u ON cm.userId = u.uniqueID
-        LEFT JOIN usersInfo ui ON ui.userId = u.uniqueID
-        LEFT JOIN messages m ON m.chatId = c.chatId 
-        WHERE m.sentAt = (
-            SELECT MAX(sentAt) FROM messages WHERE chatId = c.chatId
-        )
-        GROUP BY c.chatId, u.uniqueID
-    """)
-    fun getChatListItems(): LiveData<List<ChatListItem>>
+    @Query("SELECT * FROM chats WHERE chatName = :chatName")
+    fun getChatByName(chatName: String): LiveData<Chat>
 
-    @Query("""
-        SELECT * FROM chats 
-        WHERE type = 'private' 
-          AND chatId IN (
-              SELECT chatId FROM chat_members WHERE userId = :userId1
-          ) 
-          AND chatId IN (
-              SELECT chatId FROM chat_members WHERE userId = :userId2
-          )
-        LIMIT 1
-    """)
-    fun getPrivateChat(userId1: String, userId2: String): LiveData<Chat>
+@Query("""
+    SELECT 
+        c.chatId AS chatId, 
+        c.chatName AS chatName,
+        c.type AS chatType,
+        u.uniqueID AS userId,
+        u.userName AS userName,
+        ui.userAbout AS userAbout,
+        ui.userIcon AS userIcon,
+        m.messageContent AS lastMessageText,
+        MAX(m.sentAt) AS lastMessageDate
+    FROM chats c
+    LEFT JOIN chat_members cm ON cm.chatId = c.chatId
+    LEFT JOIN users u ON cm.userId = u.uniqueID
+    LEFT JOIN usersInfo ui ON ui.userId = u.uniqueID
+    LEFT JOIN messages m ON m.chatId = c.chatId
+    GROUP BY c.chatId, u.uniqueID
+""")
+fun getChatListItems(): LiveData<List<ChatListItem>>
+//    @Query("""
+//        SELECT * FROM chats
+//        WHERE type = 'private'
+//          AND chatId IN (
+//              SELECT chatId FROM chat_members WHERE userId = :userId1
+//          )
+//          AND chatId IN (
+//              SELECT chatId FROM chat_members WHERE userId = :userId2
+//          )
+//        LIMIT 1
+//    """)
+//    fun getPrivateChat(userId1: String, userId2: String): LiveData<Chat>
 }

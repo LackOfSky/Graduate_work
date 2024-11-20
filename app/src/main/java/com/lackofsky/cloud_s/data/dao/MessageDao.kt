@@ -16,15 +16,18 @@ interface MessageDao {
     @Query("SELECT * FROM messages WHERE chatId = :chatId")
     fun getMessagesByChat(chatId: String): LiveData<List<Message>>
 
-    @Query("SELECT * FROM messages WHERE messageId = :messageId")
-    fun getMessageById(messageId: Int): LiveData<Message>
+    @Query("SELECT * FROM messages WHERE messageUniqueId = :messageUniqueId")
+    fun getMessageById(messageUniqueId: String): LiveData<Message>
 
     @Query("SELECT * FROM messages WHERE syncStatus = :status")
     fun getMessagesBySyncStatus(status: SyncStatus): LiveData<List<Message>>
 
-    @Query("UPDATE messages SET syncStatus = :status WHERE messageId = :messageId")
-    suspend fun updateMessageSyncStatus(messageId: String, status: SyncStatus)
+    @Query("UPDATE messages SET syncStatus = :status WHERE messageUniqueId = :messageUniqueId")
+    suspend fun updateMessageSyncStatus(messageUniqueId: String, status: SyncStatus)
 
     @Query("DELETE FROM messages WHERE chatId = :chatId")
     suspend fun deleteMessagesByChatId(chatId: String)
+
+    @Query("SELECT COUNT(*) FROM messages WHERE chatId = :chatId ")
+    suspend fun getMessagesCount(chatId: String):Long
 }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,7 +49,6 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatList
 //    val friendPlaceholder by viewModel.currentUser.collectAsState()//TODO friends placeholder
 //    val strangers by viewModel.strangers.collectAsState()
 //    val navController = rememberNavController()
-    Button(onClick = { /*TODO*/ }) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
@@ -79,7 +79,7 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatList
                 )
             }else{
                 Image(
-                    painter = painterResource(id = R.drawable.atom_ico),    //TODO ICON DEFAULT
+                    painter = painterResource(id = R.drawable.clouds_night_angle20),
                     contentDescription = "Image",
                     modifier = Modifier
                         .align(alignment = Alignment.Top)
@@ -98,7 +98,7 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatList
                 Text(
                     text = chatListItem.userName,//
                     color = Color(0xff1d1b20),
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Left,
                     fontSize = 20.sp,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier
@@ -109,7 +109,7 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatList
                 Text(
                     text = chatListItem.lastMessageText.orEmpty(),
                     color = Color(0xff49454f),
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Left,
                     style = TextStyle(
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
@@ -121,9 +121,8 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatList
 
             }
         }
-    }
-
-
-
 }
+
+
+
 

@@ -22,6 +22,8 @@ data class Message (
     @PrimaryKey
     @ColumnInfo(name = "messageId")
     val id: Int = 0,
+    @ColumnInfo(name = "messageUniqueId")//TODO подумать
+    val uniqueId: String?,
     @ColumnInfo(name = "chatId")
     val chatId: String,//nullable for send message    /***chatId = Owner+Sender ID */
     @ColumnInfo(name = "userId")

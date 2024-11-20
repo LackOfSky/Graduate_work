@@ -14,8 +14,8 @@ class MessageRepository @Inject constructor(
         messageDao.insertMessage(message)
     }
 
-    fun getMessageById(messageId: Int): LiveData<Message> {
-        return messageDao.getMessageById(messageId)
+    fun getMessageByUniqueId(messageUniqueId: String): LiveData<Message> {
+        return messageDao.getMessageById(messageUniqueId)
     }
 
     fun getMessagesByChat(chatId: String): LiveData<List<Message>> {
@@ -28,5 +28,8 @@ class MessageRepository @Inject constructor(
 
     suspend fun markMessageAsSynced(messageId: String) {
         messageDao.updateMessageSyncStatus(messageId, SyncStatus.SYNCED)
+    }
+    suspend fun getMessagesCount(chatId: String):Long {
+        return messageDao.getMessagesCount(chatId)
     }
 }

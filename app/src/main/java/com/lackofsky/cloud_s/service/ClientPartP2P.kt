@@ -2,6 +2,7 @@ package com.lackofsky.cloud_s.service
 
 import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.User
@@ -64,14 +65,19 @@ class ClientPartP2P @Inject constructor(
         _requestedStrangers.value.remove(user)
     }
 
-    lateinit var userOwner: LiveData<User>
+    //lateinit var userOwner: MutableLiveData<User>
+    private val _userOwner = MutableLiveData<User>()
+    val userOwner: LiveData<User> get() = _userOwner
     lateinit var userInfo :LiveData<UserInfo>
     init{
         //CoroutineScope(Dispatchers.IO).launch {
-            userOwner =
-                userRepository.getUserOwner() //TODO( ISSUE:при смене данных о пользователе будут отправлятся изначальные данные  bad flow)
+//            userOwner =
+//                userRepository.getUserOwner() //TODO( ISSUE:при смене данных о пользователе будут отправлятся изначальные данные  bad flow)
             //userInfo = userRepository.getUserInfoById(userOwner.value!!.id)
-            userOwner.observeForever { }
+                userRepository.getUserOwner().observeForever { user ->
+                    _userOwner.value = user
+                    //TODO("добавить send whoami при изменении данных")
+            }
        // }
     }
 

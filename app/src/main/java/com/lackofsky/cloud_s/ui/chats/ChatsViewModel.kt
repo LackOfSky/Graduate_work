@@ -1,5 +1,6 @@
 package com.lackofsky.cloud_s.ui.chats
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -20,7 +21,18 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatsViewModel @Inject constructor(val userRepository: UserRepository,
                                          val chatRepository: ChatRepository,val messageRepository: MessageRepository) :ViewModel() {
-    val chats = chatRepository.getAllChats()
+    val chats = MutableLiveData<List<ChatListItem>>()
+
+    init{
+        chatRepository.getChatListItems().observeForever {
+            chatList->chats.value =  chatList
+        Log.d("GrimBerry 321 chatvm", chatList.toString())
+        }
+        chatRepository.getAllChats().observeForever {
+            chat -> Log.d("GrimBerry 321 chatvm ch", chat.toString())
+        }
+
+    }
     //val chats = MutableLiveData<MutableSet<Chat>>(mutableSetOf())
 
     //val chatDtoList = MutableLiveData<MutableSet<ChatDTO>>(mutableSetOf())

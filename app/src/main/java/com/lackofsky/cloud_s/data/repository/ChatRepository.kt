@@ -1,5 +1,6 @@
 package com.lackofsky.cloud_s.data.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.room.Delete
 import androidx.room.Query
@@ -16,28 +17,46 @@ import com.lackofsky.cloud_s.data.model.User
 import javax.inject.Inject
 
 class ChatRepository @Inject constructor(
-    private val chatDao: ChatDao, private val chatMemberDao: ChatMemberDao,
+    private val chatDao: ChatDao,
+    private val chatMemberRepository: ChatMemberRepository,
     private val messageDao: MessageDao
 ) {
 
-    suspend fun insertChat(chat: Chat) {
-        chatDao.insertChat(chat)
+    suspend fun insertChat(chat: Chat):Boolean {
+        try{
+            chatDao.insertChat(chat)
+            return true
+        }catch (e:Exception){
+            return false
+        }
     }
 
-    suspend fun deleteChat(chat: Chat){
-        chatDao.deleteChat(chat)
+    suspend fun deleteChat(chat: Chat):Boolean{
+        try{
+            chatDao.deleteChat(chat)
+            return true
+        }catch (e:Exception){
+            return false
+        }
+    }
+    fun getAllChats(): LiveData<List<Chat>>{
+        return chatDao.getAllChats()
     }
 
-    fun getAllChats(): LiveData<List<ChatListItem>> {
+    fun getChatListItems(): LiveData<List<ChatListItem>> {
         return chatDao.getChatListItems()
     }
-     suspend fun getChatById(id: String): LiveData<Chat> {
+
+    fun getChatByName(id: String): LiveData<Chat> {
+        return chatDao.getChatByName(id)
+    }
+    fun getChatById(id: String): LiveData<Chat> {
         return chatDao.getChatById(id)
     }
     @Transaction
-    suspend fun createPrivateChat(userId1: String, userId2: String): String {
+    suspend fun createPrivateChat( userId2: String): String {//userId1: String,
         // Check if a private chat between these two users exists
-        val existingChat = chatDao.getPrivateChat(userId1, userId2)
+        val existingChat = chatDao.getChatByName(userId2)//userId1,
         if (existingChat.isInitialized) {
             return existingChat.value!!.chatId // Return the existing chat ID
         }
@@ -47,21 +66,14 @@ class ChatRepository @Inject constructor(
             name = userId2,
             type = ChatType.PRIVATE,
         )
-        chatDao.insertChat(newChat)
-
-        val chatMembers = listOf(
-            ChatMember(
-                chatId = newChat.chatId,
-                userId = userId1,
-                role = ChatRole.ADMIN     // Adjust role as needed
-            ),
+        if(!insertChat(newChat)) throw Exception("GrimBerry.ChatRepository. Error in function insertChat")
+        if(!chatMemberRepository.addChatMember (
             ChatMember(
                 chatId = newChat.chatId,
                 userId = userId2,
                 role = ChatRole.ADMIN
             )
-        )
-        chatMemberDao.insertChatMembers(chatMembers)
+        )) throw Exception("GrimBerry.ChatRepository. Error in function insertChatMember")
 
         return newChat.chatId
     }
@@ -74,7 +86,7 @@ class ChatRepository @Inject constructor(
 
         messageDao.deleteMessagesByChatId(chatId)
         // Remove users from the ChatMember table
-        chatMemberDao.deleteMembersByChatId(chatId)
+        chatMemberRepository.deleteMembersByChatId(chatId)
         // Finally, delete the chat itself
         chatDao.deleteChat(chat.value!!)
     }

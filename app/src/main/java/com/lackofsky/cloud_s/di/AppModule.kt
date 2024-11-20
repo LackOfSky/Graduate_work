@@ -10,6 +10,7 @@ import com.lackofsky.cloud_s.data.dao.MessageDao
 import com.lackofsky.cloud_s.data.dao.ReadMessageDao
 import com.lackofsky.cloud_s.data.dao.UserDao
 import com.lackofsky.cloud_s.data.database.AppDatabase
+import com.lackofsky.cloud_s.data.repository.ChatMemberRepository
 import com.lackofsky.cloud_s.data.repository.ChatRepository
 import com.lackofsky.cloud_s.data.repository.MessageRepository
 import com.lackofsky.cloud_s.data.repository.UserRepository
@@ -92,6 +93,12 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     @Provides
     fun provideWiFiDirectManager(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): WiFiDirectManager {
         return WiFiDirectManager(context,clientPartP2P)
+    }
+
+    @Provides
+    @Singleton
+    fun provideChatMemberRepository(chatMemberDao: ChatMemberDao):ChatMemberRepository{
+        return ChatMemberRepository(chatMemberDao)
     }
 
 }
