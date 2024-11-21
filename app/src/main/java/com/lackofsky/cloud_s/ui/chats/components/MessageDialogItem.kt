@@ -1,11 +1,13 @@
 package com.lackofsky.cloud_s.ui.chats.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -15,22 +17,35 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -43,46 +58,13 @@ import com.lackofsky.cloud_s.ui.chats.ChatDialogViewModel
 @Composable
 fun MessageDialogItem(message: Message,viewModel: ChatDialogViewModel = hiltViewModel()) {
     //рыба
-
+    var isUserOwner by remember { mutableStateOf(viewModel.isFromOwner(message.userId)) }
+    var isSelected by remember { mutableStateOf(false) }
+    val isSelectingMode by viewModel.isSelectingMode.collectAsState()
+    val context = LocalContext.current
+    var isExpandedItemMenu by remember { mutableStateOf(false) }
     Row(modifier = Modifier.fillMaxWidth()
     ) {
-//        Column(
-//            verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
-//            horizontalAlignment = Alignment.End,
-//            modifier = Modifier
-//                .background(color = Color(0xfffef7ff))
-//                .padding(
-//                    horizontal = 16.dp,
-//                    vertical = 0.dp
-//                )
-//        ) {
-//            Row(
-//                verticalAlignment = Alignment.CenterVertically,
-//                modifier = Modifier
-//                    .clip(
-//                        shape = RoundedCornerShape(
-//                            topStart = 20.dp,
-//                            topEnd = 20.dp,
-//                            bottomStart = 20.dp,
-//                            bottomEnd = 8.dp
-//                        )
-//                    )
-//                    .background(color = Color(0xff625b71))
-//                    .padding(
-//                        horizontal = 16.dp,
-//                        vertical = 8.dp
-//                    )
-//            ) {
-//                Text(
-//                    text = message.content,//TODO()
-//                    color = Color.White,
-//                    lineHeight = 1.5.em,
-//                    style = MaterialTheme.typography.bodyLarge,
-//                    modifier = Modifier
-//                        .fillMaxWidth())
-//            }
-
-        ///
         Row(
             horizontalArrangement = Arrangement.End,
             modifier = Modifier
@@ -92,8 +74,8 @@ fun MessageDialogItem(message: Message,viewModel: ChatDialogViewModel = hiltView
                     vertical = 8.dp
                 )
                 .padding(
-                    start = if (true) 40.dp else 0.dp,//TODO check user
-                    end = if (true) 0.dp else 40.dp
+                    start = if (isUserOwner) 40.dp else 0.dp,//TODO check user
+                    end = if (isUserOwner) 0.dp else 40.dp
                 )
                 .clip(
                     shape = RoundedCornerShape(
@@ -108,14 +90,27 @@ fun MessageDialogItem(message: Message,viewModel: ChatDialogViewModel = hiltView
         ) {
             Card(//navigate
                 elevation = CardDefaults.cardElevation(2.dp),
-                colors = CardDefaults.cardColors(Color.White),
+                colors = CardDefaults.cardColors( if(isSelected) Color.LightGray else Color.White ),
 //                shape = RoundedCornerShape(20.dp),
                 modifier = Modifier
                     .padding(3.dp, 6.dp)
                     .pointerInput(Unit) {//Clickable
                         detectTapGestures(
-                            onTap = { },
-                            onLongPress = { viewModel.selectedMessage(message) }
+                            onTap = {
+                                if (isSelectingMode) {
+                                    isSelected = !isSelected
+                                    viewModel.selectedMessage(message, isSelected)
+                                } else {
+                                    isExpandedItemMenu = true
+                                    //TODO("Логика CRUD-ОПЕРАЦИЙ")
+                                }
+                            },
+                            onLongPress = {
+                                if (isSelectingMode.not()) {
+                                    isSelected = !isSelected
+                                    viewModel.selectedMessage(message, isSelected)
+                                }
+                            }
                         )
                     }
 //                    .clip(
@@ -144,6 +139,24 @@ fun MessageDialogItem(message: Message,viewModel: ChatDialogViewModel = hiltView
                     )
                 }
             }
+        }
+        DropdownMenu(
+            expanded = isExpandedItemMenu,
+            onDismissRequest = { isExpandedItemMenu = false },
+
+            offset = DpOffset(80.dp, 0.dp), // Offset to adjust menu position
+            modifier = Modifier
+                .padding(10.dp)
+                .background(Color.Transparent)
+                .widthIn(min=100.dp,max=180.dp)
+        ) {
+            //todo иконки под поля
+
+            DropdownMenuItem(label = "reply", onCLick = {/*TODO()*/true}, drawableIcon = R.drawable.baseline_reply_24)//baseline_reply_16
+            Divider()
+            DropdownMenuItem(label = "redirect", onCLick = {/*TODO()*/true}, drawableIcon = R.drawable.baseline_redo_24)
+            DropdownMenuItem(label = "copy", onCLick = { viewModel.copyToClipboard(context = context,message.content) }, drawableIcon = R.drawable.baseline_content_copy_24)
+            DropdownMenuItem(label = "delete", onCLick = {viewModel.deleteMessage(message)}, drawableIcon = R.drawable.baseline_clear_20)
         }
     }
 }

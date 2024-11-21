@@ -1,5 +1,10 @@
 package com.lackofsky.cloud_s.ui.chats
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,11 +16,14 @@ import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.repository.ChatMemberRepository
 import com.lackofsky.cloud_s.data.repository.ChatRepository
 import com.lackofsky.cloud_s.data.repository.MessageRepository
+import com.lackofsky.cloud_s.data.repository.ReadMessageRepository
 import com.lackofsky.cloud_s.data.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,14 +32,20 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                                               private val messageRepository: MessageRepository,
                                               private val chatRepository: ChatRepository,
                                               private val chatMemberRepository:ChatMemberRepository,
-                                              private val clientPartP2P: ClientPartP2P
+                                              private val clientPartP2P: ClientPartP2P,
+                                              //private val readMessageRepository: ReadMessageRepository
     ): ViewModel() {
     val messages = MutableLiveData<List<Message>>()
     val chatMembers = MutableLiveData<List<ChatMember>>()
+
     val activeFriends = MutableLiveData<List<User?>>()
     val activeChat = MutableLiveData<Chat>()
-    val coroutineScope = CoroutineScope(Dispatchers.IO)
     val activeUserOwner = MutableLiveData<User>()
+
+    private val _selectedMessages = MutableStateFlow<MutableList<Message>>(mutableListOf())
+    val selectedMessages: StateFlow<MutableList<Message>> = _selectedMessages
+    private val _isSelectingMode = MutableStateFlow(_selectedMessages.value.isNotEmpty())
+    val isSelectingMode: StateFlow<Boolean> = _isSelectingMode
     init{
 
     }
@@ -45,26 +59,15 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
 //    }
 
     fun setChatId(chatId:String){
-
             messageRepository.getMessagesByChat(chatId).observeForever{
                     messageList -> messages.value = messageList
             }
 //            chatMemberRepository.getMembersByChat(chatId).observeForever {
 //                chatMembers.value = it
 //            }
-
-
         userRepository.getUserOwner().observeForever {
             activeUserOwner.value = it
         }
-//        activeUserOwner.value = userRepository.getUserOwner().value
-
-
-
-//        coroutineScope.launch {
-            //get info about app Owner
-
-
         chatRepository.getChatById(chatId).observeForever {
             activeChat.value = it
             if(activeChat.value!!.type == ChatType.PRIVATE){
@@ -80,14 +83,8 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
 //                } else{
 //                    TODO("Реализация логики многопользовательского чата")
 //                }
-//            }
-
-
-
-
-
-
     }
+
     fun sendMessage(text: String){
         //TODO("SEND message(text)")
         CoroutineScope(Dispatchers.IO).launch {
@@ -117,7 +114,42 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
 
         }
     }
-    fun selectedMessage(message: Message){
+
+    fun deleteMessage(message: Message):Boolean{
+        //фича - удаление сообщений будет производится лишь у себя
+        CoroutineScope(Dispatchers.IO).launch{
+            messageRepository.deleteMessage(message)
+        }
+        return true
+    }
+    fun copyToClipboard(context: Context, text: String):Boolean {
+        // Получаем ClipboardManager
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+        // Создаём ClipData с текстом
+        val clip = ClipData.newPlainText("Copied Text", text)
+
+        // Копируем текст в буфер обмена
+        clipboard.setPrimaryClip(clip)
+
+        // Уведомляем пользователя о копировании
+        Toast.makeText(context, "Copied to clipboard!", Toast.LENGTH_SHORT).show()
+        return true
+    }
+
+    fun selectedMessage(message: Message,isSelected:Boolean){
+        if(isSelected){
+            selectedMessages.value.add(message)
+            _isSelectingMode.value = true //Потенциально не имеет смысла каждый раз дёргать #todo
+        }else{
+            selectedMessages.value.remove(message)
+            if(selectedMessages.value.isEmpty()){
+                _isSelectingMode.value = false
+            }
+        }
+    }
+    fun isFromOwner(userId: String):Boolean{
+        return activeUserOwner.value!!.uniqueID == userId
 
     }
 }

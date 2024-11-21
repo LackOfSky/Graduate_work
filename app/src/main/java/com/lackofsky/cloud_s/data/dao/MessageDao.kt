@@ -2,6 +2,7 @@ package com.lackofsky.cloud_s.data.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -12,6 +13,8 @@ import com.lackofsky.cloud_s.data.model.SyncStatus
 interface MessageDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMessage(message: Message)
+    @Delete
+    suspend fun deleteMessage(message: Message)
 
     @Query("SELECT * FROM messages WHERE chatId = :chatId")
     fun getMessagesByChat(chatId: String): LiveData<List<Message>>

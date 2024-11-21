@@ -132,7 +132,7 @@ fun FriendList(viewModel: FriendsViewModel,navController: NavHostController) {
                             navController.navigate(UserRoutes.User.createRoute(friend.id))
                         }
                 ) {
-                    FriendItem(friend)
+                    FriendItem(friend, navController  = navController)
                 }
             }
         }

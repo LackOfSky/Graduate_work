@@ -55,18 +55,23 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.ui.ShowToast
+import com.lackofsky.cloud_s.ui.chats.ChatRoutes
 import com.lackofsky.cloud_s.ui.friends.FriendsViewModel
 import com.lackofsky.cloud_s.ui.friends.UserRoutes
 import com.lackofsky.cloud_s.ui.profile.EditHeaderUserInfo
 import com.lackofsky.cloud_s.ui.profile.HeaderUserInfo
 import com.lackofsky.cloud_s.ui.profile.ProfileViewModel
 import com.lackofsky.cloud_s.ui.profile.UserProfileFeachures
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
-fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel()){
+fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(), navController: NavHostController){
     var isExpandedItemMenu by remember { mutableStateOf(false) }
 
             Row(
@@ -119,7 +124,7 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel()){
                     )
 
                 }
-                Row(){
+                Row() {
                     Button(
                         onClick = {
                             //TODO()
@@ -127,7 +132,7 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel()){
                         colors = ButtonDefaults.buttonColors(
                             contentColor = Color(0xff004D40),       // цвет текста
                             containerColor = Color(0xffffffff)
-                        ),elevation = ButtonDefaults.elevatedButtonElevation(1.dp),
+                        ), elevation = ButtonDefaults.elevatedButtonElevation(1.dp),
                         modifier = Modifier
 //                                contentPadding = PaddingValues(
 //                                horizontal = 16.dp, // Set horizontal padding to 20dp
@@ -135,15 +140,36 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel()){
 //                    ), border = BorderStroke(1.dp, Color.Transparent),
 //                    modifier = Modifier.background(Color.Transparent, RectangleShape)
 
-                    ){
-                        Image(
-                            painter = painterResource(id = R.drawable.baseline_mail_24),
-                            contentDescription = "Image",
-                            modifier = Modifier
+                    ) {
+                        TextButton(
+                            onClick = {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    navController.navigate(
+                                        ChatRoutes.Chat.createRoute(
+                                            viewModel.getPrivateChatId(userId = userFriend.uniqueID)
+                                        )
+                                    )
+                                }
+                            },
+                            elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
+                            contentPadding = PaddingValues(
+                                horizontal = 16.dp, // Set horizontal padding to 20dp
+                                vertical = 5.dp // Set vertical padding to 10dp
+                            ), border = BorderStroke(1.dp, Color.Transparent),
+                            modifier = Modifier.background(Color.Transparent, RectangleShape)
+
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.baseline_mail_24),
+                                contentDescription = "Image",
+                                modifier = Modifier
 //                    .padding(all = 10.dp)
-                                .width(width = 24.dp)
-                                .height(height = 24.dp)
-                                .clip(shape = RoundedCornerShape(28.dp)))
+                                    .width(width = 24.dp)
+                                    .height(height = 24.dp)
+                                    .clip(shape = RoundedCornerShape(28.dp))
+                            )
+                            //ChatDialogScreen(chatId = chatId)
+                        }
                     }
 
                     TextButton(

@@ -77,7 +77,9 @@ class ChatRepository @Inject constructor(
 
         return newChat.chatId
     }
-
+    suspend fun getPrivateChatIdByUser(userId: String):String?{
+        return chatDao.getPrivateChatIdByUser(userId)
+    }
     suspend fun deletePrivateChat(chatId: String){
         val chat = chatDao.getChatById(chatId) ?: return
         if(!chat.isInitialized){

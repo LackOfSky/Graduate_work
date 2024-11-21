@@ -107,5 +107,11 @@ class FriendsViewModel @Inject constructor(
         }
         return true
     }
+    suspend fun getPrivateChatId(userId: String):String{
+        var chatId = ""
+            chatId = chatRepository.getPrivateChatIdByUser(userId)!!
+            Log.d("GrimBerry",chatId)
 
+        return chatId
+    }
 }

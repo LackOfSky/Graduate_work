@@ -9,6 +9,7 @@ import androidx.room.Query
 import androidx.room.Update
 import com.lackofsky.cloud_s.data.model.Chat
 import com.lackofsky.cloud_s.data.model.ChatListItem
+import com.lackofsky.cloud_s.data.model.ChatType
 import com.lackofsky.cloud_s.data.model.User
 
 @Dao
@@ -29,6 +30,13 @@ interface ChatDao {
 
     @Query("SELECT * FROM chats WHERE chatName = :chatName")
     fun getChatByName(chatName: String): LiveData<Chat>
+    @Query("""
+        SELECT cm.chatId 
+        FROM chat_members cm
+        JOIN chats c ON cm.chatId = c.chatId
+        WHERE cm.userId = :userId AND c.type = :type
+    """)
+    suspend fun getPrivateChatIdByUser(userId: String, type: ChatType = ChatType.PRIVATE): String?
 
 @Query("""
     SELECT 

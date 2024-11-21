@@ -14,6 +14,10 @@ class MessageRepository @Inject constructor(
         messageDao.insertMessage(message)
     }
 
+    suspend fun deleteMessage(message: Message){
+        messageDao.deleteMessage(message)
+    }
+
     fun getMessageByUniqueId(messageUniqueId: String): LiveData<Message> {
         return messageDao.getMessageById(messageUniqueId)
     }
