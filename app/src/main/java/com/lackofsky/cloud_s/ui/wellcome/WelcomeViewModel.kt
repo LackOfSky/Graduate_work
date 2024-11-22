@@ -11,10 +11,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lackofsky.cloud_s.data.dao.UserDao
+import com.lackofsky.cloud_s.data.database.dao.UserDao
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
-import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

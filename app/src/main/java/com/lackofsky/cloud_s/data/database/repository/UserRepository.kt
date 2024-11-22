@@ -1,11 +1,11 @@
-package com.lackofsky.cloud_s.data.repository
+package com.lackofsky.cloud_s.data.database.repository
 
 
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
-import com.lackofsky.cloud_s.data.dao.UserDao
+import com.lackofsky.cloud_s.data.database.dao.UserDao
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
 import javax.inject.Inject

@@ -41,11 +41,13 @@ import com.lackofsky.cloud_s.data.model.ChatListItem
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.ui.chats.ChatsViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatListItem) {
     var isIconExist by remember { mutableStateOf(false) }
-    lateinit var bitmap: Bitmap
+
+    var bitmap: Bitmap? = null
 //    val friendPlaceholder by viewModel.currentUser.collectAsState()//TODO friends placeholder
 //    val strangers by viewModel.strangers.collectAsState()
 //    val navController = rememberNavController()
@@ -59,7 +61,7 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatList
                     vertical = 8.dp
                 )
         ) {
-            try{
+            try{//пересмотреть, возможно не актуально
                 bitmap = BitmapFactory.decodeByteArray(chatListItem.userIcon, 0, chatListItem.userIcon.size)
                 isIconExist = true
 
@@ -67,16 +69,18 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatList
                 isIconExist = false
             }
             if(isIconExist){
-                Image(
-                    bitmap = bitmap.asImageBitmap(),//            painter = painterResource(id = R.drawable.atom_ico),
-                    contentDescription = "Image",
-                    modifier = Modifier
-                        .align(alignment = Alignment.Top)
-                        .width(width = 70.dp)
-                        .height(height = 70.dp)
-                        .weight(weight = 2f)
-                        .clip(shape = RoundedCornerShape(28.dp))
-                )
+                bitmap?.let {
+                    Image(
+                        bitmap = it.asImageBitmap(),//            painter = painterResource(id = R.drawable.atom_ico),
+                        contentDescription = "Image",
+                        modifier = Modifier
+                            .align(alignment = Alignment.Top)
+                            .width(width = 70.dp)
+                            .height(height = 70.dp)
+                            .weight(weight = 2f)
+                            .clip(shape = RoundedCornerShape(28.dp))
+                    )
+                }
             }else{
                 Image(
                     painter = painterResource(id = R.drawable.clouds_night_angle20),

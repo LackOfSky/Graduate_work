@@ -8,8 +8,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lackofsky.cloud_s.data.model.User
-import com.lackofsky.cloud_s.data.repository.ChatRepository
-import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.data.database.repository.ChatRepository
+import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.client.usecase.FriendRequestUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

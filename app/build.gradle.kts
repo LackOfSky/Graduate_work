@@ -98,6 +98,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
 
+    //adding image
+    implementation("io.coil-kt:coil-compose:2.4.0")
     //datastore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     //JSON

@@ -1,7 +1,7 @@
-package com.lackofsky.cloud_s.data.repository
+package com.lackofsky.cloud_s.data.database.repository
 
 import androidx.lifecycle.LiveData
-import com.lackofsky.cloud_s.data.dao.ChatMemberDao
+import com.lackofsky.cloud_s.data.database.dao.ChatMemberDao
 import com.lackofsky.cloud_s.data.model.ChatMember
 
 class ChatMemberRepository(private val chatMemberDao: ChatMemberDao) {

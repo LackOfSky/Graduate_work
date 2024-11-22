@@ -1,21 +1,32 @@
 package com.lackofsky.cloud_s.ui.profile
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.util.copy
+import coil.ImageLoader
+import coil.request.ImageRequest
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserDTO
 import com.lackofsky.cloud_s.data.model.UserInfo
-import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,6 +51,8 @@ class ProfileViewModel @Inject constructor(
     val userInfo: LiveData<UserInfo> get() = _userInfo
     private val _editUserInfo = MutableLiveData<UserInfo>()
     val editUserInfo: LiveData<UserInfo> get() = _editUserInfo
+
+    private val maxImageSize = 1000000
 
     init {
         viewModelScope.launch {
@@ -131,4 +144,45 @@ class ProfileViewModel @Inject constructor(
         _isInfoEdit.value = false
     }
 
+
+    /*** settingNewImage*/
+    private val _selectedImageUri = MutableStateFlow<Uri?>(null)
+    val selectedImageUri: StateFlow<Uri?> = _selectedImageUri
+
+    fun setImageUri(uri: Uri?,context: Context) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try{
+                    compressImageToByteArray(uri!!, context = context)?.let {
+
+
+                        if (it.size < maxImageSize){
+                            userRepository.updateUserInfo(
+                                userInfo.value!!.copy(iconImg = it)
+                            )
+                        }
+                    }
+                }catch (e:Exception){
+                    //TODO("предупреждение большого обьема файла")
+                }
+
+            }
+        //}
+    }
+    private suspend fun compressImageToByteArray(uri: Uri,context: Context): ByteArray? {
+        val imageLoader = ImageLoader(context)
+        return withContext(Dispatchers.IO) {
+            val request = ImageRequest.Builder(context)
+                .data(uri) // URI изображения
+                .size(256, 256) // Размер для сжатия
+                .build()
+
+            val result = imageLoader.execute(request).drawable
+            val bitmap = (result as? BitmapDrawable)?.bitmap ?: return@withContext null
+
+            // Преобразование Bitmap в ByteArray
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream) // Сжатие в JPEG с 80% качеством
+            outputStream.toByteArray()
+        }
+    }
 }

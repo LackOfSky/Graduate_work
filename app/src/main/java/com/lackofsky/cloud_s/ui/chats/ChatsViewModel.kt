@@ -10,9 +10,9 @@ import com.lackofsky.cloud_s.data.model.ChatListItem
 import com.lackofsky.cloud_s.data.model.ChatType
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.User
-import com.lackofsky.cloud_s.data.repository.ChatRepository
-import com.lackofsky.cloud_s.data.repository.MessageRepository
-import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.data.database.repository.ChatRepository
+import com.lackofsky.cloud_s.data.database.repository.MessageRepository
+import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
@@ -20,7 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChatsViewModel @Inject constructor(val userRepository: UserRepository,
-                                         val chatRepository: ChatRepository,val messageRepository: MessageRepository) :ViewModel() {
+                                         val chatRepository: ChatRepository, val messageRepository: MessageRepository
+) :ViewModel() {
     val chats = MutableLiveData<List<ChatListItem>>()
 
     init{

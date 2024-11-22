@@ -8,7 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
-import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
@@ -19,7 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SplashScreenViewModel @Inject constructor(@ApplicationContext val context: Context,
-                                                private val userRepository: UserRepository) :ViewModel() {
+                                                private val userRepository: UserRepository
+) :ViewModel() {
     private val _isUserLoggedIn = MutableStateFlow<Boolean?>(null)
     val isUserLoggedIn: StateFlow<Boolean?> get() = _isUserLoggedIn
 

@@ -1,9 +1,9 @@
 package com.lackofsky.cloud_s.service.server
 
 import android.util.Log
-import com.lackofsky.cloud_s.data.repository.ChatRepository
-import com.lackofsky.cloud_s.data.repository.MessageRepository
-import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.data.database.repository.ChatRepository
+import com.lackofsky.cloud_s.data.database.repository.MessageRepository
+import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.model.Peer

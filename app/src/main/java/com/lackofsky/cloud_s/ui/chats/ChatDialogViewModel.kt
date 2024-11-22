@@ -13,11 +13,11 @@ import com.lackofsky.cloud_s.data.model.ChatMember
 import com.lackofsky.cloud_s.data.model.ChatType
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.User
-import com.lackofsky.cloud_s.data.repository.ChatMemberRepository
-import com.lackofsky.cloud_s.data.repository.ChatRepository
-import com.lackofsky.cloud_s.data.repository.MessageRepository
-import com.lackofsky.cloud_s.data.repository.ReadMessageRepository
-import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.data.database.repository.ChatMemberRepository
+import com.lackofsky.cloud_s.data.database.repository.ChatRepository
+import com.lackofsky.cloud_s.data.database.repository.MessageRepository
+import com.lackofsky.cloud_s.data.database.repository.ReadMessageRepository
+import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -31,7 +31,7 @@ import javax.inject.Inject
 class ChatDialogViewModel @Inject constructor(private val userRepository: UserRepository,
                                               private val messageRepository: MessageRepository,
                                               private val chatRepository: ChatRepository,
-                                              private val chatMemberRepository:ChatMemberRepository,
+                                              private val chatMemberRepository: ChatMemberRepository,
                                               private val clientPartP2P: ClientPartP2P,
                                               //private val readMessageRepository: ReadMessageRepository
     ): ViewModel() {

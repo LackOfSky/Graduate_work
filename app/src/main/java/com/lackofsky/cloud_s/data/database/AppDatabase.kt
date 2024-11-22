@@ -3,12 +3,12 @@ package com.lackofsky.cloud_s.data.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.lackofsky.cloud_s.data.dao.ChatDao
-import com.lackofsky.cloud_s.data.dao.ChatMemberDao
-import com.lackofsky.cloud_s.data.dao.MessageDao
-import com.lackofsky.cloud_s.data.dao.ReadMessageDao
+import com.lackofsky.cloud_s.data.database.dao.ChatDao
+import com.lackofsky.cloud_s.data.database.dao.ChatMemberDao
+import com.lackofsky.cloud_s.data.database.dao.MessageDao
+import com.lackofsky.cloud_s.data.database.dao.ReadMessageDao
 
-import com.lackofsky.cloud_s.data.dao.UserDao
+import com.lackofsky.cloud_s.data.database.dao.UserDao
 import com.lackofsky.cloud_s.data.model.Chat
 import com.lackofsky.cloud_s.data.model.ChatMember
 import com.lackofsky.cloud_s.data.model.DateTypeConverter

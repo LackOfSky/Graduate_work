@@ -1,7 +1,7 @@
-package com.lackofsky.cloud_s.data.repository
+package com.lackofsky.cloud_s.data.database.repository
 
 import androidx.lifecycle.LiveData
-import com.lackofsky.cloud_s.data.dao.MessageDao
+import com.lackofsky.cloud_s.data.database.dao.MessageDao
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.SyncStatus
 import javax.inject.Inject

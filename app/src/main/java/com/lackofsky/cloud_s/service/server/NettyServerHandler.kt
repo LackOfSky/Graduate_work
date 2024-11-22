@@ -6,9 +6,9 @@ import com.google.gson.JsonParseException
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
-import com.lackofsky.cloud_s.data.repository.ChatRepository
-import com.lackofsky.cloud_s.data.repository.MessageRepository
-import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.data.database.repository.ChatRepository
+import com.lackofsky.cloud_s.data.database.repository.MessageRepository
+import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.client.usecase.FriendRequestUseCase

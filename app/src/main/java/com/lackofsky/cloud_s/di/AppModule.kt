@@ -4,16 +4,16 @@ import android.app.NotificationManager
 import android.content.Context
 import androidx.room.Room
 import com.google.gson.Gson
-import com.lackofsky.cloud_s.data.dao.ChatDao
-import com.lackofsky.cloud_s.data.dao.ChatMemberDao
-import com.lackofsky.cloud_s.data.dao.MessageDao
-import com.lackofsky.cloud_s.data.dao.ReadMessageDao
-import com.lackofsky.cloud_s.data.dao.UserDao
+import com.lackofsky.cloud_s.data.database.dao.ChatDao
+import com.lackofsky.cloud_s.data.database.dao.ChatMemberDao
+import com.lackofsky.cloud_s.data.database.dao.MessageDao
+import com.lackofsky.cloud_s.data.database.dao.ReadMessageDao
+import com.lackofsky.cloud_s.data.database.dao.UserDao
 import com.lackofsky.cloud_s.data.database.AppDatabase
-import com.lackofsky.cloud_s.data.repository.ChatMemberRepository
-import com.lackofsky.cloud_s.data.repository.ChatRepository
-import com.lackofsky.cloud_s.data.repository.MessageRepository
-import com.lackofsky.cloud_s.data.repository.UserRepository
+import com.lackofsky.cloud_s.data.database.repository.ChatMemberRepository
+import com.lackofsky.cloud_s.data.database.repository.ChatRepository
+import com.lackofsky.cloud_s.data.database.repository.MessageRepository
+import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.server.NettyServer
@@ -97,7 +97,7 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
 
     @Provides
     @Singleton
-    fun provideChatMemberRepository(chatMemberDao: ChatMemberDao):ChatMemberRepository{
+    fun provideChatMemberRepository(chatMemberDao: ChatMemberDao): ChatMemberRepository {
         return ChatMemberRepository(chatMemberDao)
     }
 

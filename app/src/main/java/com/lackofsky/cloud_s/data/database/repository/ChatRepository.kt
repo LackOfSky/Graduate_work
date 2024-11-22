@@ -1,13 +1,13 @@
-package com.lackofsky.cloud_s.data.repository
+package com.lackofsky.cloud_s.data.database.repository
 
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Transaction
-import com.lackofsky.cloud_s.data.dao.ChatDao
-import com.lackofsky.cloud_s.data.dao.ChatMemberDao
-import com.lackofsky.cloud_s.data.dao.MessageDao
+import com.lackofsky.cloud_s.data.database.dao.ChatDao
+import com.lackofsky.cloud_s.data.database.dao.ChatMemberDao
+import com.lackofsky.cloud_s.data.database.dao.MessageDao
 import com.lackofsky.cloud_s.data.model.Chat
 import com.lackofsky.cloud_s.data.model.ChatListItem
 import com.lackofsky.cloud_s.data.model.ChatMember

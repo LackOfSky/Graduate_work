@@ -1,4 +1,4 @@
-package com.lackofsky.cloud_s.data.dao
+package com.lackofsky.cloud_s.data.database.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
