@@ -19,7 +19,7 @@ import java.util.UUID
     indices = [Index(value = ["chatId"]), Index(value = ["userId"])]
 )
 data class Message (
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "messageId")
     val id: Int = 0,
     @ColumnInfo(name = "messageUniqueId")//TODO подумать

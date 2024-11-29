@@ -105,6 +105,7 @@ dependencies {
     //JSON
     implementation ("com.google.code.gson:gson:2.8.8")
     //p2p
+    //implementation("androidx.wifi:wifi-aware:1.1.0")
     implementation("org.jmdns:jmdns:3.5.8")
     implementation("io.netty:netty-all:4.1.96.Final") // Подключает все необходимые модули
     implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")

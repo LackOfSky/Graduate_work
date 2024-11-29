@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.jmdns.impl.DNSRecord.IPv6Address
 
 class ClientPartP2P @Inject constructor(
     private val gson: Gson,
@@ -133,8 +134,8 @@ class ClientPartP2P @Inject constructor(
     fun addFriendInfo(userInfo: UserInfo){
         TODO()
     }
-    fun sendWhoAmI(addr: String){
-        val client = NettyClient(addr, metadata.defaultPort)//
+    fun sendWhoAmI(host: String,port:Int){
+        val client = NettyClient(host, port)//
         try {
             client.connect()
             Log.d("service $SERVICE_NAME :client", "connected")

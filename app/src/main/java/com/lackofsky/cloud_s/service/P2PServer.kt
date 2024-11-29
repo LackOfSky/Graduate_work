@@ -23,6 +23,7 @@ import com.lackofsky.cloud_s.service.model.TransportData
 import com.lackofsky.cloud_s.service.server.NettyServer
 import com.lackofsky.cloud_s.service.server.discovery.PeerDiscovery
 import com.lackofsky.cloud_s.service.server.discovery.WiFiDirectManager
+import com.lackofsky.cloud_s.service.server.discovery.WiFiDiscoveryByAware
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +48,7 @@ class P2PServer : Service() {
 //    private lateinit var peerDiscovery: PeerDiscovery
     @Inject lateinit var gson: Gson
 
+    @Inject lateinit var wifiAware: WiFiDiscoveryByAware
     @Inject lateinit var wifiDirectManager: WiFiDirectManager
 
   //private lateinit var protocolHandler: ProtocolHandler //TODO выбор протокола передачи данных
@@ -58,12 +60,18 @@ class P2PServer : Service() {
         Log.d("service $SERVICE_NAME", "WAS LOGGED")
         super.onCreate()
         createNotificationChannel()
-        val serviceName = Settings.Secure.getString(contentResolver, //TODO
-            Settings.Secure.ANDROID_ID)
+//        val serviceName = Settings.Secure.getString(contentResolver, //TODO
+//            Settings.Secure.ANDROID_ID)
         CoroutineScope(Dispatchers.IO).launch {
             // Запускаем сервер для входящих подключений
 //            peerDiscovery.startDiscovery()
-            wifiDirectManager.startPeerDiscovery()
+            if(wifiAware.isAwareAvailable()){
+                wifiAware.startAware(SERVICE_NAME)
+                Log.d("service $SERVICE_NAME", "wifiAware is started")
+            }else{
+                Log.d("service $SERVICE_NAME", "wifiAware is not started")
+            }
+            //wifiDirectManager.startPeerDiscovery()
             nettyServer.start()
 
         }
@@ -77,7 +85,8 @@ class P2PServer : Service() {
         super.onDestroy()
 //        peerDiscovery.stopDiscovery()
         nettyServer.stop()
-        wifiDirectManager.stopPeerDiscovery()
+        wifiAware.stopAware()
+        //wifiDirectManager.stopPeerDiscovery()
         stopForeground(STOP_FOREGROUND_REMOVE)
         Log.d("service $SERVICE_NAME", "WAS ENDED")
     }

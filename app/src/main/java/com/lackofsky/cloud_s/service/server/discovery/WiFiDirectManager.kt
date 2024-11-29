@@ -163,7 +163,7 @@ class WiFiDirectManager @Inject constructor(private val applicationContext: Cont
             override fun onSuccess() {
                 Log.d("WifiDirectService GrimBerry", "Connection initiated with ${device.deviceName}")
                 sendToastIntend("Connection initiated with ${device.deviceName}")
-                clientPartP2P.sendWhoAmI(device.deviceAddress)
+                //clientPartP2P.sendWhoAmI(device.deviceAddress,)
             }
 
             override fun onFailure(reason: Int) {
