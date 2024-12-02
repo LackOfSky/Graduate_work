@@ -1,9 +1,13 @@
 package com.lackofsky.cloud_s.data.model
 
+import android.net.Uri
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.lackofsky.cloud_s.data.storage.StorageDao
+import com.lackofsky.cloud_s.data.storage.StorageRepository
+import java.net.URI
 
 @Entity(tableName = "usersInfo",
     foreignKeys = [ForeignKey(
@@ -23,5 +27,27 @@ data class UserInfo (
     @ColumnInfo(name = "userIcon")
     var iconImg: ByteArray = ByteArray(0),
     @ColumnInfo(name = "userBanner")
-    var bannerImg: ByteArray = ByteArray(0)
+    var bannerImgURI: String = ""
 )
+
+data class UserInfoDTO(
+    val base: UserInfo,
+    val bannerImg: ByteArray
+) {
+    val userId: String get() = base.userId
+    var about: String
+        get() = base.about
+        set(value) {
+            base.about = value
+        }
+    var info: String
+        get() = base.info
+        set(value) {
+            base.info = value
+        }
+    var iconImg: ByteArray
+        get() = base.iconImg
+        set(value) {
+            base.iconImg = value
+        }
+}

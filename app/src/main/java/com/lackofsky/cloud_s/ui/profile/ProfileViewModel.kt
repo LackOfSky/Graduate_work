@@ -7,6 +7,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -19,6 +20,8 @@ import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserDTO
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
+import com.lackofsky.cloud_s.data.storage.StorageDao
+import com.lackofsky.cloud_s.data.storage.StorageRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +34,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val storageRepository: StorageRepository
 ) : ViewModel() {
 
     private val _isHeaderEdit = MutableLiveData<Boolean>(false)
@@ -167,6 +171,22 @@ class ProfileViewModel @Inject constructor(
 
             }
         //}
+    }
+    fun setBannerUri(context: Context,uri: Uri?) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                storageRepository.saveFileFromUri(context, uri!!, "profileBanner")
+                userRepository.updateUserInfo(
+                    userInfo.value!!.copy(bannerImgURI = uri.path!!)
+                )
+            }catch (e:Exception){
+                //todo
+            }
+
+            }
+    }
+    fun getBannerBitmap(context: Context):Bitmap?{
+        return storageRepository.loadFileFromFilesDir(context = context, fileName = "profileBanner")
     }
     private suspend fun compressImageToByteArray(uri: Uri,context: Context): ByteArray? {
         val imageLoader = ImageLoader(context)

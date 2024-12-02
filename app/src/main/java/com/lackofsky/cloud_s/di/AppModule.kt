@@ -14,6 +14,7 @@ import com.lackofsky.cloud_s.data.database.repository.ChatMemberRepository
 import com.lackofsky.cloud_s.data.database.repository.ChatRepository
 import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
+import com.lackofsky.cloud_s.data.storage.StorageRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.server.NettyServer
@@ -104,6 +105,11 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     @Singleton
     fun provideChatMemberRepository(chatMemberDao: ChatMemberDao): ChatMemberRepository {
         return ChatMemberRepository(chatMemberDao)
+    }
+    @Provides
+    @Singleton
+    fun provideStorageRepository():StorageRepository{
+        return StorageRepository()
     }
 
 }

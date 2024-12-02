@@ -86,18 +86,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,
     editUser?.let {
     LazyColumn( Modifier.fillMaxSize()) {
         item {
-            Card(
-                elevation = CardDefaults.cardElevation(8.dp),
-                colors = CardDefaults.cardColors(Color.White),
-                modifier = modifier.height(150.dp)
-            ) {
-                //todo editUserInfo.banner
-                Image(
-                    bitmap = ImageBitmap.imageResource(R.drawable.banner),
-                    contentScale = ContentScale.FillWidth,
-                    contentDescription = "BANNER"
-                )
-            }
+            BannerPicker(viewModel = viewModel)
         }
         item {
             Card(
@@ -393,4 +382,66 @@ fun DefaultIcon(userInfo: UserInfo?){
 
     }
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BannerPicker(viewModel: ProfileViewModel) {
+    val imageUri by viewModel.selectedImageUri.collectAsState()
+//    val userInfo by viewModel.userInfo.observeAsState()
+    val context = LocalContext.current
+    // Лаунчер для выбора изображения
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        viewModel.setBannerUri(context = context,uri) // Устанавливаем URI через ViewModel
+    }
+
+    // Кнопка для выбора изображения
+
+    Card(
+        elevation = CardDefaults.cardElevation(8.dp),
+        colors = CardDefaults.cardColors(Color.White),
+        onClick = {imagePickerLauncher.launch("image/*")},
+        modifier = Modifier.height(150.dp)
+    ) {
+        //todo editUserInfo.banner
+
+        imageUri?.let { uri ->
+            AsyncImage(
+                model = uri,
+                contentDescription = "Выбранное изображение",
+                contentScale = ContentScale.FillWidth
+            )
+            viewModel.setImageUri(uri, context = LocalContext.current)
+        } ?: DefaultBanner(viewModel = viewModel)
+    }
+
+}
+@Composable
+fun DefaultBanner(viewModel: ProfileViewModel) {
+    val userInfo by viewModel.userInfo.observeAsState()
+    var bitmap: Bitmap?
+    val context = LocalContext.current
+
+    userInfo?.let {
+        try {
+            bitmap = viewModel.getBannerBitmap(context)
+        } catch (e: Exception) {
+            bitmap = null
+        }
+
+        bitmap?.let {
+            Image(
+                bitmap = it.asImageBitmap(),
+                contentDescription = "Image",
+                contentScale = ContentScale.FillWidth
+            )
+        } ?: Image(
+            bitmap = ImageBitmap.imageResource(R.drawable.banner),
+            contentScale = ContentScale.FillWidth,
+            contentDescription = "BANNER"
+        )//getBannerUri
+
+    }
 }

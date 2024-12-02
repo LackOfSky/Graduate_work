@@ -7,7 +7,7 @@ import java.io.File
 import java.io.IOException
 
 class StorageDao {
-    fun saveProfileIcon(context: Context, bitmap: Bitmap, fileName: String): String? {
+     fun saveProfileIcon(context: Context, bitmap: Bitmap, fileName: String): String? {
         val file = File(context.filesDir, fileName)
 
         return try {
