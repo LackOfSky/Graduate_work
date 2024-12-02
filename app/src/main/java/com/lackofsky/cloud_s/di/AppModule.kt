@@ -91,7 +91,7 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     fun provideMetadata():Metadata{
         return Metadata(15015,"GrimBerry")
     }
-    @Provides
+    @Provides //TODO( DEPRECATED )
     fun provideWiFiDirectManager(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): WiFiDirectManager {
         return WiFiDirectManager(context,clientPartP2P)
     }

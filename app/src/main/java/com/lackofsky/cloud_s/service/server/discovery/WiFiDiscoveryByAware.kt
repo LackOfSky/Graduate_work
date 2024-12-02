@@ -107,12 +107,14 @@ class WiFiDiscoveryByAware @Inject constructor(
                         super.onSubscribeStarted(session)
                         subscribeSession = session
                         Log.d("GrimBerry WiFiAware", "Aware subscribing is started")
+                        sendToastIntend("aware is started")
                     }
 
                     override fun onServiceDiscovered(peerHandle: PeerHandle, serviceSpecificInfo: ByteArray, matchFilter: List<ByteArray>) {
                         connectToPeer(subscribeSession!!, peerHandle)
                         //(subscribeSession as DiscoverySession).sendMessage() //Желательно вынести сюда логику strangers
                         Log.d("GrimBerry WiFiAware", "New peer has been discovered")//TODO удалить
+                        sendToastIntend("New peer has been discovered")
                     }
                 }, null)
             }
@@ -130,6 +132,7 @@ class WiFiDiscoveryByAware @Inject constructor(
         context.unregisterReceiver(myReceiver)
         Log.d("GrimBerry WiFiAware", "Aware subscribing is stopped")
         Log.d("GrimBerry WiFiAware", "Aware publishing is stopped")
+        sendToastIntend("aware stopped")
     }
 
     private fun checkPermission():Boolean{
@@ -161,7 +164,7 @@ class WiFiDiscoveryByAware @Inject constructor(
         connectivityManager.requestNetwork(networkRequest, object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 Log.d("GrimBerry WiFiAware", "Соединение установлено")
-                sendToastIntend("new peer discovered")
+                sendToastIntend("discovered:xx")
                 //startPeerToPeerCommunication(network)
             }
             override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
@@ -176,6 +179,7 @@ class WiFiDiscoveryByAware @Inject constructor(
 
             override fun onLost(network: Network) {
                 Log.d("GrimBerry WiFiAware", "Соединение прервано "+ network.toString() )
+                sendToastIntend("Соединение прервано")
                 connectivityManager.unregisterNetworkCallback(this)
                //
             }
