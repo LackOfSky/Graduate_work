@@ -20,7 +20,6 @@ import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserDTO
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
-import com.lackofsky.cloud_s.data.storage.StorageDao
 import com.lackofsky.cloud_s.data.storage.StorageRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -186,7 +185,7 @@ class ProfileViewModel @Inject constructor(
             }
     }
     fun getBannerBitmap(context: Context):Bitmap?{
-        return storageRepository.loadFileFromFilesDir(context = context, fileName = "profileBanner")
+        return storageRepository.loadBitmapFromFilesDir(context = context, fileName = "profileBanner")
     }
     private suspend fun compressImageToByteArray(uri: Uri,context: Context): ByteArray? {
         val imageLoader = ImageLoader(context)

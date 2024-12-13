@@ -13,6 +13,7 @@ import android.net.NetworkRequest
 import android.net.wifi.aware.AttachCallback
 import android.net.wifi.aware.DiscoverySessionCallback
 import android.net.wifi.aware.PeerHandle
+import android.net.wifi.aware.PublishConfig
 import android.net.wifi.aware.PublishConfig.Builder
 import android.net.wifi.aware.PublishDiscoverySession
 import android.net.wifi.aware.SubscribeConfig
@@ -27,9 +28,10 @@ import javax.inject.Inject
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.lackofsky.cloud_s.service.ClientPartP2P
+import dagger.hilt.android.qualifiers.ApplicationContext
 
-class WiFiDiscoveryByAware @Inject constructor(
-    private val context: Context,
+class WiFiDiscoveryByAware @Inject constructor( //NOT IMPLEMENT BY HARDWARE
+    @ApplicationContext private val context: Context,
     private val clientPartP2P: ClientPartP2P
 ) {
 //    private var wifiAwareManager: WifiAwareManager? = null
@@ -42,11 +44,34 @@ class WiFiDiscoveryByAware @Inject constructor(
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.NEARBY_WIFI_DEVICES
     )
-    private val filter = IntentFilter(WifiAwareManager.ACTION_WIFI_AWARE_STATE_CHANGED)
-    val myReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            // discard current sessions
-            //todo("уведомлять пользователя о состоянии aware\ управлять работой aware")
+
+
+    init {
+        //wifiAwareManager =  context.getSystemService(Context.WIFI_AWARE_SERVICE) as WifiAwareManager
+        //
+    }
+
+    // Проверка доступности Wi-Fi Aware
+    fun isAwareAvailable(): Boolean {
+        Log.d("GrimBerry WiFiAware",wifiAwareManager.toString())
+        return wifiAwareManager?.isAvailable ?: false
+    }
+
+    // Создание публикации
+    fun startAware(serviceName: String){
+        isAwareUp = true
+        start(serviceName)
+        sendToastIntend("Aware cluster started")
+    }
+
+    private fun start(serviceName: String) {
+        checkPermission()
+        wifiAwareManager =  context.getSystemService(Context.WIFI_AWARE_SERVICE) as WifiAwareManager
+        val filter = IntentFilter(WifiAwareManager.ACTION_WIFI_AWARE_STATE_CHANGED)
+        val myReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                // discard current sessions
+                //todo("уведомлять пользователя о состоянии aware\ управлять работой aware")
 //            if (wifiAwareManager!!.isAvailable) {
 //                if(isAwareUp){
 //                }
@@ -56,28 +81,9 @@ class WiFiDiscoveryByAware @Inject constructor(
 //            } else {
 //                //
 //            }
+            }
         }
-    }
 
-    init {
-        //wifiAwareManager = context.getSystemService(Context.WIFI_AWARE_SERVICE) as WifiAwareManager
-        //
-    }
-
-    // Проверка доступности Wi-Fi Aware
-    fun isAwareAvailable(): Boolean {
-        return wifiAwareManager?.isAvailable ?: false
-    }
-
-    // Создание публикации
-    fun startAware(serviceName: String){
-        isAwareUp = true
-        start(serviceName)
-    }
-
-    private fun start(serviceName: String) {
-        checkPermission()
-        wifiAwareManager =  context.getSystemService(Context.WIFI_AWARE_SERVICE) as WifiAwareManager
         context.registerReceiver(myReceiver, filter)
         // #Publishing
         wifiAwareManager!!.attach(object : AttachCallback() {
@@ -129,10 +135,10 @@ class WiFiDiscoveryByAware @Inject constructor(
         isAwareUp = false
         publishSession?.close()
         subscribeSession?.close()
-        context.unregisterReceiver(myReceiver)
+        //context.unregisterReceiver(myReceiver)
         Log.d("GrimBerry WiFiAware", "Aware subscribing is stopped")
         Log.d("GrimBerry WiFiAware", "Aware publishing is stopped")
-        sendToastIntend("aware stopped")
+        sendToastIntend("Aware cluster stopped")
     }
 
     private fun checkPermission():Boolean{

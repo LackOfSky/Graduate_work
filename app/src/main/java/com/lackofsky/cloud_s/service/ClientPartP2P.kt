@@ -33,8 +33,8 @@ class ClientPartP2P @Inject constructor(
 
     private val _activeFriends = MutableStateFlow<MutableMap<User, NettyClient>>(mutableMapOf())
     val activeFriends: StateFlow<MutableMap<User, NettyClient>> = _activeFriends
-    private val _activeStrangers = MutableStateFlow<MutableSet<User>>(mutableSetOf())
-    val activeStrangers: StateFlow<MutableSet<User>> = _activeStrangers
+    private val _activeStrangers = MutableStateFlow<MutableMap<User, NettyClient>>(mutableMapOf())
+    val activeStrangers: StateFlow<MutableMap<User, NettyClient>> = _activeStrangers
     /***
      * outgoing requests */
     private val _requestedStrangers = MutableStateFlow<MutableSet<User>>(mutableSetOf())
@@ -83,13 +83,13 @@ class ClientPartP2P @Inject constructor(
     }
 
     suspend fun addActiveUser(user: User){
+        val client = NettyClient(user.ipAddr,user.port)
         if(userRepository.getUserByUniqueID(user.uniqueID).isInitialized){
             userRepository.updateUser(user)
-            val client = NettyClient(user.ipAddr,user.port)
             _activeFriends.value.put(user, client)
 //            client.connect()
         }else{
-            _activeStrangers.value.add(user)
+            _activeStrangers.value.put(user, client)
         }
     }
 
@@ -105,7 +105,7 @@ class ClientPartP2P @Inject constructor(
              users
          }
             _activeStrangers.update { users ->
-                users.removeIf { it.ipAddr == peer.address }
+                users.keys.removeIf { it.ipAddr == peer.address }
                 users
             }
 
@@ -134,7 +134,7 @@ class ClientPartP2P @Inject constructor(
     fun addFriendInfo(userInfo: UserInfo){
         TODO()
     }
-    fun sendWhoAmI(host: String,port:Int){
+    fun sendWhoAmI(host: String,port:Int = 15015){//default at metadata
         val client = NettyClient(host, port)//
         try {
             client.connect()

@@ -1,23 +1,15 @@
 package com.lackofsky.cloud_s.ui.friends
 
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.database.repository.ChatRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
-import com.lackofsky.cloud_s.service.client.usecase.FriendRequestUseCase
+import com.lackofsky.cloud_s.service.client.usecase.StrangerRequestUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,7 +18,7 @@ class FriendsViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val chatRepository: ChatRepository,
     private val clientPartP2P: ClientPartP2P,
-    private val friendRequestUseCase: FriendRequestUseCase
+    private val strangerRequestUseCase: StrangerRequestUseCase
 //    private val clientServiceInterface: ClientInterface
 ) : ViewModel() {
       //val peers = MutableStateFlow<MutableSet<User>>(mutableSetOf()) //placeholder for strangers peers1
@@ -47,43 +39,43 @@ class FriendsViewModel @Inject constructor(
     }
     val tabTitlesList = listOf("Friends", "Add Friends")
     val tabTitlesItem = "Incoming requests"
-    fun sendFriendRequest(peer: User):Boolean{
-        if(friendRequestUseCase.sendFriendRequest(peer)){
-            clientPartP2P.addRequestedStranger(peer)
+    fun sendFriendRequest(stranger: User):Boolean{
+        if(strangerRequestUseCase.sendFriendRequest(stranger)){
+            clientPartP2P.addRequestedStranger(stranger)
             return true
         }else{
             return false
         }
     }
-    fun cancelFriendRequest(peer: User):Boolean{
-        if(friendRequestUseCase.cancelFriendRequest(peer)){
-            clientPartP2P.removeRequestedStranger(peer)
+    fun cancelFriendRequest(stranger: User):Boolean{
+        if(strangerRequestUseCase.cancelFriendRequest(stranger)){
+            clientPartP2P.removeRequestedStranger(stranger)
             return true
         }else{
             return false
         }
     }
-    fun rejectFriendRequest(peer: User):Boolean{
-        if(friendRequestUseCase.rejectFriendRequest(peer)){
-            clientPartP2P.removePendingStranger(peer)
+    fun rejectFriendRequest(stranger: User):Boolean{
+        if(strangerRequestUseCase.rejectFriendRequest(stranger)){
+            clientPartP2P.removePendingStranger(stranger)
             return true
         }else{
             return false
         }
     }
-    fun approveFriendRequest(peer: User):Boolean{
-        if(friendRequestUseCase.approveFriendRequest(peer)){
+    fun approveFriendRequest(stranger: User):Boolean{
+        if(strangerRequestUseCase.approveFriendRequest(stranger)){
             CoroutineScope(Dispatchers.IO).launch{
-                userRepository.insertUser(peer)
-                clientPartP2P.removePendingStranger(peer)
+                userRepository.insertUser(stranger)
+                clientPartP2P.removePendingStranger(stranger)
             }
             return true
         }else{
             return false
         }
     }
-    fun isPeerInRequested(peer: User):Boolean{
-        return requestedStrangers.value.contains(peer)
+    fun isPeerInRequested(stranger: User):Boolean{
+        return requestedStrangers.value.contains(stranger)
     }
     fun editFriendName(friend: User):Boolean{
         try {

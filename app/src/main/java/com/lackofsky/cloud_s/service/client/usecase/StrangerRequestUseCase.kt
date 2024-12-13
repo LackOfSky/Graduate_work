@@ -3,34 +3,35 @@ package com.lackofsky.cloud_s.service.client.usecase
 import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.service.ClientPartP2P
-import com.lackofsky.cloud_s.service.client.RequestInterface
+import com.lackofsky.cloud_s.service.client.StrangerRequestInterface
 import com.lackofsky.cloud_s.service.model.MessageType
 import com.lackofsky.cloud_s.service.model.Request
 import com.lackofsky.cloud_s.service.model.TransportData
 import javax.inject.Inject
 
-class FriendRequestUseCase @Inject constructor( val gson: Gson, val clientPartP2P: ClientPartP2P) :RequestInterface {
+class StrangerRequestUseCase @Inject constructor(val gson: Gson, val clientPartP2P: ClientPartP2P) :
+    StrangerRequestInterface {
     override fun sendFriendRequest(sendTo: User):Boolean {
-        return defaultFriendRequest(sendTo,Request.ADD)
+        return defaultStrangerRequest(sendTo,Request.ADD)
     }
 
     override fun approveFriendRequest(sendTo: User): Boolean {
-        return defaultFriendRequest(sendTo,Request.APPROVE)
+        return defaultStrangerRequest(sendTo,Request.APPROVE)
     }
 
     override fun cancelFriendRequest(sendTo: User):Boolean {
-        return defaultFriendRequest(sendTo,Request.CANCEL)
+        return defaultStrangerRequest(sendTo,Request.CANCEL)
     }
 
     override fun rejectFriendRequest(sendTo: User):Boolean {
-        return defaultFriendRequest(sendTo,Request.REJECT)
+        return defaultStrangerRequest(sendTo,Request.REJECT)
     }
 
-    override fun deleteFriendRequest(sendTo: User):Boolean {
-        return defaultFriendRequest(sendTo,Request.DELETE)
-    }
-    private fun defaultFriendRequest(sendTo: User, request: Request):Boolean{
-        val client = clientPartP2P.activeFriends.value.get(sendTo)
+//    override fun deleteFriendRequest(sendTo: User):Boolean {//Создать FriendRequestUseCase, и вынести туда
+//        return defaultFriendRequest(sendTo,Request.DELETE)
+//    }
+    private fun defaultStrangerRequest(sendTo: User, request: Request):Boolean{
+        val client = clientPartP2P.activeStrangers.value.get(sendTo)
         if(client !=null){
             val content = gson.toJson(request)
             val sender = gson.toJson(clientPartP2P.userOwner.value)

@@ -1,5 +1,8 @@
 package com.lackofsky.cloud_s.ui
 
+import android.content.Context
+import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +14,8 @@ import androidx.compose.foundation.layout.height
 
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -21,16 +26,28 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,13 +63,14 @@ import com.lackofsky.cloud_s.ui.friends.FriendsContainer
 import com.lackofsky.cloud_s.ui.friends.FriendsScreen
 import com.lackofsky.cloud_s.ui.friends.UserRoutes
 import com.lackofsky.cloud_s.ui.profile.ProfileScreen
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
 fun Navigation(modifier: Modifier = Modifier//, viewModel: ProfileViewModel = hiltViewModel()
-                  ){
+     ){
     //val drawerState by viewModel.drawerState
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -60,7 +78,6 @@ fun Navigation(modifier: Modifier = Modifier//, viewModel: ProfileViewModel = hi
 
 //    val profileViewModel: ProfileViewModel = hiltViewModel()
 //    val friendsViewModel: FriendsViewModel = hiltViewModel()
-
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -73,7 +90,7 @@ fun Navigation(modifier: Modifier = Modifier//, viewModel: ProfileViewModel = hi
         },
         content = {
             // Main content
-            Column {
+            Column(modifier = Modifier) {
                 TopBar(drawerState = drawerState,
                         scope = scope)
                 NavHost(navController, startDestination = "profile") {
@@ -202,7 +219,45 @@ fun DrawerContent(onMenuItemClick: (String) -> Unit) {
         Button(onClick = { onMenuItemClick("QR") }) {
             Text(text = "QR")
         }
+        Divider(Modifier.width(100.dp))
+        MySwitch()
     }
+}
+
+@Composable
+fun MySwitch( viewModel: NavigationViewModel = hiltViewModel()) {
+    var isChecked = viewModel.serviceStatus.collectAsState()
+    Column(modifier = Modifier.padding(5.dp)){
+//        Card(Modifier.fillMaxWidth().height(40.dp)){
+//            Text(text = "Status: ",
+//                style = MaterialTheme.typography.titleLarge,
+//                color = Color.Black,
+//                modifier = Modifier.padding(5.dp)
+//            )
+//        }
+        Button(onClick = { /*TODO*/ },Modifier.height(50.dp)) {
+
+
+        Text(text = if(isChecked.value) "Online " else "Offline ",
+        )
+        Switch(
+            checked = isChecked.value,
+            onCheckedChange = { //isChecked = it
+                if(isChecked.value){
+                    viewModel.stopForegroundService()
+                }else{
+                    viewModel.startForegroundService()
+                }
+               },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color(0xff80ff80),
+                uncheckedThumbColor = Color.Gray
+            ), modifier = Modifier.padding(5.dp)
+        )
+    }
+    }
+
+//
 }
 
 @Composable //TODO

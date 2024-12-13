@@ -96,7 +96,7 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     fun provideWiFiDirectManager(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): WiFiDirectManager {
         return WiFiDirectManager(context,clientPartP2P)
     }
-    @Provides
+    @Provides //TODO("not implement android system")
     fun provideWiFiDiscoveryByAware(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): WiFiDiscoveryByAware {
         return WiFiDiscoveryByAware(context,clientPartP2P)
     }

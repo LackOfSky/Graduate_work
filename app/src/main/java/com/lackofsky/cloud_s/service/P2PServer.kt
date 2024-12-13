@@ -11,7 +11,9 @@ import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Binder
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -45,7 +47,7 @@ class P2PServer : Service() {
     @Inject lateinit var notificationManager: NotificationManager
 
     @Inject lateinit var nettyServer: NettyServer
-//    private lateinit var peerDiscovery: PeerDiscovery
+    //private lateinit var peerDiscovery: PeerDiscovery
     @Inject lateinit var gson: Gson
 
     @Inject lateinit var wifiAware: WiFiDiscoveryByAware
@@ -60,22 +62,13 @@ class P2PServer : Service() {
         Log.d("service $SERVICE_NAME", "WAS LOGGED")
         super.onCreate()
         createNotificationChannel()
-//        val serviceName = Settings.Secure.getString(contentResolver, //TODO
-//            Settings.Secure.ANDROID_ID)
         CoroutineScope(Dispatchers.IO).launch {
-            // Запускаем сервер для входящих подключений
-//            peerDiscovery.startDiscovery()
-            if(wifiAware.isAwareAvailable()){
-                wifiAware.startAware(SERVICE_NAME)
-                Log.d("service $SERVICE_NAME", "wifiAware is started")
-            }else{
-                Log.d("service $SERVICE_NAME", "wifiAware is not started")
-            }
-            //wifiDirectManager.startPeerDiscovery()
+            wifiDirectManager.start()
             nettyServer.start()
 
         }
         Log.d("service $SERVICE_NAME", "IS STARTED")
+        sendStatusBroadcast(true)
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(NOTIFICATION_ID, notification)
@@ -83,11 +76,13 @@ class P2PServer : Service() {
     }
     override fun onDestroy() {
         super.onDestroy()
-//        peerDiscovery.stopDiscovery()
+
         nettyServer.stop()
-        wifiAware.stopAware()
-        //wifiDirectManager.stopPeerDiscovery()
+        wifiDirectManager.stop()
         stopForeground(STOP_FOREGROUND_REMOVE)
+
+        sendStatusBroadcast(false)
+
         Log.d("service $SERVICE_NAME", "WAS ENDED")
     }
 
@@ -112,26 +107,9 @@ class P2PServer : Service() {
             notificationManager.createNotificationChannel(channel)//getSystemService(NotificationManager::class.java
         }
     }
-//    private fun sendWhoAmI(addr:String, port:Int){
-//        val client = NettyClient(addr, port)//
-//        try {
-//            client.connect()
-//            Log.d("service $SERVICE_NAME :client", "connected")
-//            val content = gson.toJson(clientPartP2P.userOwner.value)
-//            val transportData = TransportData(
-//                messageType = MessageType.USER,
-//                senderId = clientPartP2P.userOwner.value!!.uniqueID,
-//                senderIp = "",
-//                content = content
-//            )
-//            val json = gson.toJson(transportData)
-//            client.sendMessage(json)
-//            Log.d("service $SERVICE_NAME :client", "SENDED $json")
-//        }catch (e: Exception){
-//            Log.d("service $SERVICE_NAME :client", "catched $e")
-//        }finally {
-//            Log.d("service $SERVICE_NAME :client", "finally ")
-//            client.close()
-//        }
-//    }
+    private fun sendStatusBroadcast(status:Boolean){
+        val intent = Intent("com.lackofsky.cloud_s.SERVICE_STATUS")
+        intent.putExtra("status", status)
+        applicationContext.sendBroadcast(intent)
+    }
 }

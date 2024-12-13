@@ -7,7 +7,6 @@ import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.database.repository.ChatRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
-import com.lackofsky.cloud_s.service.client.usecase.FriendRequestUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 

@@ -12,24 +12,35 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -41,9 +52,10 @@ import com.lackofsky.cloud_s.ui.wellcome.WelcomeScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 
+@OptIn(ExperimentalLayoutApi::class)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private lateinit var p2PServer: Intent
+//    private lateinit var p2PServer: Intent
     // List of permissions to request
     private val permissionsList = listOf(
         Manifest.permission.ACCESS_WIFI_STATE,
@@ -63,8 +75,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 //        near.start()
-        p2PServer = Intent(applicationContext, P2PServer::class.java)
-
+//        p2PServer = Intent(applicationContext, P2PServer::class.java)
+        WindowCompat.
+            setDecorFitsSystemWindows(window, false)
         val broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 val message = intent?.getStringExtra("message")
@@ -100,9 +113,10 @@ class MainActivity : ComponentActivity() {
                 }
                 // Show different UI based on permission status
                 if (allPermissionsGranted) {
-                    startForegroundService(p2PServer)
+                    //startForegroundService(p2PServer)
                     // Показать другую компоненту, если все разрешения предоставлены
-                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    Scaffold(modifier = Modifier.fillMaxSize().padding(WindowInsets.ime.asPaddingValues())
+                    ) { innerPadding ->
                         //todo ЕСЛИ в бд нету пользователя - страница велком, если есть - дальше
                         val screenController = rememberNavController()
                         NavHost(screenController, startDestination = ScreenRoute.SPLASH.route) {
@@ -113,7 +127,7 @@ class MainActivity : ComponentActivity() {
                                 WelcomeScreen(screenController)
                             }
                             composable(ScreenRoute.MAIN.route) {
-                                Navigation(modifier = Modifier.padding(innerPadding))
+                                Navigation(modifier = Modifier.padding(innerPadding))//WindowInsets.ime.asPaddingValues()
                             }
                         }
                     }
@@ -140,7 +154,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        stopService(p2PServer)
+        //stopService(p2PServer)
         super.onDestroy()
 
 

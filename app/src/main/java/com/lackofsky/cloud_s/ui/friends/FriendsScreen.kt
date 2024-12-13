@@ -155,11 +155,11 @@ fun PeerList(viewModel: FriendsViewModel,navController: NavHostController) {
                     .height(80.dp)
                     .padding(1.dp, 2.dp)
                     .clickable {
-                        navController.navigate(UserRoutes.User.createRoute(peer.id))
+                        navController.navigate(UserRoutes.User.createRoute(peer.first.id))
                     }
             ) {
                 //FriendItem(peer.user)
-                    StrangerItem(peer,viewModel,viewModel.isPeerInRequested(peer))
+                    StrangerItem(peer.first,viewModel,viewModel.isPeerInRequested(peer.first))
 
             }
         }

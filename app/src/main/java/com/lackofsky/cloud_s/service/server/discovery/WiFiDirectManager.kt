@@ -6,18 +6,26 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
+import android.net.wifi.WifiManager.EXTRA_WIFI_STATE
 import android.net.wifi.WpsInfo
 import android.net.wifi.p2p.WifiP2pConfig
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pManager
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.service.ClientPartP2P
+import com.lackofsky.cloud_s.service.P2PServer
 import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.client.NettyClient
 import com.lackofsky.cloud_s.service.model.MessageType
@@ -36,7 +44,11 @@ import javax.inject.Inject
 
 class WiFiDirectManager @Inject constructor(private val applicationContext: Context,
                                             private val clientPartP2P: ClientPartP2P) {
+    private val discoveryTimeout = 10_000L //TODO("вынести выше")
     val discoveryState = MutableStateFlow(DiscoveryState.STOPPED)
+    var isConnected = false
+    var isGroupOwner = false
+    private val serviceState = MutableStateFlow(false)
     private val manager: WifiP2pManager by lazy {
         applicationContext.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
     }
@@ -44,10 +56,6 @@ class WiFiDirectManager @Inject constructor(private val applicationContext: Cont
         manager.initialize(applicationContext, applicationContext.mainLooper, null)
     }
 
-//    private val _peers = MutableStateFlow<Set<WifiP2pDevice>>(emptySet()) // Реактивное состояние списка устройств
-//    val peers: StateFlow<Set<WifiP2pDevice>> = _peers
-    private val _peers = MutableStateFlow<List<WifiP2pDevice>>(emptyList())
-    val peers: StateFlow<List<WifiP2pDevice>> = _peers
     private val intentFilter = IntentFilter().apply {
         addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
         addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION)
@@ -55,21 +63,29 @@ class WiFiDirectManager @Inject constructor(private val applicationContext: Cont
         addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
     }
     private val peerListListener = WifiP2pManager.PeerListListener { peerList ->
-        //TODO("отследить работоспособность ")
-        val currentPeers = _peers.value
-        val newPeers = peerList.deviceList.filterNot { device ->
-            Log.d("service GrimBerry device", device.toString())
-            sendToastIntend(device.toString())
-            currentPeers.any { it.deviceAddress == device.deviceAddress }
+        try{
+            connectToGroup(
+                peerList.deviceList.first()
+            )
+        }catch (e:NoSuchElementException){
+            sendToastIntend(e.toString())
+            Log.d("WifiDirectService GrimBerry",e.toString())
         }
-        if (newPeers.isNotEmpty()) {
-            // Добавляем только новые устройства и обрабатываем их
-            _peers.value = currentPeers + newPeers
-            newPeers.forEach { device ->
-                connectToPeer(device)
-            }
+        //stopClientDiscovery()
+        discoveryState.value = DiscoveryState.STOPPED
+    }
+    private val disconnectListener = object : WifiP2pManager.ActionListener {
+        override fun onSuccess() {
+            isConnected = false
+            discoveryState.value = DiscoveryState.STOPPED
+        }
+
+        override fun onFailure(reason: Int) {
+            TODO("handling exceptions reason $reason")
         }
     }
+
+
     private val wifiP2pReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
@@ -77,14 +93,15 @@ class WiFiDirectManager @Inject constructor(private val applicationContext: Cont
                     val state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
                     if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
                         Log.d("WifiDirectService GrimBerry", "Wi-Fi Direct is enabled")
-                        if(discoveryState.value.equals(DiscoveryState.STOPPED)){
-                            startPeerDiscovery()
-                        }
+//                        if(discoveryState.value.equals(DiscoveryState.STOPPED)){
+//                            startClientDiscovery()
+//                            discoveryState.value = DiscoveryState.WORKING
+//                        }
                         //sendToastIntend("Wi-Fi Direct is enabled ")
                     } else {
                         Log.d("WifiDirectService GrimBerry", "Wi-Fi Direct is disabled ")
                         if(discoveryState.value != DiscoveryState.DISABLED){
-                            stopPeerDiscovery()
+                            stopClientDiscovery()
                             discoveryState.value = DiscoveryState.DISABLED
                         }
                         sendToastIntend("Discovery is disabled. Please, turn on your Wi-Fi")
@@ -97,8 +114,30 @@ class WiFiDirectManager @Inject constructor(private val applicationContext: Cont
                 }
                 WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
                     // обработка события изменения состояния соединения
-                    Log.d("WifiDirectService GrimBerry", "Wi-Fi Direct connection state changed")
-                    sendToastIntend("Wi-Fi Direct connection state changed")
+                    if (checkPermission()) {
+                        Log.d(
+                            "WifiDirectService GrimBerry",
+                            "Wi-Fi Direct connection state changed"
+                        )
+                        //NetworkInfo
+                        //обработка дисконекта
+//                    if(){
+//                        startClient()
+//                        discoveryState.value = DiscoveryState.WORKING
+//                    }
+                        //sendToastIntend("Wi-Fi Direct connection state changed")
+                        val connectivityManager =
+                            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                        val networkInfo = connectivityManager.activeNetworkInfo
+
+                        if (!networkInfo!!.isConnected) {
+                            start()
+                        }
+
+                            // We are connected with the other device, request connection
+                            // info to find group owner IP
+
+                    }
                 }
                 WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION -> {
                     Log.d("WifiDirectService GrimBerry", "Device configuration changed")
@@ -108,9 +147,8 @@ class WiFiDirectManager @Inject constructor(private val applicationContext: Cont
         }
     }
 
-     fun startPeerDiscovery() {
+     private fun startClientDiscovery() {
          // Регистрируем широковещательные намерения для Wi-Fi Direct событий
-         applicationContext.registerReceiver(wifiP2pReceiver, intentFilter)
          if (checkPermission()) {
              manager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
                  override fun onSuccess() {
@@ -128,12 +166,12 @@ class WiFiDirectManager @Inject constructor(private val applicationContext: Cont
                  }
 
              })
-             manager.requestPeers(channel, peerListListener)
+             //manager.requestPeers(channel, peerListListener) - не актуально. вызывается на изменение списка
          }
 
     }
-    fun stopPeerDiscovery(){
-        applicationContext.unregisterReceiver(wifiP2pReceiver)
+    private fun stopClientDiscovery(){
+        //applicationContext.unregisterReceiver(wifiP2pReceiver)
         manager.stopPeerDiscovery(channel, object : WifiP2pManager.ActionListener {
             override fun onSuccess() {
                 Log.d("WifiDirectService GrimBerry", "Peer discovery stopped")
@@ -148,12 +186,13 @@ class WiFiDirectManager @Inject constructor(private val applicationContext: Cont
             }
         })
     }
-    fun connectToPeer(device: WifiP2pDevice) {
+    private fun connectToGroup(device: WifiP2pDevice) {//   connectToPeer
         /*** Подключается к конкретному устройству. Соединение устанавливается с помощью onPeerResolved.
          *   Обработка разрыва соединения производится серверной частью. NettyServer */
         if (!checkPermission()) {
             throw Exception("wifiDirectManager GrimBerry: permission is not granted")//return
         }
+
             val config = WifiP2pConfig().apply {
                 deviceAddress = device.deviceAddress
                 wps.setup = WpsInfo.PBC
@@ -161,9 +200,12 @@ class WiFiDirectManager @Inject constructor(private val applicationContext: Cont
             }
         manager.connect(channel, config, object : WifiP2pManager.ActionListener {//prev = manager.connect
             override fun onSuccess() {
+                isConnected = true
                 Log.d("WifiDirectService GrimBerry", "Connection initiated with ${device.deviceName}")
                 sendToastIntend("Connection initiated with ${device.deviceName}")
-                //clientPartP2P.sendWhoAmI(device.deviceAddress,)
+
+                //manager.requestConnectionInfo migrated to listener
+
             }
 
             override fun onFailure(reason: Int) {
@@ -171,34 +213,127 @@ class WiFiDirectManager @Inject constructor(private val applicationContext: Cont
                 sendToastIntend("Connection failed: $reason")
             }
         })
-//            manager.createGroup(channel, config, object : WifiP2pManager.ActionListener {//prev = manager.connect
-//                override fun onSuccess() {
-//                    Log.d("WifiDirectService GrimBerry", "Connection initiated with ${device.deviceName}")
-//                    sendToastIntend("Connection initiated with ${device.deviceName}")
-//                    clientPartP2P.sendWhoAmI(device.deviceAddress)
-//                }
-//
-//                override fun onFailure(reason: Int) {
-//                    Log.e("WifiDirectService GrimBerry", "Connection failed: $reason")
-//                    sendToastIntend("Connection failed: $reason")
-//                }
-//            })
+
+    }
+    private fun createGroup() {
+        CoroutineScope(Dispatchers.Main).launch {
+            if (!checkPermission()) {
+                throw Exception("wifiDirectManager GrimBerry: permission is not granted")//return
+            }
+            manager.createGroup(channel, object : WifiP2pManager.ActionListener {
+                //prev = manager.connect
+                override fun onSuccess() {
+                    // Device is ready to accept incoming connections from peers.
+                    Log.d("WifiDirectService GrimBerry", "Server-cluster is up")
+                    sendToastIntend("Server-cluster is up")
+                    isGroupOwner = true
+                    //clientPartP2P.sendWhoAmI(device.deviceAddress, port = )
+                }
+
+                override fun onFailure(reason: Int) {
+
+                    Log.e("WifiDirectService GrimBerry", "Connection failed: $reason. service is off")
+
+                    val intent = Intent(applicationContext, P2PServer::class.java)
+                    applicationContext.stopService(intent)
+                    sendToastIntend("Group creation failed: $reason. Retry to start service")
+                }
+            })
+        }
     }
 
-    private fun checkPermission():Boolean{
-        if (ActivityCompat.checkSelfPermission(
-                applicationContext,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
-                applicationContext,
-                Manifest.permission.NEARBY_WIFI_DEVICES
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            throw Exception("wifi direct manager GrimBerry: permissions is not granted")
+    fun start(){
+        //Handler(Looper.getMainLooper()).postDelayed({
+        checkPermission()
+        var isGroupCreated = false
+        serviceState.value = true
+        applicationContext.registerReceiver(wifiP2pReceiver, intentFilter)
+        startClientDiscovery()
+        //manager.requestGroupInfo(channel){info ->info}
+        manager.requestConnectionInfo(channel) { info ->
 
+                // String from WifiP2pInfo struct
+                //val groupOwnerAddress: String = info.groupOwnerAddress.hostAddress
+                if (info.groupFormed) {
+                    isGroupCreated = true
+                    isGroupOwner = info.isGroupOwner
+                    if (info.isGroupOwner) {
+                        // Do whatever tasks are specific to the group owner.
+                        // One common case is creating a group owner thread and accepting
+                        // incoming connections.
+                        //Log.d("WiFiP2P", "сервер IP: ${info.groupOwnerAddress.hostAddress}")
+                        Log.d("GrimmBerry WiFiP2P", "connected as GO")
+                    } else{
+                        // The other device acts as the peer (client). In this case,
+                        // you'll want to create a peer thread that connects
+                        // to the group owner.
+                        //Log.d("WiFiP2P", "Это клиент. Сервер: ${info.groupOwnerAddress.hostAddress}")
+                        Log.d("GrimmBerry WiFiP2P", "connected as participant")
+                        clientPartP2P.sendWhoAmI(info.groupOwnerAddress.toString())
+                    }
+                }else{
+                    Log.d("WifiDirectService", "Not connected to any group.")
+                    isConnected = false
+                }
+            }
+        if(isGroupCreated){
+            CoroutineScope(Dispatchers.Main).launch {
+                delay(1000)
+                manager.removeGroup(channel, disconnectListener)
+                delay(1000)
+            }
+        }
+
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(discoveryTimeout)
+            if (!isConnected) {
+                createGroup()
+            }
+        }
+    }
+    fun stop(){
+        serviceState.value = false
+        applicationContext.unregisterReceiver(wifiP2pReceiver)
+        Log.d("WifiDirectService GrimBerry", "group owner "+isGroupOwner.toString())
+        if(isGroupOwner){
+            CoroutineScope(Dispatchers.Main).launch {
+                delay(1000)
+                manager.removeGroup(channel, disconnectListener)
+                delay(1000)
+            }
+            isGroupOwner = false
         }else{
+            manager.stopPeerDiscovery(channel, object : WifiP2pManager.ActionListener {
+                override fun onSuccess() {
+                    Log.d("WiFiDirectService", "Discovery stopped.")
+                }
+
+                override fun onFailure(reason: Int) {
+                    Log.e("WiFiDirectService", "Failed to stop discovery: $reason")
+                }
+            })
+            if(isConnected){ manager.cancelConnect(channel, disconnectListener) }
+        }
+    }
+
+
+    private fun checkPermission():Boolean{
+         val permissionsList = listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.NEARBY_WIFI_DEVICES,
+             Manifest.permission.ACCESS_NETWORK_STATE
+         )
+
+        val arePermissionsGranted = permissionsList.all { permission ->
+            ContextCompat.checkSelfPermission(
+                applicationContext,
+                permission
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+        if(arePermissionsGranted){
             return true
         }
+        throw Exception("wifi direct manager GrimBerry: permissions is not granted")
     }
     private fun sendToastIntend(message: String){
         val intent = Intent("com.lackofsky.cloud_s.SHOW_TOAST")

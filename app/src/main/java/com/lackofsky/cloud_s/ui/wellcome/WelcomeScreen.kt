@@ -18,10 +18,17 @@ import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
 import android.provider.Settings
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 
 @SuppressLint("HardwareIds")
@@ -34,26 +41,39 @@ fun WelcomeScreen(screenController: NavHostController, viewModel: WelcomeViewMod
     val context = LocalContext.current
     val uniqueID = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        TextField(
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = "Welcome!",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+        OutlinedTextField(
             value = fullName,
             onValueChange = { fullName = it },
-            label = { Text("Full Name") }
+            label = { Text("Full Name") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
-        TextField(
+        OutlinedTextField(
             value = login,
             onValueChange = { login = it },
-            label = { Text("login") }
+            label = { Text("login") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
-        TextField(
+        OutlinedTextField(
             value = about,
             onValueChange = { about = it },
-            label = { Text("about") }
+            label = { Text("about") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
-        TextField(
+        OutlinedTextField(
             value = info,
             onValueChange = { info = it },
-            label = { Text("info") }
+            label = { Text("info") },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
         Button(onClick = {
             viewModel.saveUser(

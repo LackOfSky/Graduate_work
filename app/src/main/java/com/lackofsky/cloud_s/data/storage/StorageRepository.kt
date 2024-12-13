@@ -27,7 +27,7 @@ class StorageRepository {
             return null // Возвращаем null в случае ошибки
         }
     }
-    fun loadFileFromFilesDir(context: Context, fileName: String):Bitmap?{
+    fun loadBitmapFromFilesDir(context: Context, fileName: String):Bitmap?{
         val file = File(context.filesDir, fileName)
 
         return if (file.exists()) {

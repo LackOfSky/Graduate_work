@@ -11,10 +11,8 @@ import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.ClientPartP2P
-import com.lackofsky.cloud_s.service.client.usecase.FriendRequestUseCase
 import com.lackofsky.cloud_s.service.model.MessageType
 import com.lackofsky.cloud_s.service.model.Request
-import com.lackofsky.cloud_s.service.model.Response
 import com.lackofsky.cloud_s.service.model.TransportData
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
