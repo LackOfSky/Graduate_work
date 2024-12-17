@@ -31,6 +31,8 @@ class ClientPartP2P @Inject constructor(
 ) {
     // Поток данных для обмена между компонентами
 
+    val discoveredPeers = MutableStateFlow<MutableSet<Peer>>(mutableSetOf())
+
     private val _activeFriends = MutableStateFlow<MutableMap<User, NettyClient>>(mutableMapOf())
     val activeFriends: StateFlow<MutableMap<User, NettyClient>> = _activeFriends
     private val _activeStrangers = MutableStateFlow<MutableMap<User, NettyClient>>(mutableMapOf())

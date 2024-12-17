@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -64,11 +65,11 @@ class MainActivity : ComponentActivity() {
         Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.INTERNET,
         Manifest.permission.FOREGROUND_SERVICE,
-        Manifest.permission.FOREGROUND_SERVICE_DATA_SYNC,
         Manifest.permission.POST_NOTIFICATIONS,
         Manifest.permission.CHANGE_WIFI_MULTICAST_STATE,
         Manifest.permission.NEARBY_WIFI_DEVICES
     )
+    private val permissionList34 = listOf(Manifest.permission.FOREGROUND_SERVICE_DATA_SYNC)
 
 
 
@@ -101,15 +102,32 @@ class MainActivity : ComponentActivity() {
                     allPermissionsGranted = permissions.values.all { it }
                 }
                 // Check if permissions are already granted
-                val arePermissionsGranted = permissionsList.all { permission ->
-                    ContextCompat.checkSelfPermission(
-                        LocalContext.current,
-                        permission
-                    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-                }
+                    val arePermissionsGranted = permissionsList.all { permission ->
+                        ContextCompat.checkSelfPermission(
+                            LocalContext.current,
+                            permission
+                        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                    }
 
+
+//                val arePermissionsGranted = permissionsList.all { permission ->
+//                    ContextCompat.checkSelfPermission(
+//                        LocalContext.current,
+//                        permission
+//                    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+//                }
                 if (arePermissionsGranted) {
-                    allPermissionsGranted = true
+                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        val arePermissions34Granted = permissionList34.all { permission ->
+                            ContextCompat.checkSelfPermission(
+                                LocalContext.current,
+                                permission
+                            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                        }
+                        allPermissionsGranted = arePermissions34Granted
+                    }else {
+                        allPermissionsGranted = true
+                    }
                 }
                 // Show different UI based on permission status
                 if (allPermissionsGranted) {

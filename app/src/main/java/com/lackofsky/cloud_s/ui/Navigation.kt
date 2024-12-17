@@ -3,6 +3,7 @@ package com.lackofsky.cloud_s.ui
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -58,10 +62,12 @@ import com.lackofsky.cloud_s.ui.chats.ChatDialogScreen
 import com.lackofsky.cloud_s.ui.chats.ChatList
 import com.lackofsky.cloud_s.ui.chats.ChatRoutes
 import com.lackofsky.cloud_s.ui.chats.ChatsScreen
+import com.lackofsky.cloud_s.ui.friends.AddFriends
 import com.lackofsky.cloud_s.ui.friends.FriendProfile
 import com.lackofsky.cloud_s.ui.friends.FriendsContainer
 import com.lackofsky.cloud_s.ui.friends.FriendsScreen
 import com.lackofsky.cloud_s.ui.friends.UserRoutes
+import com.lackofsky.cloud_s.ui.friends.components.StrangerItem
 import com.lackofsky.cloud_s.ui.profile.ProfileScreen
 import dagger.hilt.android.qualifiers.ApplicationContext
 
@@ -114,6 +120,7 @@ fun Navigation(modifier: Modifier = Modifier//, viewModel: ProfileViewModel = hi
                         val userId = backStackEntry.arguments?.getInt("userId") ?: -1
                         FriendProfile(userId = userId)
                     }
+                    composable("Testing") { TestingDirect() }
 
 //                    composable("qr") { QRScreen() }
                 }
@@ -219,6 +226,9 @@ fun DrawerContent(onMenuItemClick: (String) -> Unit) {
         Button(onClick = { onMenuItemClick("QR") }) {
             Text(text = "QR")
         }
+        Button(onClick = { onMenuItemClick("Testing") }) {
+            Text(text = "testing wifi-direct direct")
+        }
         Divider(Modifier.width(100.dp))
         MySwitch()
     }
@@ -289,3 +299,30 @@ fun DrawerSettingsContent(onMenuItemClick: (String) -> Unit) {
     }
 }
 
+@Composable
+fun TestingDirect(viewModel: NavigationViewModel = hiltViewModel()){
+    val peers by viewModel.discoveredPeers.collectAsState()
+    LazyColumn(modifier = Modifier
+        .fillMaxSize()
+        .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
+        items(peers.toList()) { peer ->
+            Card(//navigate
+                elevation = CardDefaults.cardElevation(10.dp),
+                colors = CardDefaults.cardColors(Color.White),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .height(80.dp)
+                    .padding(1.dp, 2.dp)
+                    .clickable {
+                        //navController.navigate(UserRoutes.User.createRoute(peer.first.id))
+                    }
+            ) {
+                Text(peer.address)
+                Text(peer.name)
+                //FriendItem(peer.user)
+
+            }
+        }
+        item{Text(text="",modifier = Modifier.height(80.dp))}
+    }
+}

@@ -82,21 +82,33 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.3.1")
     implementation("com.google.android.material:material:1.4.0")
 
-    implementation("androidx.compose.material3:material3:1.1.0")
-    implementation("androidx.compose.ui:ui:1.4.7")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.4.7")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    implementation("androidx.compose.runtime:runtime-livedata")
-    implementation("androidx.activity:activity-compose:1.7.2")
+//    implementation("androidx.compose.material3:material3:1.1.0")
+//    implementation("androidx.compose.ui:ui:1.4.7")
 
+
+    implementation("androidx.compose.material3:material3:1.0.1")
+    implementation("androidx.compose.ui:ui:1.3.3")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.3.3")
+
+//    implementation("androidx.compose.ui:ui-tooling-preview:1.4.7")
+//    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("androidx.compose.runtime:runtime-livedata")
+
+//    implementation("androidx.activity:activity-compose:1.7.2")
+//    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+//    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
+    implementation("androidx.activity:activity-compose:1.6.1")
 
     implementation("androidx.core:core-ktx:1.12.0")
 
     implementation("androidx.navigation:navigation-compose:2.5.0")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+
 
     //adding image
     implementation("io.coil-kt:coil-compose:2.4.0")
@@ -119,6 +131,7 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.50")
     kapt("androidx.hilt:hilt-compiler:1.2.0")
     implementation("androidx.hilt:hilt-navigation-fragment:1.2.0")
+
 
 //Room
     implementation(libs.androidx.room.runtime)

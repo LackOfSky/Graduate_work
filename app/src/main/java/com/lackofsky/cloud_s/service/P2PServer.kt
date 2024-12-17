@@ -71,7 +71,9 @@ class P2PServer : Service() {
         sendStatusBroadcast(true)
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIFICATION_ID, notification)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(NOTIFICATION_ID, notification)
+        }
         return START_STICKY
     }
     override fun onDestroy() {

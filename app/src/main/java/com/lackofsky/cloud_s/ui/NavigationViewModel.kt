@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.storage.StorageRepository
+import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.P2PServer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -23,8 +24,11 @@ import javax.inject.Inject
 class NavigationViewModel @Inject constructor(
     @ApplicationContext private val applicationContext: Context,
     private val userRepository: UserRepository,
-    private val storageRepository: StorageRepository
+    private val storageRepository: StorageRepository,
+    private val clientPartP2P: ClientPartP2P
 ) : ViewModel() {
+
+    val discoveredPeers = clientPartP2P.discoveredPeers
     private val _serviceStatus = MutableStateFlow(false)
     val serviceStatus: StateFlow<Boolean> = _serviceStatus
 
