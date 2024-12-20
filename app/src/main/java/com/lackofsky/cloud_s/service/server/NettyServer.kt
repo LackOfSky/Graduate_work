@@ -16,6 +16,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.string.StringDecoder
 import io.netty.handler.codec.string.StringEncoder
 import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.nio.charset.Charset
 import javax.inject.Inject
 import java.net.NetworkInterface
@@ -28,17 +29,17 @@ class NettyServer @Inject constructor(
     private val metadata: Metadata,
 //    private val friendResponseUseCase: FriendResponseUseCase
 )  {
-    private val DEFAULT_PORT = metadata.defaultPort
     private val serviceName = metadata.serviceName
 
     private lateinit var bossGroup: NioEventLoopGroup
     private lateinit var workerGroup: NioEventLoopGroup
 
-    fun start() {
-        Log.d("service $serviceName"+ " ip-addr :",getLocalIpAddress()!!)
+    /*** returns service port value*/
+    fun start():Int {
+        var boundPort = 0
+        //Log.d("service $serviceName"+ " ip-addr :",getLocalIpAddress()!!)
         bossGroup = NioEventLoopGroup(1)
         workerGroup = NioEventLoopGroup()
-        Log.d("service $serviceName", "started at " + InetAddress.getLocalHost() +" $DEFAULT_PORT")
         try {
             val bootstrap = ServerBootstrap()
             bootstrap.group(bossGroup, workerGroup)
@@ -73,14 +74,17 @@ class NettyServer @Inject constructor(
                     }
                 })
 
-            val channelFuture = bootstrap.bind(DEFAULT_PORT).sync()
-            Log.d("service $serviceName", "started at " + InetAddress.getLocalHost() +" $DEFAULT_PORT")
-            channelFuture.channel().closeFuture().sync()
+            val channelFuture = bootstrap.bind(boundPort).sync().also { channelFuture ->
+                boundPort = (channelFuture.channel().localAddress() as InetSocketAddress).port
+                Log.d("service $serviceName", "started at " + InetAddress.getLocalHost() +" $boundPort")
+            }.channel().closeFuture().sync()
         } finally {
             bossGroup.shutdownGracefully()
             workerGroup.shutdownGracefully()
             Log.d("service $serviceName", "stopped")
+
         }
+        return boundPort
     }
 
     fun stop() {
@@ -88,41 +92,37 @@ class NettyServer @Inject constructor(
         workerGroup.shutdownGracefully()
         Log.d("service $serviceName", "stopped")
     }
-    fun getDefaultPort():Int{
-        return DEFAULT_PORT
-    }
 
-
-    fun getLocalIpAddress(): String? {
-
-        Log.d(
-            "service $serviceName" + " ip-addr :",
-            NetworkInterface.getNetworkInterfaces().toString()
-        )
-        for (networkInterface in NetworkInterface.getNetworkInterfaces()) {
-            Log.d("service $serviceName"+ " ip-addr :",networkInterface.name.toString()+networkInterface.inetAddresses.toString()+networkInterface.interfaceAddresses.toString())
-            when {
-                networkInterface.name.startsWith("p2p") -> {
-                    /* Wi-Fi Direct */ }
-                networkInterface.name.startsWith("bnep") -> { /* Bluetooth PAN */ }
-                networkInterface.name.startsWith("rndis") -> { /* USB Tethering */ }
-                else -> { /* Other */ }
-            }
-        }
-
-        val interfaces = NetworkInterface.getNetworkInterfaces()
-        for (networkInterface in interfaces) {
-            val addresses = networkInterface.inetAddresses
-            for (address in addresses) {
-                if (!address.isLoopbackAddress && address is InetAddress) {
-                    val hostAddress = address.hostAddress
-                    // Проверяем, что это IPv4-адрес
-                    if (hostAddress.indexOf(':') < 0) {
-                        return hostAddress
-                    }
-                }
-            }
-        }
-        return null
-    }
+//    fun getLocalIpAddress(): String? {
+//
+//        Log.d(
+//            "service $serviceName" + " ip-addr :",
+//            NetworkInterface.getNetworkInterfaces().toString()
+//        )
+//        for (networkInterface in NetworkInterface.getNetworkInterfaces()) {
+//            Log.d("service $serviceName"+ " ip-addr :",networkInterface.name.toString()+networkInterface.inetAddresses.toString()+networkInterface.interfaceAddresses.toString())
+//            when {
+//                networkInterface.name.startsWith("p2p") -> {
+//                    /* Wi-Fi Direct */ }
+//                networkInterface.name.startsWith("bnep") -> { /* Bluetooth PAN */ }
+//                networkInterface.name.startsWith("rndis") -> { /* USB Tethering */ }
+//                else -> { /* Other */ }
+//            }
+//        }
+//
+//        val interfaces = NetworkInterface.getNetworkInterfaces()
+//        for (networkInterface in interfaces) {
+//            val addresses = networkInterface.inetAddresses
+//            for (address in addresses) {
+//                if (!address.isLoopbackAddress && address is InetAddress) {
+//                    val hostAddress = address.hostAddress
+//                    // Проверяем, что это IPv4-адрес
+//                    if (hostAddress.indexOf(':') < 0) {
+//                        return hostAddress
+//                    }
+//                }
+//            }
+//        }
+//        return null
+//    }
 }

@@ -19,6 +19,7 @@ import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.server.NettyServer
 import com.lackofsky.cloud_s.service.server.discovery.WiFiDirectManager
+import com.lackofsky.cloud_s.service.server.discovery.WiFiDirectService
 import com.lackofsky.cloud_s.service.server.discovery.WiFiDiscoveryByAware
 import dagger.Module
 import dagger.Provides
@@ -92,14 +93,18 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     fun provideMetadata():Metadata{
         return Metadata(15015,"GrimBerry")
     }
-    @Provides //TODO( DEPRECATED )
-    fun provideWiFiDirectManager(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): WiFiDirectManager {
-        return WiFiDirectManager(context,clientPartP2P)
+//    @Provides //TODO( DEPRECATED )
+//    fun provideWiFiDirectManager(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): WiFiDirectManager {
+//        return WiFiDirectManager(context,clientPartP2P)
+//    }
+    @Provides
+    fun provideWiFiDirectService(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): WiFiDirectService {
+        return WiFiDirectService(context,clientPartP2P)
     }
-    @Provides //TODO("not implement android system")
-    fun provideWiFiDiscoveryByAware(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): WiFiDiscoveryByAware {
-        return WiFiDiscoveryByAware(context,clientPartP2P)
-    }
+//    @Provides //TODO("not implement android system")
+//    fun provideWiFiDiscoveryByAware(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): WiFiDiscoveryByAware {
+//        return WiFiDiscoveryByAware(context,clientPartP2P)
+//    }
 
     @Provides
     @Singleton

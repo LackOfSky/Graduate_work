@@ -121,6 +121,7 @@ fun Navigation(modifier: Modifier = Modifier//, viewModel: ProfileViewModel = hi
                         FriendProfile(userId = userId)
                     }
                     composable("Testing") { TestingDirect() }
+                    composable("HostState") { TestingDirect() }
 
 //                    composable("qr") { QRScreen() }
                 }
@@ -231,6 +232,7 @@ fun DrawerContent(onMenuItemClick: (String) -> Unit) {
         }
         Divider(Modifier.width(100.dp))
         MySwitch()
+        HostSwitch()
     }
 }
 
@@ -265,6 +267,34 @@ fun MySwitch( viewModel: NavigationViewModel = hiltViewModel()) {
             ), modifier = Modifier.padding(5.dp)
         )
     }
+    }
+
+//
+}
+@Composable
+fun HostSwitch( viewModel: NavigationViewModel = hiltViewModel()) {
+    val isChecked = viewModel.hostStatus.collectAsState()
+    val isEnabled = viewModel.serviceStatus.collectAsState()
+    Column(modifier = Modifier.padding(5.dp)){
+        Button(onClick = { /*TODO*/ },Modifier.height(50.dp)) {
+            Text(text = if(isChecked.value) "as host " else "as client ",
+            )
+            Switch(
+                checked = isChecked.value,
+                enabled = isEnabled.value,
+                onCheckedChange = { //isChecked = it
+                    if(isChecked.value){
+                        viewModel.toggleHostState(false)
+                    }else{
+                        viewModel.toggleHostState(true)
+                    }
+                },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color(0xff80ff80),
+                    uncheckedThumbColor = Color.Gray
+                ), modifier = Modifier.padding(5.dp)
+            )
+        }
     }
 
 //

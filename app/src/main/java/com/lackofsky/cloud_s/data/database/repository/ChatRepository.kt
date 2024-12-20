@@ -81,7 +81,7 @@ class ChatRepository @Inject constructor(
         return chatDao.getPrivateChatIdByUser(userId)
     }
     suspend fun deletePrivateChat(chatId: String){
-        val chat = chatDao.getChatById(chatId) ?: return
+        val chat = chatDao.getChatById(chatId)
         if(!chat.isInitialized){
             throw Exception("GrimBerry. ChatRepository failed fun deletePrivateChat when chatDao.getChatById(chatId)")
         }

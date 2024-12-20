@@ -236,7 +236,6 @@ class WiFiDirectManager @Inject constructor(private val applicationContext: Cont
             val config = WifiP2pConfig().apply {
                 deviceAddress = device.deviceAddress
                 wps.setup = WpsInfo.PBC
-
             }
         manager.connect(channel, config, object : WifiP2pManager.ActionListener {//prev = manager.connect
             override fun onSuccess() {
