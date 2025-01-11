@@ -69,7 +69,7 @@ class NettyServerHandler(
                         val user = gson.fromJson(data.content, User::class.java)
                             .copy(
                                 ipAddr = remoteIpAddress.address.hostAddress!!,
-                                port = remoteIpAddress.port
+                                port = data.ownServerPort
                             )
 //                        user.ipAddr =
 //                        user.port = remoteIpAddress.port

@@ -17,10 +17,12 @@ import com.lackofsky.cloud_s.service.model.TransportData
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.jmdns.impl.DNSRecord.IPv6Address
 
@@ -85,42 +87,50 @@ class ClientPartP2P @Inject constructor(
     }
 
     suspend fun addActiveUser(user: User){
-        val client = NettyClient(user.ipAddr,user.port)
-        if(userRepository.getUserByUniqueID(user.uniqueID).isInitialized){
-            userRepository.updateUser(user)
-            _activeFriends.value.put(user, client)
-//            client.connect()
-        }else{
-            _activeStrangers.value.put(user, client)
+        CoroutineScope(Dispatchers.IO).launch {
+            val client = NettyClient(user.ipAddr,user.port)
+            client.connect()
+            if(userRepository.getUserByUniqueID(user.uniqueID).isInitialized){
+                userRepository.updateUser(user)
+                _activeFriends.value.put(user, client)
+            }else{
+                _activeStrangers.value.put(user, client)
+            }
+
         }
+
     }
 
      fun removeActiveUser(peer: Peer) {
-         _activeFriends.update { users ->
-             val userToRemove = users.keys.find { it.ipAddr == peer.address }
-             if (userToRemove != null) {
-                 users.remove(userToRemove)
-                     ?.close()
-             }else{
-                 throw Exception("GrimBerry. Attempt to delete user that doesn't exist. sharedState")
+         CoroutineScope(Dispatchers.IO).launch {
+             _activeFriends.update { users ->
+                 val userToRemove = users.keys.find { it.ipAddr == peer.address }
+                 if (userToRemove != null) {
+                     users.remove(userToRemove)
+                         ?.close()
+                 }
+//                 else {
+//                     throw Exception("GrimBerry. Attempt to remove user that doesn't exist")
+//                 }
+                 users
              }
-             users
+             _activeStrangers.update { users ->
+                 users.keys.removeIf { it.ipAddr == peer.address }
+                 users
+             }
          }
-            _activeStrangers.update { users ->
-                users.keys.removeIf { it.ipAddr == peer.address }
-                users
-            }
 
     }
      fun sendMessage(activeFriend: User, message: Message):Boolean{
         val client = _activeFriends.value.get(activeFriend)
         if(client !=null){
             val content = gson.toJson(message)
-            val sender = gson.toJson(userOwner.value)
+            val sender = gson.toJson(
+                userOwner.value           //!!.copy(port = 123)//setting server port
+            )
             val transportData = TransportData(
                 messageType = MessageType.MESSAGE,
                 senderId = activeFriend.uniqueID,
-                senderIp = "",
                 sender = sender,
                 content = content
             )
@@ -136,28 +146,31 @@ class ClientPartP2P @Inject constructor(
     fun addFriendInfo(userInfo: UserInfo){
         TODO()
     }
-    fun sendWhoAmI(host: String,port:Int = 15015){//default at metadata
-        val client = NettyClient(host, port)//
-        try {
-            client.connect()
-            Log.d("service $SERVICE_NAME :client", "connected")
-            val content = gson.toJson(userOwner.value)
-            val sender = gson.toJson(userOwner.value)
-            val transportData = TransportData(
-                messageType = MessageType.USER,
-                senderId = userOwner.value!!.uniqueID,
-                senderIp = "",
-                sender= sender,
-                content = content
-            )
-            val json = gson.toJson(transportData)
-            client.sendMessage(json)
-            Log.d("service $SERVICE_NAME :client", "SENDED $json")
-        }catch (e: Exception){
-            Log.d("service $SERVICE_NAME :client", "catched $e")
-        }finally {
-            Log.d("service $SERVICE_NAME :client", "finally ")
-            client.close()
+    fun sendWhoAmI(host: String,targetPort:Int,ownPort:Int){
+        CoroutineScope(Dispatchers.IO).launch {
+            Log.d("service $SERVICE_NAME :client", "sending Who Am I")
+            val client = NettyClient(host, targetPort)
+            try {
+                client.connect()
+                val content = gson.toJson(userOwner.value)
+                val sender = gson.toJson(userOwner.value)
+                val transportData = TransportData(
+                    messageType = MessageType.USER,
+                    senderId = userOwner.value!!.uniqueID,
+                    ownServerPort = ownPort,
+                    sender = sender,
+                    content = content
+                )
+                val json = gson.toJson(transportData)
+                delay(1000)
+                client.sendMessage(json)
+                Log.d("service $SERVICE_NAME :client", "SENDED $json")
+            } catch (e: Exception){
+                Log.d("service $SERVICE_NAME :client", "catched $e")
+            } finally {
+                delay(3000)
+                client.close()
+            }
         }
     }
 }

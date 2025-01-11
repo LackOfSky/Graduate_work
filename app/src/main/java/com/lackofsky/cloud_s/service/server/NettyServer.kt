@@ -10,6 +10,7 @@ import com.lackofsky.cloud_s.service.model.Peer
 import com.lackofsky.cloud_s.service.server.handlers.LoggingHandler
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelInitializer
+import io.netty.channel.ChannelOption
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
@@ -30,13 +31,14 @@ class NettyServer @Inject constructor(
 //    private val friendResponseUseCase: FriendResponseUseCase
 )  {
     private val serviceName = metadata.serviceName
-
+    private var boundPort = 0
     private lateinit var bossGroup: NioEventLoopGroup
     private lateinit var workerGroup: NioEventLoopGroup
 
     /*** returns service port value*/
-    fun start():Int {
-        var boundPort = 0
+     fun start() {
+        Log.d("service $serviceName. nettyServer", "starting nettyServer")
+
         //Log.d("service $serviceName"+ " ip-addr :",getLocalIpAddress()!!)
         bossGroup = NioEventLoopGroup(1)
         workerGroup = NioEventLoopGroup()
@@ -44,6 +46,7 @@ class NettyServer @Inject constructor(
             val bootstrap = ServerBootstrap()
             bootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel::class.java)
+                .option(ChannelOption.SO_KEEPALIVE, true)
                 .childHandler(object : ChannelInitializer<SocketChannel>() {
                     override fun initChannel(ch: SocketChannel) {
                         val pipeline = ch.pipeline()
@@ -65,32 +68,45 @@ class NettyServer @Inject constructor(
                             clientPartP2P)
                         )
                         ch.closeFuture().addListener { future ->//TODO (обработку ошибок)
-                            clientPartP2P.removeActiveUser(Peer(name = "",
-                                                        address = ch.remoteAddress().address.address.toString())
-                            )
-                            Log.i("service $serviceName", "Connection closed: ${ch.remoteAddress()}")
+                            try {
+                                clientPartP2P.removeActiveUser(
+                                    Peer(
+                                        name = "",
+                                        address = ch.remoteAddress().address.address.toString()
+                                    )
+                                )
 
+                            }catch (e: Exception){
+                                Log.e("service $serviceName", "Error while removing active user: ${e.message}")
+                            }
+                            Log.i(
+                                "service $serviceName",
+                                "Connection closed: ${ch.remoteAddress()}"
+                            )
                         }
                     }
                 })
 
-            val channelFuture = bootstrap.bind(boundPort).sync().also { channelFuture ->
+            val channelFuture = bootstrap.bind(boundPort).sync()
                 boundPort = (channelFuture.channel().localAddress() as InetSocketAddress).port
-                Log.d("service $serviceName", "started at " + InetAddress.getLocalHost() +" $boundPort")
-            }.channel().closeFuture().sync()
+
+                Log.d("service $serviceName", "started at port: $boundPort")//InetAddress.getLocalHost()
+            channelFuture.channel().closeFuture().sync()
         } finally {
             bossGroup.shutdownGracefully()
             workerGroup.shutdownGracefully()
-            Log.d("service $serviceName", "stopped")
+            Log.d("$serviceName netty server", "stopped")
 
         }
-        return boundPort
     }
 
+    fun getPort(): Int {
+        return boundPort
+    }
     fun stop() {
         bossGroup.shutdownGracefully()
         workerGroup.shutdownGracefully()
-        Log.d("service $serviceName", "stopped")
+        //Log.d("$serviceName netty server", "stopped")
     }
 
 //    fun getLocalIpAddress(): String? {

@@ -1,5 +1,6 @@
 package com.lackofsky.cloud_s.service
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -29,7 +30,6 @@ import com.lackofsky.cloud_s.service.server.NettyServer
 import com.lackofsky.cloud_s.service.server.discovery.PeerDiscovery
 import com.lackofsky.cloud_s.service.server.discovery.WiFiDirectManager
 import com.lackofsky.cloud_s.service.server.discovery.WiFiDirectService
-import com.lackofsky.cloud_s.service.server.discovery.WiFiDiscoveryByAware
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +37,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -94,6 +95,7 @@ class P2PServer : Service() {
                 startClient()
             }
         }
+        createNotificationChannel()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(NOTIFICATION_ID, notification)
         }
@@ -105,13 +107,16 @@ class P2PServer : Service() {
     }
 
 
+
     private fun startHost(){
         //CoroutineScope(Dispatchers.Main).launch {
             when(_serviceState.value){
                 P2pServiceState.STOPPED -> {
                     CoroutineScope(Dispatchers.IO).launch {
                         wiFiDirectService.startDiscoveryService()
-                        val port = nettyServer.start()
+                        nettyServer.start()
+                        delay(1000)
+                        val port = nettyServer.getPort()
                         Log.i(TAG,"netty server has been started at port: $port.")
                         wiFiDirectService.startNSD(port)
                     }
@@ -126,27 +131,36 @@ class P2PServer : Service() {
                 }
             }
         _serviceState.value = P2pServiceState.WORKING_HOST
-            sendStatusBroadcast(true)
+        sendStatusBroadcast(true)
 
             Log.i(TAG,"Service has been started as host")
         //}
-        createNotificationChannel()
+
     }
     private fun startClient(){
-
-        //CoroutineScope(Dispatchers.Main).launch {
-            when(_serviceState.value){
-                P2pServiceState.WORKING_HOST->{
+        CoroutineScope(Dispatchers.Main).launch {
+            when (_serviceState.value) {
+                P2pServiceState.WORKING_HOST -> {
                     stopService()
                     startClient()
                 }
-                P2pServiceState.WORKING_CLIENT->{
-                    Log.e(TAG,"attempt start client while client is working")
+
+                P2pServiceState.WORKING_CLIENT -> {
+                    Log.e(TAG, "attempt start client while client is working")
                 }
-                P2pServiceState.STOPPED->{
-                    CoroutineScope(Dispatchers.IO).launch{
-                        val port = nettyServer.start()
-                        wiFiDirectService.startNSD(port)
+
+                P2pServiceState.STOPPED -> {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        //Log.i(TAG, "netty server zero starting") it`s ok
+                        nettyServer.start()
+                    }
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(1000)
+                        val port = nettyServer.getPort()
+                        if(port != 0){
+                            wiFiDirectService.startNSD(port)
+                        }
+
                     }
 
 
@@ -155,12 +169,14 @@ class P2PServer : Service() {
             _serviceState.value = P2pServiceState.WORKING_CLIENT
             sendStatusBroadcast(true)
             //delay(1000)
-            Log.i(TAG,"service was started as client")
-        createNotificationChannel()
+            Log.i(TAG, "service was started as client")
+
+        }
+
     }
     private fun stopService(){
         sendStatusBroadcast(false)
-        CoroutineScope(Dispatchers.Main).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             when(_serviceState.value){
                 P2pServiceState.STOPPED -> {
                     Log.e(TAG,"attempt to stop stopped service")
@@ -175,7 +191,7 @@ class P2PServer : Service() {
             nettyServer.stop()
             _serviceState.value = P2pServiceState.STOPPED
             notificationManager.deleteNotificationChannel(CHANNEL_ID)
-            //delay(1000)
+            delay(1000)
             Log.i(TAG,"Service was stopped")
         }
     }

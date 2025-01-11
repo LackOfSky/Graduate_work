@@ -332,7 +332,7 @@ class WiFiDirectManager @Inject constructor(private val applicationContext: Cont
                         // to the group owner.
                         //Log.d("WiFiP2P", "Это клиент. Сервер: ${info.groupOwnerAddress.hostAddress}")
                         Log.d("GrimmBerry WiFiP2P", "connected as participant")
-                        clientPartP2P.sendWhoAmI(info.groupOwnerAddress.toString())
+                        //clientPartP2P.sendWhoAmI(info.groupOwnerAddress.toString())
                     }
                 }else{
                     Log.d("WifiDirectService", "Not connected to any group.")

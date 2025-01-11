@@ -2,6 +2,7 @@ package com.lackofsky.cloud_s.di
 
 import android.app.NotificationManager
 import android.content.Context
+import android.net.wifi.p2p.WifiP2pManager
 import androidx.room.Room
 import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.database.dao.ChatDao
@@ -18,9 +19,11 @@ import com.lackofsky.cloud_s.data.storage.StorageRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.server.NettyServer
+import com.lackofsky.cloud_s.service.server.discovery.DirectDiscoveryManager
+import com.lackofsky.cloud_s.service.server.discovery.DirectGroupManager
+import com.lackofsky.cloud_s.service.server.discovery.NSDManager
 import com.lackofsky.cloud_s.service.server.discovery.WiFiDirectManager
 import com.lackofsky.cloud_s.service.server.discovery.WiFiDirectService
-import com.lackofsky.cloud_s.service.server.discovery.WiFiDiscoveryByAware
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -98,8 +101,11 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
 //        return WiFiDirectManager(context,clientPartP2P)
 //    }
     @Provides
-    fun provideWiFiDirectService(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): WiFiDirectService {
-        return WiFiDirectService(context,clientPartP2P)
+    @Singleton
+    fun provideWiFiDirectService(directGroupManager: DirectGroupManager,
+                                 directDiscoveryManager: DirectDiscoveryManager,
+                                 nsdManager: NSDManager): WiFiDirectService {
+        return WiFiDirectService(directGroupManager,directDiscoveryManager,nsdManager)
     }
 //    @Provides //TODO("not implement android system")
 //    fun provideWiFiDiscoveryByAware(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): WiFiDiscoveryByAware {
@@ -117,4 +123,34 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
         return StorageRepository()
     }
 
+    @Provides
+    @Singleton
+    fun provideWifiP2pManager(@ApplicationContext context: Context): WifiP2pManager {
+        return context.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
+    }
+    @Provides
+    @Singleton
+    fun provideWifiP2pChannel(@ApplicationContext context: Context): WifiP2pManager.Channel {
+        return provideWifiP2pManager(context).initialize(context, context.mainLooper, null)
+    }
+    @Provides
+    @Singleton
+    fun provideDirectGroupManager(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P,
+                                  wifiP2pManager: WifiP2pManager,
+                                  wifiP2pChannel:WifiP2pManager.Channel): DirectGroupManager {
+        return DirectGroupManager(context,clientPartP2P,wifiP2pManager,wifiP2pChannel)
+    }
+    @Provides
+    @Singleton
+    fun provideDirectDiscoveryManager(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P,
+                                  wifiP2pManager: WifiP2pManager,
+                                  wifiP2pChannel:WifiP2pManager.Channel): DirectDiscoveryManager {
+        return DirectDiscoveryManager(context,clientPartP2P,wifiP2pManager,wifiP2pChannel)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNSDManager(@ApplicationContext context: Context, clientPartP2P: ClientPartP2P): NSDManager {
+        return NSDManager(context,clientPartP2P)
+    }
 }

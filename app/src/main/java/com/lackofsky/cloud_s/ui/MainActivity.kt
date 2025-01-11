@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
         Manifest.permission.NEARBY_WIFI_DEVICES
     )
     private val permissionList34 = listOf(Manifest.permission.FOREGROUND_SERVICE_DATA_SYNC)
-
+    private var broadcastReceiver: BroadcastReceiver? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,7 +79,7 @@ class MainActivity : ComponentActivity() {
 //        p2PServer = Intent(applicationContext, P2PServer::class.java)
         WindowCompat.
             setDecorFitsSystemWindows(window, false)
-        val broadcastReceiver = object : BroadcastReceiver() {
+            broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 val message = intent?.getStringExtra("message")
                 ?: "Ошибка"
@@ -174,7 +174,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         //stopService(p2PServer)
         super.onDestroy()
-
+        unregisterReceiver(broadcastReceiver)
 
     }
 }

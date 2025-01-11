@@ -38,7 +38,6 @@ class StrangerRequestUseCase @Inject constructor(val gson: Gson, val clientPartP
             val transportData = TransportData(
                 messageType = MessageType.REQUEST,
                 senderId = clientPartP2P.userOwner.value!!.uniqueID,
-                senderIp = "",
                 sender = sender,
                 content = content
             )

@@ -5,6 +5,8 @@ import io.netty.bootstrap.Bootstrap
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInitializer
+import io.netty.channel.ChannelOption
+import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
@@ -18,63 +20,64 @@ import java.nio.charset.Charset
  * */
 
 class NettyClient( private val host: String, private val port: Int) {//private val sharedState: SharedState,
-    private lateinit var channel: Channel
-    private val group = NioEventLoopGroup()
-    fun connect() {
-        try {
+    private var channel: Channel? = null
+    private var group: EventLoopGroup? = null
+    val TAG = "GrimBerry NettyClient"
+    fun connect(addActiveUserCallback: (()->Unit)? = null ,
+                removeActiveUserCallback:(()->Unit)? = null) {
+            group = NioEventLoopGroup()
             val bootstrap = Bootstrap()
             bootstrap.group(group)
                 .channel(NioSocketChannel::class.java)
+                .option(ChannelOption.SO_KEEPALIVE, true)
                 .handler(object : ChannelInitializer<SocketChannel>() {
-//                    override fun channelActive(ctx: ChannelHandlerContext?) {
-//                        super.channelActive(ctx)
-//                        val content = gson.toJson(sharedState.userOwner.value)
-//                        val transportData = TransportData(messageType = MessageType.USER,
-//                            senderId = sharedState.userOwner.value!!.uniqueID,
-//                            senderIp="",
-//                            content =content )
-//                        val json = gson.toJson(transportData)
-//                        ctx!!.channel().writeAndFlush(json)//json
-//                    }
                     override fun initChannel(ch: SocketChannel) {
                         val pipeline = ch.pipeline()
 //                        pipeline.addLast(LengthFieldBasedFrameDecoder(1024, 0, 4, 0, 4))
 //                        pipeline.addLast(LengthFieldPrepender(4))
                         pipeline.addLast(StringDecoder(Charset.forName("UTF-8")))
                         pipeline.addLast(StringEncoder(Charset.forName("UTF-8")))
-                        // Добавляем обработчики
-                        //todo почитать об этом. у нас не используется protocol handler
-                        //pipeline.addLast(SecurityHandler(isClient = true))  // Обработчик Noise для шифрования todo
-                        /*** abandoned*///pipeline.addLast(MplexHandler())
+                        //pipeline.addLast(SecurityHandler(isClient = true))  // Обработчик  для шифрования todo
                         pipeline.addLast(NettyClientHandler())  // Основной обработчик сообщений sharedState
                     }
 
                     override fun channelInactive(ctx: ChannelHandlerContext?) {
                         super.channelInactive(ctx)
-                        Log.d("service GrimBerry :client","client connection closed")
+                        removeActiveUserCallback?.invoke()
+                        Log.d("service GrimBerry :client","client connection closed.Host: $host, Port: $port")
                     }
                 })
 
-            this.channel = bootstrap.connect(host, port).sync().channel()
-            channel.closeFuture().sync()
-        } catch (e: InterruptedException) {
-            Log.e("NettyClient", "Connection error: ${e.message}")
-        } finally {
-            group.shutdownGracefully()
-        }
+            val channelFuture = bootstrap.connect(host, port).sync()
+            channel = channelFuture.channel()
+            addActiveUserCallback?.invoke()
+            Log.d(TAG,"connected to $host:$port. SS61")
     }
     fun sendMessage(message: String) {
-        if (this::channel.isInitialized && channel.isActive) {
-            channel.writeAndFlush(message)
-//            Log.d("service GrimBerry :client","sent message: $message")
-        } else {
-            Log.e("service GrimBerry :client "," Channel is not active")
-            throw Exception()//todo отобразить ошибку в интерфейс
+        //if (this::channel.isInitialized && channel!!.isActive) {
+        if (channel?.isOpen == true) {
+            channel?.let {
+                val future = it.writeAndFlush(message)
+                future.addListener { it ->
+                    if (it.isSuccess) {
+                        Log.d("service GrimBerry :client", "sent message: $message")
+                    } else {
+                        Log.d("service GrimBerry :client", "Message sending failed", future.cause())
+                    }
+                }
+                return
+            }
+        }else{
+            Log.e("service GrimBerry :client ","Channel is closed ")
+            throw Exception("service GrimBerry :client ,Channel is closed")
         }
+
     }
 
     fun close() {
-        group.shutdownGracefully()
+        channel?.close()?.sync()
+        group?.shutdownGracefully()
+        Log.d("service GrimBerry :client","client connection closed.Host: $host, Port: $port")
     }
 }
 
