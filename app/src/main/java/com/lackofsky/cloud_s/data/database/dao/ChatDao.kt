@@ -1,6 +1,6 @@
 package com.lackofsky.cloud_s.data.database.dao
 
-import androidx.lifecycle.LiveData
+
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -11,12 +11,13 @@ import com.lackofsky.cloud_s.data.model.Chat
 import com.lackofsky.cloud_s.data.model.ChatListItem
 import com.lackofsky.cloud_s.data.model.ChatType
 import com.lackofsky.cloud_s.data.model.User
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ChatDao {
 
     @Query("Select * FROM chats")
-    fun getAllChats():LiveData<List<Chat>>
+    fun getAllChats(): Flow<List<Chat>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChat(chat: Chat)
@@ -26,10 +27,10 @@ interface ChatDao {
     suspend fun updateChat(chat: Chat)
 
     @Query("SELECT * FROM chats WHERE chatId = :chatId")
-    fun getChatById(chatId: String): LiveData<Chat>
+    fun getChatById(chatId: String): Flow<Chat>
 
     @Query("SELECT * FROM chats WHERE chatName = :chatName")
-    fun getChatByName(chatName: String): LiveData<Chat>
+    fun getChatByName(chatName: String): Flow<Chat>
     @Query("""
         SELECT cm.chatId 
         FROM chat_members cm
@@ -56,7 +57,7 @@ interface ChatDao {
     LEFT JOIN messages m ON m.chatId = c.chatId
     GROUP BY c.chatId, u.uniqueID
 """)
-fun getChatListItems(): LiveData<List<ChatListItem>>
+fun getChatListItems(): Flow<List<ChatListItem>>
 //    @Query("""
 //        SELECT * FROM chats
 //        WHERE type = 'private'

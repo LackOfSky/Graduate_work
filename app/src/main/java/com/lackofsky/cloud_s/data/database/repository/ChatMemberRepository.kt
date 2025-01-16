@@ -1,8 +1,8 @@
 package com.lackofsky.cloud_s.data.database.repository
 
-import androidx.lifecycle.LiveData
 import com.lackofsky.cloud_s.data.database.dao.ChatMemberDao
 import com.lackofsky.cloud_s.data.model.ChatMember
+import kotlinx.coroutines.flow.Flow
 
 class ChatMemberRepository(private val chatMemberDao: ChatMemberDao) {
     suspend fun addChatMember(chatMember: ChatMember):Boolean {
@@ -14,7 +14,7 @@ class ChatMemberRepository(private val chatMemberDao: ChatMemberDao) {
         }
     }
 
-    fun getMembersByChat(chatId: String): LiveData<List<ChatMember>> {
+    fun getMembersByChat(chatId: String): Flow<List<ChatMember>> {
         return chatMemberDao.getMembersByChat(chatId)
     }
     suspend fun deleteMembersByChatId(chatId: String):Boolean{

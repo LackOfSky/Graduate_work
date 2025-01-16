@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.lackofsky.cloud_s"
-        minSdk = 33//default = 34
+        minSdk = 34//default = 34
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

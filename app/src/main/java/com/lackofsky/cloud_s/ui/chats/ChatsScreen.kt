@@ -23,6 +23,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.tooling.preview.Preview
 import com.lackofsky.cloud_s.ui.chats.components.ChatItem
 
@@ -38,7 +39,7 @@ fun ChatsScreen(viewModel: ChatsViewModel = hiltViewModel(),navController: NavHo
 }
 @Composable
 fun ChatList(viewModel: ChatsViewModel = hiltViewModel(), navController: NavHostController) {
-    val chatList by viewModel.chats.observeAsState()
+    val chatList by viewModel.chats.collectAsState()
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(8.dp, 0.dp, 8.dp, 0.dp)) {

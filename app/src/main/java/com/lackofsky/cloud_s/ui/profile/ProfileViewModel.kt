@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
@@ -21,11 +22,15 @@ import com.lackofsky.cloud_s.data.model.UserDTO
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.data.storage.StorageRepository
+import com.lackofsky.cloud_s.service.ClientPartP2P
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -37,52 +42,48 @@ class ProfileViewModel @Inject constructor(
     private val storageRepository: StorageRepository
 ) : ViewModel() {
 
-    private val _isHeaderEdit = MutableLiveData<Boolean>(false)
-    val isHeaderEdit: LiveData<Boolean> = _isHeaderEdit
-    private val _isAboutEdit = MutableLiveData<Boolean>(false)
-    val isAboutEdit: LiveData<Boolean> = _isAboutEdit
-    private val _isInfoEdit = MutableLiveData<Boolean>(false)
-    val isInfoEdit: LiveData<Boolean> = _isInfoEdit
+    private val _isHeaderEdit = MutableStateFlow(false)
+    val isHeaderEdit: StateFlow<Boolean> = _isHeaderEdit
+    private val _isAboutEdit = MutableStateFlow(false)
+    val isAboutEdit: StateFlow<Boolean> = _isAboutEdit
+    private val _isInfoEdit = MutableStateFlow(false)
+    val isInfoEdit: StateFlow<Boolean> = _isInfoEdit
 
 
-    private val _user = MutableLiveData<User>()
-    val user: LiveData<User> get() = _user
-    private val _editUser = MutableLiveData<UserDTO>()
-     val editUser: LiveData<UserDTO> get() = _editUser
+    private val _user = MutableStateFlow<User?>(null)
+    val user: StateFlow<User?> get() = _user
+    private val _editUser = MutableStateFlow<UserDTO?>(null)
+    val editUser: StateFlow<UserDTO?> get() = _editUser
 
-    private val _userInfo = MutableLiveData<UserInfo>()
-    val userInfo: LiveData<UserInfo> get() = _userInfo
-    private val _editUserInfo = MutableLiveData<UserInfo>()
-    val editUserInfo: LiveData<UserInfo> get() = _editUserInfo
+    private val _userInfo = MutableStateFlow<UserInfo?>(null)
+    val userInfo: StateFlow<UserInfo?> get() = _userInfo
+    private val _editUserInfo = MutableStateFlow<UserInfo?>(null)
+    val editUserInfo: StateFlow<UserInfo?> get() = _editUserInfo
 
     private val maxImageSize = 1000000
 
     init {
         viewModelScope.launch {
-            //todo стартовая страница для ввода этих данных
-//            if(userRepository.getUserOwner().isInitialized){
-//                userRepository.insertUser(
-//                    User(1,"John Doe", //TODO подхват с БД
-//                    "@just_someone",
-//                            "030303030")
-//                )}
-            }
-        loadUserOwner()
-    }
-
-    private fun loadUserOwner() = viewModelScope.launch {
-        userRepository.getUserOwner().observeForever { user ->
-            _user.value = user
-            _editUser.value = UserDTO(_user.value!!.id,_user.value!!.fullName,_user.value!!.login,_user.value!!.ipAddr )
-
-            userRepository.getUserInfoById(user.uniqueID).observeForever { userInfo ->
-                _userInfo.value = userInfo
-                _editUserInfo.value = _userInfo.value
+            userRepository.getUserOwner().collect { user ->
+                _user.value = user
+                _editUser.value =  UserDTO(
+                    user.id,
+                    user.fullName,
+                    user.login,
+                    user.ipAddr
+                )
+                Log.d("GrimBerry ui", "user: "+user.toString()+"\n "+"edit user: "+_editUser.value.toString())
+                launch {
+                    userRepository.getUserInfoById(user.uniqueID).collect { userInfo ->
+                        _userInfo.value = userInfo
+                        _editUserInfo.value = _userInfo.value
+                    }
+                }
             }
         }
-
-
     }
+
+
 
     fun onUserNameChange(newName: String) {
         Log.d("GrimBerry vm", newName)
@@ -113,12 +114,9 @@ class ProfileViewModel @Inject constructor(
             _editUser.value?.let { userRepository.updateUser(_user.value!!.copy(login =it.login, fullName = it.fullName,)) }
         }
     fun onConfirmUpdateNameLogin() = viewModelScope.launch {
-        _user.value!!.let{
-            userRepository.updateUser(it.copy(
-                login = editUser.value!!.login,
-                fullName = editUser.value!!.fullName))
-        }
-
+            userRepository.updateUser(_user.value!!.copy(
+                login = _editUser.value!!.login,
+                fullName = _editUser.value!!.fullName))
     }
     fun onConfirmUpdateAboutUser() = viewModelScope.launch {
         _userInfo.value?.let{
@@ -134,6 +132,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onCancelUpdate() = viewModelScope.launch {
+        Log.d("GrimBerry ui", _user.value.toString()+"\n "+_editUser.value.toString())
         _editUser.value = UserDTO(_user.value!!.id,
             _user.value!!.fullName,
             _user.value!!.login,

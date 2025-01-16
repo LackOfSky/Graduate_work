@@ -8,6 +8,12 @@ import androidx.room.OnConflictStrategy
 import com.lackofsky.cloud_s.data.database.dao.UserDao
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
+import com.lackofsky.cloud_s.service.model.MessageType
+import com.lackofsky.cloud_s.service.model.TransportData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,7 +22,12 @@ class UserRepository @Inject constructor(private val userDao: UserDao, private v
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertUser(user: User){
         userDao.insertUser(user)
+
+
          //mirror for friends viewModel
+            //if(getUserInfoById(user.uniqueID).isInitialized == false){
+
+            //}
             chatRepository.createPrivateChat(user.uniqueID)
 
     }
@@ -33,13 +44,13 @@ class UserRepository @Inject constructor(private val userDao: UserDao, private v
     suspend fun insertUserInfo(userInfo: UserInfo) = userDao.insertUserInfo(userInfo)
     suspend fun updateUserInfo(userInfo: UserInfo) = userDao.updateUserInfo(userInfo)
 
-    fun getUserById(id: Int): LiveData<User> = userDao.getUserById(id)
-    fun getUserByUniqueID(uniqueID: String): LiveData<User> = userDao.getUserByUniqueID(uniqueID)
-    fun getUserInfoById(uniqueID: String?): LiveData<UserInfo> = userDao.getUserInfoById(uniqueID)
+    fun getUserById(id: Int): Flow<User> = userDao.getUserById(id)
+    fun getUserByUniqueID(uniqueID: String): Flow<User> = userDao.getUserByUniqueID(uniqueID)
+    fun getUserInfoById(uniqueID: String?): Flow<UserInfo> = userDao.getUserInfoById(uniqueID)
 
-    fun getAllUsers(): LiveData<List<User>> = userDao.getAllUsers()
+    fun getAllUsers(): Flow<List<User>> = userDao.getAllUsers()
 
     //todo под снос. в дальнейшем получать данные по персональному мак-адресу
-    fun getUserOwner(): LiveData<User> = userDao.getUserOwner()
+    fun getUserOwner(): Flow<User> = userDao.getUserOwner()
 
 }

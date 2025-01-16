@@ -12,6 +12,7 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDao {
@@ -23,9 +24,9 @@ interface UserDao {
     @Delete
     suspend fun deleteUser(user: User)
     @Query("SELECT * FROM users WHERE uniqueID = :uniqueID")
-    fun getUserByUniqueID(uniqueID: String): LiveData<User>
+    fun getUserByUniqueID(uniqueID: String): Flow<User>
     @Query("SELECT * FROM users WHERE userId = :id")
-    fun getUserById(id: Int): LiveData<User>
+    fun getUserById(id: Int): Flow<User>
     @Query("SELECT COUNT(*) FROM users")
     suspend fun getUserCount(): Int
 
@@ -35,12 +36,12 @@ interface UserDao {
     suspend fun updateUserInfo(userInfo: UserInfo)
 
     @Query("SELECT * FROM users")
-    fun getAllUsers(): LiveData<List<User>>
+    fun getAllUsers(): Flow<List<User>>
     @Query("SELECT * FROM users WHERE userId = 1")
-    fun getUserOwner(): LiveData<User>
+    fun getUserOwner(): Flow<User>
 
     @Query("SELECT * FROM usersInfo WHERE userId = :uniqueID")
-    fun getUserInfoById(uniqueID: String?): LiveData<UserInfo>
+    fun getUserInfoById(uniqueID: String?): Flow<UserInfo>
 //  @Transaction
 //    @Query("SELECT * FROM users WHERE userId = :id")
 //    fun getUserWithInfoById(id: Int): LiveData<UserWithInfo?>

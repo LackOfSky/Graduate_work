@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,10 +40,12 @@ class ClientPartP2P @Inject constructor(
     val activeFriends: StateFlow<MutableMap<User, NettyClient>> = _activeFriends
     private val _activeStrangers = MutableStateFlow<MutableMap<User, NettyClient>>(mutableMapOf())
     val activeStrangers: StateFlow<MutableMap<User, NettyClient>> = _activeStrangers
+
     /***
      * outgoing requests */
     private val _requestedStrangers = MutableStateFlow<MutableSet<User>>(mutableSetOf())
     val requestedStrangers: StateFlow<MutableSet<User>> = _requestedStrangers
+
     /***
      * incoming requests */
     private val _pendingStrangers = MutableStateFlow<MutableSet<User>>(mutableSetOf())
@@ -57,120 +60,141 @@ class ClientPartP2P @Inject constructor(
      *            посторонние
      *
      * */
-    fun addPendingStranger(user: User){
+    fun addPendingStranger(user: User) {
         _pendingStrangers.value.add(user)
     }
-    fun removePendingStranger(user: User){
+
+    fun removePendingStranger(user: User) {
         _pendingStrangers.value.remove(user)
     }
-    fun addRequestedStranger(user: User){
+
+    fun addRequestedStranger(user: User) {
         _requestedStrangers.value.add(user)
     }
-    fun removeRequestedStranger(user: User){
+
+    fun removeRequestedStranger(user: User) {
         _requestedStrangers.value.remove(user)
     }
 
     //lateinit var userOwner: MutableLiveData<User>
-    private val _userOwner = MutableLiveData<User>()
-    val userOwner: LiveData<User> get() = _userOwner
-    lateinit var userInfo :LiveData<UserInfo>
-    init{
-        //CoroutineScope(Dispatchers.IO).launch {
+    private val _userOwner = MutableStateFlow<User?>(null)
+    val userOwner: StateFlow<User?> get() = _userOwner
+    private val _userInfo = MutableStateFlow<UserInfo?>(null)
+    val userInfo: StateFlow<UserInfo?> get() = _userInfo
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            userRepository.getUserOwner().collect { user ->
+                _userOwner.value = user
+                user.let {
+                    val info = userRepository.getUserInfoById(it.uniqueID).firstOrNull()
+                    _userInfo.value = info
+                }
+            }
+            //CoroutineScope(Dispatchers.IO).launch {
 //            userOwner =
 //                userRepository.getUserOwner() //TODO( ISSUE:при смене данных о пользователе будут отправлятся изначальные данные  bad flow)
             //userInfo = userRepository.getUserInfoById(userOwner.value!!.id)
-                userRepository.getUserOwner().observeForever { user ->
-                    _userOwner.value = user
-                    //TODO("добавить send whoami при изменении данных")
-            }
-       // }
-    }
+//                userRepository.getUserOwner().observeForever { user ->
+//                    _userOwner.value = user
+//                    //TODO("добавить send whoami при изменении данных")
+//            }
 
-    suspend fun addActiveUser(user: User){
-        CoroutineScope(Dispatchers.IO).launch {
-            val client = NettyClient(user.ipAddr,user.port)
-            client.connect()
-            if(userRepository.getUserByUniqueID(user.uniqueID).isInitialized){
-                userRepository.updateUser(user)
-                _activeFriends.value.put(user, client)
-            }else{
-                _activeStrangers.value.put(user, client)
+            // }
+        }
+    }
+        //    userOwner.value?.uniqueID.let{//todo delete
+//        userRepository.getUserInfoById(it).observeForever(){
+//            userInfo = it
+//        }
+//    }
+        suspend fun addActiveUser(user: User) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val client = NettyClient(user.ipAddr, user.port)
+                client.connect()
+                if (userRepository.getUserByUniqueID(user.uniqueID).firstOrNull() != null) {
+                    userRepository.updateUser(user)
+                    _activeFriends.value.put(user, client)
+                } else {
+                    _activeStrangers.value.put(user, client)
+                }
+
             }
 
         }
 
-    }
-
-     fun removeActiveUser(peer: Peer) {
-         CoroutineScope(Dispatchers.IO).launch {
-             _activeFriends.update { users ->
-                 val userToRemove = users.keys.find { it.ipAddr == peer.address }
-                 if (userToRemove != null) {
-                     users.remove(userToRemove)
-                         ?.close()
-                 }
+        fun removeActiveUser(peer: Peer) {
+            CoroutineScope(Dispatchers.IO).launch {
+                _activeFriends.update { users ->
+                    val userToRemove = users.keys.find { it.ipAddr == peer.address }
+                    if (userToRemove != null) {
+                        users.remove(userToRemove)
+                            ?.close()
+                    }
 //                 else {
 //                     throw Exception("GrimBerry. Attempt to remove user that doesn't exist")
 //                 }
-                 users
-             }
-             _activeStrangers.update { users ->
-                 users.keys.removeIf { it.ipAddr == peer.address }
-                 users
-             }
-         }
+                    users
+                }
+                _activeStrangers.update { users ->
+                    users.keys.removeIf { it.ipAddr == peer.address }
+                    users
+                }
+            }
 
-    }
-     fun sendMessage(activeFriend: User, message: Message):Boolean{
-        val client = _activeFriends.value.get(activeFriend)
-        if(client !=null){
-            val content = gson.toJson(message)
-            val sender = gson.toJson(
-                userOwner.value           //!!.copy(port = 123)//setting server port
-            )
-            val transportData = TransportData(
-                messageType = MessageType.MESSAGE,
-                senderId = activeFriend.uniqueID,
-                sender = sender,
-                content = content
-            )
-            val json = gson.toJson(transportData)
-            client.sendMessage(json)
-        }else{
-            //throw Exception("BerryGrim. Attempt to send message to non-active channel.. P2PClient")
-            return false
         }
-        return true
-    }
 
-    fun addFriendInfo(userInfo: UserInfo){
-        TODO()
-    }
-    fun sendWhoAmI(host: String,targetPort:Int,ownPort:Int){
-        CoroutineScope(Dispatchers.IO).launch {
-            Log.d("service $SERVICE_NAME :client", "sending Who Am I")
-            val client = NettyClient(host, targetPort)
-            try {
-                client.connect()
-                val content = gson.toJson(userOwner.value)
-                val sender = gson.toJson(userOwner.value)
+        fun sendMessage(activeFriend: User, message: Message): Boolean {
+            val client = _activeFriends.value.get(activeFriend)
+            if (client != null) {
+                val content = gson.toJson(message)
+                val sender = gson.toJson(
+                    userOwner.value           //!!.copy(port = 123)//setting server port
+                )
                 val transportData = TransportData(
-                    messageType = MessageType.USER,
-                    senderId = userOwner.value!!.uniqueID,
-                    ownServerPort = ownPort,
+                    messageType = MessageType.MESSAGE,
+                    senderId = activeFriend.uniqueID,
                     sender = sender,
                     content = content
                 )
                 val json = gson.toJson(transportData)
-                delay(1000)
                 client.sendMessage(json)
-                Log.d("service $SERVICE_NAME :client", "SENDED $json")
-            } catch (e: Exception){
-                Log.d("service $SERVICE_NAME :client", "catched $e")
-            } finally {
-                delay(3000)
-                client.close()
+            } else {
+                //throw Exception("BerryGrim. Attempt to send message to non-active channel.. P2PClient")
+                return false
+            }
+            return true
+        }
+
+        fun addFriendInfo(userInfo: UserInfo) {
+            TODO()
+        }
+
+        fun sendWhoAmI(host: String, targetPort: Int, ownPort: Int) {
+            CoroutineScope(Dispatchers.IO).launch {
+                Log.d("service $SERVICE_NAME :client", "sending Who Am I")
+                val client = NettyClient(host, targetPort)
+                try {
+                    client.connect()
+                    val content = gson.toJson(userOwner.value)
+                    val sender = gson.toJson(userOwner.value)
+                    val transportData = TransportData(
+                        messageType = MessageType.USER,
+                        senderId = userOwner.value!!.uniqueID,
+                        ownServerPort = ownPort,
+                        sender = sender,
+                        content = content
+                    )
+                    val json = gson.toJson(transportData)
+                    delay(1000)
+                    client.sendMessage(json)
+                    Log.d("service $SERVICE_NAME :client", "SENDED $json")
+                } catch (e: Exception) {
+                    Log.d("service $SERVICE_NAME :client", "catched $e")
+                } finally {
+                    delay(3000)
+                    client.close()
+                }
             }
         }
-    }
 }

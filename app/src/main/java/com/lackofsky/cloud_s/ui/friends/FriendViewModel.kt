@@ -8,6 +8,7 @@ import com.lackofsky.cloud_s.data.database.repository.ChatRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,10 +20,10 @@ class FriendViewModel @Inject constructor(
 //    private val clientServiceInterface: ClientInterface
 ) : ViewModel() {
 
-    fun getFriend(friendID: Int): LiveData<User> {
+    fun getFriend(friendID: Int): Flow<User> {
         return userRepository.getUserById(friendID)
     }
-    fun getFriendInfo(friendID: String): LiveData<UserInfo>{
+    fun getFriendInfo(friendID: String): Flow<UserInfo>{
         return userRepository.getUserInfoById(friendID)
     }
 }

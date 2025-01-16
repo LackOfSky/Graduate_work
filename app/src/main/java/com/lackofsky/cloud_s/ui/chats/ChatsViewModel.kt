@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.lackofsky.cloud_s.data.model.Chat
 import com.lackofsky.cloud_s.data.model.ChatDTO
 import com.lackofsky.cloud_s.data.model.ChatListItem
@@ -15,6 +16,8 @@ import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
@@ -22,16 +25,20 @@ import javax.inject.Inject
 class ChatsViewModel @Inject constructor(val userRepository: UserRepository,
                                          val chatRepository: ChatRepository, val messageRepository: MessageRepository
 ) :ViewModel() {
-    val chats = MutableLiveData<List<ChatListItem>>()
+    private val _chats = MutableStateFlow<List<ChatListItem>?>(null)
+    val chats: StateFlow<List<ChatListItem>?> get() = _chats
 
     init{
-        chatRepository.getChatListItems().observeForever {
-            chatList->chats.value =  chatList
-        Log.d("GrimBerry 321 chatvm", chatList.toString())
+        viewModelScope.launch {
+            chatRepository.getChatListItems().collect{
+                _chats.value = it
+            }
         }
-        chatRepository.getAllChats().observeForever {
-            chat -> Log.d("GrimBerry 321 chatvm ch", chat.toString())
-        }
+
+//        chatRepository.getChatListItems().observeForever {
+//            chatList->chats.value =  chatList
+//        Log.d("GrimBerry 321 chatvm", chatList.toString())
+//        }
 
     }
     //val chats = MutableLiveData<MutableSet<Chat>>(mutableSetOf())

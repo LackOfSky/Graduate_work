@@ -1,9 +1,9 @@
 package com.lackofsky.cloud_s.data.database.repository
 
-import androidx.lifecycle.LiveData
 import com.lackofsky.cloud_s.data.database.dao.MessageDao
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.SyncStatus
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class MessageRepository @Inject constructor(
@@ -18,15 +18,15 @@ class MessageRepository @Inject constructor(
         messageDao.deleteMessage(message)
     }
 
-    fun getMessageByUniqueId(messageUniqueId: String): LiveData<Message> {
+    fun getMessageByUniqueId(messageUniqueId: String): Flow<Message> {
         return messageDao.getMessageById(messageUniqueId)
     }
 
-    fun getMessagesByChat(chatId: String): LiveData<List<Message>> {
+    fun getMessagesByChat(chatId: String): Flow<List<Message>> {
         return messageDao.getMessagesByChat(chatId)
     }
 
-    fun getPendingMessages(): LiveData<List<Message>> {
+    fun getPendingMessages(): Flow<List<Message>> {
         return messageDao.getMessagesBySyncStatus(SyncStatus.PENDING)
     }
 

@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.lackofsky.cloud_s.data.model.Chat
 import com.lackofsky.cloud_s.data.model.ChatMember
 import com.lackofsky.cloud_s.data.model.ChatType
@@ -24,6 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,12 +37,13 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                                               private val clientPartP2P: ClientPartP2P,
                                               //private val readMessageRepository: ReadMessageRepository
     ): ViewModel() {
-    val messages = MutableLiveData<List<Message>>()
-    val chatMembers = MutableLiveData<List<ChatMember>>()
+    private val _messages = MutableStateFlow<List<Message>?>(null)
+    val messages: StateFlow<List<Message>?> get() = _messages
+    private val chatMembers = MutableStateFlow<List<ChatMember>?>(null)
 
-    val activeFriends = MutableLiveData<List<User?>>()
-    val activeChat = MutableLiveData<Chat>()
-    val activeUserOwner = MutableLiveData<User>()
+    //val activeFriends = MutableStateFlow<List<User?>?>(null)
+    private val _activeChat = MutableStateFlow<Chat?>(null)
+    val activeUserOwner = MutableStateFlow<User?>(null)
 
     private val _selectedMessages = MutableStateFlow<MutableList<Message>>(mutableListOf())
     val selectedMessages: StateFlow<MutableList<Message>> = _selectedMessages
@@ -59,30 +62,33 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
 //    }
 
     fun setChatId(chatId:String){
-            messageRepository.getMessagesByChat(chatId).observeForever{
-                    messageList -> messages.value = messageList
+        viewModelScope.launch {
+            messageRepository.getMessagesByChat(chatId).collect{
+                _messages.value = it
             }
+        }
+        viewModelScope.launch {
+            clientPartP2P.userOwner.collect{
+                activeUserOwner.value = it
+            }
+        }
+        viewModelScope.launch {
+            chatRepository.getChatById(chatId).collect{
+                _activeChat.value = it
+                if (_activeChat.value!!.type == ChatType.PRIVATE){//TODO обработку ошибок
+
+                } else{
+            //TODO("Реализация логики многопользовательского чата")
+                }
+            }
+        }
+
+
 //            chatMemberRepository.getMembersByChat(chatId).observeForever {
 //                chatMembers.value = it
 //            }
-        userRepository.getUserOwner().observeForever {
-            activeUserOwner.value = it
-        }
-        chatRepository.getChatById(chatId).observeForever {
-            activeChat.value = it
-            if(activeChat.value!!.type == ChatType.PRIVATE){
-                activeFriends.value = mutableListOf(userRepository.getUserByUniqueID(chatId).value)
-            } else{
-                TODO("Реализация логики многопользовательского чата")
-            }
-        }
-//            activeChat.value = chatRepository.getChatById(chatId).value//get info about current Chat
-//
-//                if(activeChat.value!!.type == ChatType.PRIVATE){
-//                    activeFriends.value = mutableListOf(userRepository.getUserByUniqueID(chatId).value!!)
-//                } else{
-//                    TODO("Реализация логики многопользовательского чата")
-//                }
+
+
     }
 
     fun sendMessage(text: String){
@@ -98,7 +104,7 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                         id = id,
                         userId = activeUserOwner.value!!.uniqueID,
                         uniqueId = activeUserOwner.value!!.uniqueID + id,
-                chatId = activeChat.value!!.chatId,
+                chatId = _activeChat.value!!.chatId,
                 content = text)
 
             if(chatMembers.value.isNullOrEmpty()){
@@ -108,7 +114,8 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                     chatMembers.value?.forEach { member ->
                         //todo - фактически данная логика поставлена на то, что все пользователи онлайн
                         clientPartP2P.sendMessage(
-                            userRepository.getUserByUniqueID(member.userId).value!!, message
+                            activeFriend = userRepository.getUserByUniqueID(member.userId).first(),
+                            message = message
                         )
                     }
                     messageRepository.insertMessage(message)

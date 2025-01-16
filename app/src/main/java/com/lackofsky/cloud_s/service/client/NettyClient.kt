@@ -51,7 +51,7 @@ class NettyClient( private val host: String, private val port: Int) {//private v
             val channelFuture = bootstrap.connect(host, port).sync()
             channel = channelFuture.channel()
             addActiveUserCallback?.invoke()
-            Log.d(TAG,"connected to $host:$port. SS61")
+            Log.d(TAG,"Netty Client. Connected as client to $host:$port. SS61")
     }
     fun sendMessage(message: String) {
         //if (this::channel.isInitialized && channel!!.isActive) {

@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,8 +46,8 @@ import com.lackofsky.cloud_s.ui.profile.UserProfileFeachures
 @Composable
 fun FriendProfile(modifier: Modifier = Modifier,userId: Int,
                   viewModel: FriendViewModel = hiltViewModel()){
-    val user = viewModel.getFriend(userId).observeAsState()
-    val userInfo = viewModel.getFriendInfo(user.value?.uniqueID.orEmpty()).observeAsState()
+    val user = viewModel.getFriend(userId).collectAsState(null)
+    val userInfo = viewModel.getFriendInfo(user.value?.uniqueID.orEmpty()).collectAsState(null)
 //    viewModel.setCurrentFriend(userId)
 //    //TODO USERSERVICE GET BY USER ID
 //    val selectedUser by viewModel.getCurrentUser(userId).collectAsState()

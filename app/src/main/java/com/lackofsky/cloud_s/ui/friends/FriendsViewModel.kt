@@ -27,16 +27,7 @@ class FriendsViewModel @Inject constructor(
       val peers = clientPartP2P.activeStrangers
       val requestedStrangers = clientPartP2P.requestedStrangers// в дальнейшем изменить на set
       val pendingStrangers = clientPartP2P.pendingStrangers
-    init{
-        val user = User(2,"Named nature","logic_A","fadfd213a2ek1")// не ставить id=1
-        val user2 = User(3,"JohnDOe","logo","dsdsds33")// не ставить id=1
-        val user3 = User(4,"Jeremy Sparks","kicked","ewewewe22")// не ставить id=1
-        for (i in 5..20) {
 
-            //peers.value.add(User(i,"name "+i.toString(),"login "+i.toString(),"unique id "+ i.toString()))
-        }
-        //peers.value = MutableSetOf(user,user2,user3)//placeholder for strangers peers1
-    }
     val tabTitlesList = listOf("Friends", "Add Friends")
     val tabTitlesItem = "Incoming requests"
     fun sendFriendRequest(stranger: User):Boolean{

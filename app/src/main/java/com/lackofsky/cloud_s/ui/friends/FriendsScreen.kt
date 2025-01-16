@@ -115,7 +115,7 @@ fun FriendsContainer(viewModel: FriendsViewModel = hiltViewModel(),
 @Composable
 fun FriendList(viewModel: FriendsViewModel,navController: NavHostController) {
 
-    val friendList by viewModel.friends.observeAsState()
+    val friendList by viewModel.friends.collectAsState(null)
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(8.dp, 0.dp, 8.dp, 0.dp)) {

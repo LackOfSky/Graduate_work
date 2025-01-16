@@ -77,10 +77,10 @@ import dagger.hilt.android.internal.lifecycle.HiltViewModelFactory
 fun ProfileScreen(modifier: Modifier = Modifier,
                   viewModel: ProfileViewModel = hiltViewModel()) {
 
-    val isHeaderEdit by viewModel.isHeaderEdit.observeAsState(initial = false)
+    val isHeaderEdit by viewModel.isHeaderEdit.collectAsState(initial = false)
     //val currentUser by viewModel.currentUser.collectAsState()
-    val editUser by viewModel.editUser.observeAsState()
-    val editUserInfo by viewModel.editUserInfo.observeAsState()
+    val editUser by viewModel.editUser.collectAsState()
+    val editUserInfo by viewModel.editUserInfo.collectAsState()
 
 
     editUser?.let {
@@ -322,7 +322,7 @@ fun UserProfileFeachures(){
 @Composable
 fun ImagePicker(viewModel: ProfileViewModel) {
     val imageUri by viewModel.selectedImageUri.collectAsState()
-    val userInfo by viewModel.userInfo.observeAsState()
+    val userInfo by viewModel.userInfo.collectAsState()
     val context = LocalContext.current
     // Лаунчер для выбора изображения
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -420,7 +420,7 @@ fun BannerPicker(viewModel: ProfileViewModel) {
 }
 @Composable
 fun DefaultBanner(viewModel: ProfileViewModel) {
-    val userInfo by viewModel.userInfo.observeAsState()
+    val userInfo by viewModel.userInfo.collectAsState()
     var bitmap: Bitmap?
     val context = LocalContext.current
 

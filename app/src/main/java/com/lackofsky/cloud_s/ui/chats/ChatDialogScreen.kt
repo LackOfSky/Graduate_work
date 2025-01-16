@@ -47,6 +47,7 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -114,7 +115,7 @@ fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewMo
 
 @Composable
 fun MessagesList(viewModel: ChatDialogViewModel) {
-    val messagesList by viewModel.messages.observeAsState()
+    val messagesList by viewModel.messages.collectAsState()
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(8.dp, 0.dp, 8.dp, 0.dp)) {

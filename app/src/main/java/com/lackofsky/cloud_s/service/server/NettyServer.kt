@@ -51,7 +51,7 @@ class NettyServer @Inject constructor(
                     override fun initChannel(ch: SocketChannel) {
                         val pipeline = ch.pipeline()
 
-                        Log.i("service $serviceName server" , "connected to " +
+                        Log.i("service $serviceName server" , "Netty server. Connected as server to " +
                                 ch.pipeline().channel().remoteAddress())
                         //pipeline.addLast(SecurityHandler(isClient = true))  // TODO
                         /*** abandoned*///pipeline.addLast(MplexHandler())  // Mplex для мультиплексирования
@@ -69,12 +69,12 @@ class NettyServer @Inject constructor(
                         )
                         ch.closeFuture().addListener { future ->//TODO (обработку ошибок)
                             try {
-                                clientPartP2P.removeActiveUser(
-                                    Peer(
-                                        name = "",
-                                        address = ch.remoteAddress().address.address.toString()
-                                    )
-                                )
+//                                clientPartP2P.removeActiveUser(
+//                                    Peer(
+//                                        name = "",
+//                                        address = ch.remoteAddress().address.address.toString()
+//                                    )
+//                                )
 
                             }catch (e: Exception){
                                 Log.e("service $serviceName", "Error while removing active user: ${e.message}")

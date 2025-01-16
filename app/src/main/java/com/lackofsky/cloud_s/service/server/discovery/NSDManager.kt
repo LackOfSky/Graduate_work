@@ -15,44 +15,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.InetAddress
+import java.util.concurrent.Executors
 import javax.inject.Inject
 
 class NSDManager (private val applicationContext: Context,
                   private val clientPartP2P: ClientPartP2P
 ) {
     private val TAG = "GrimBerry NSDManager"
-    private val SERVICE_NAME = "cLoud_s"
+    private var SERVICE_NAME = "cLoud_s"
     private val SERVICE_TYPE = "_cLouds._tcp."
     private var SERVICE_PORT: Int? = null
     private var nsdManager: NsdManager = applicationContext.getSystemService(Context.NSD_SERVICE) as NsdManager
-
-
-    private val registrationListener = object : NsdManager.RegistrationListener {
-
-        override fun onServiceRegistered(serviceInfo: NsdServiceInfo) {
-            // Save the service name. Android may have changed it in order to
-            // resolve a conflict, so update the name you initially requested
-            // with the name Android actually used.
-            //mServiceName = NsdServiceInfo.serviceName
-            Log.d(TAG, " service registered successfully. $serviceInfo")
-        }
-
-        override fun onRegistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-            Log.d(TAG, " service registration failed. Reason $errorCode")
-            // Registration failed! Put debugging code here to determine why.
-        }
-
-        override fun onServiceUnregistered(arg0: NsdServiceInfo) {
-            // Service has been unregistered. This only happens when you call
-            // NsdManager.unregisterService() and pass in this listener.
-            Log.d(TAG, " service is unregistered")
-        }
-
-        override fun onUnregistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-            // Unregistration failed. Put debugging code here to determine why.
-            Log.d(TAG, " service  unregistration failed. Reason $errorCode")
-        }
-    }
+    private val registeredServices = mutableSetOf<String>()
+    private var serviceInfo: NsdServiceInfo? = null
 
     private val resolveListener = object : NsdManager.ResolveListener {
 
@@ -62,66 +37,117 @@ class NSDManager (private val applicationContext: Context,
         }
 
         override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-            Log.i(TAG, "Resolved Successfully. $serviceInfo")
-//            if (serviceInfo.serviceName == SERVICE_NAME) {
-//                Log.d(TAG, "Same IP.")
-//                return
-//            }
+            Log.e(TAG, "Resolve Succeeded. $serviceInfo")
             val port: Int = serviceInfo.port
             val host: InetAddress = serviceInfo.host
-
-            clientPartP2P.sendWhoAmI(host.hostAddress!!,port, ownPort = SERVICE_PORT!!)
-            //
+            clientPartP2P.sendWhoAmI(host.hostAddress!!, port, ownPort = SERVICE_PORT!!)
         }
     }
+
+//    val serviceInfoCallback = object : NsdManager.ServiceInfoCallback {
+//        override fun onServiceInfoCallbackRegistrationFailed(errorCode: Int) {
+//            Log.e(TAG, "NSDManager. Service info callback registration failed. code: $errorCode")
+//        }
+//        override fun onServiceUpdated(serviceInfo: NsdServiceInfo) {
+//            // Обработка обновлённой информации о сервисе
+//            Log.i(TAG, "NSDManager. Resolved Successfully. $serviceInfo")
+////            if (serviceInfo.serviceName == SERVICE_NAME) {//TURN IT OFF for testing
+////                Log.d(TAG, "NSDManager. Same IP.")
+////                return
+////            }
+//
+////            val host = serviceInfo.host
+////            val port = serviceInfo.port
+////            clientPartP2P.sendWhoAmI(host.hostAddress!!, port, ownPort = SERVICE_PORT!!)
+//        }
+//
+//        override fun onServiceLost() {
+//            Log.d(TAG, "NSDManager. Service lost.")
+//        }
+//
+//        override fun onServiceInfoCallbackUnregistered() {
+//            Log.d(TAG, "NSDManager. Service info callback unregistered")
+//        }
+//
+//    }
+    private val registrationListener = object : NsdManager.RegistrationListener {
+
+        override fun onServiceRegistered(serviceInfo: NsdServiceInfo) {
+            // Save the service name. Android may have changed it in order to
+            // resolve a conflict, so update the name you initially requested
+            // with the name Android actually used.
+            //mServiceName = NsdServiceInfo.serviceName
+            //TODO( CHECK IT)
+            Log.e(TAG, "NSDManager. service registered successfully. $serviceInfo")
+            Log.e(TAG, "NSDManager. Preview service name $SERVICE_NAME")
+            SERVICE_NAME = serviceInfo.serviceName
+            Log.e(TAG, "NSDManager. New service name $SERVICE_NAME")
+        }
+
+        override fun onRegistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
+            Log.d(TAG, "NSDManager. service registration failed. Reason $errorCode")
+            // Registration failed! Put debugging code here to determine why.
+        }
+
+        override fun onServiceUnregistered(serviceInfo: NsdServiceInfo) {
+            // Service has been unregistered. This only happens when you call
+            // NsdManager.unregisterService() and pass in this listener.
+            Log.d(TAG, "NSDManager. service is unregistered")
+        }
+
+        override fun onUnregistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
+            // Unregistration failed. Put debugging code here to determine why.
+            Log.d(TAG, "NSDManager. Service unregistration failed. Reason $errorCode")
+        }
+    }
+
     private val discoveryListener = object : NsdManager.DiscoveryListener {
 
         // Called as soon as service discovery begins.
         override fun onDiscoveryStarted(regType: String) {
-            Log.d(TAG, "Service discovery started")
+            Log.d(TAG, "NSDManager. Service discovery started")
         }
 
         override fun onServiceFound(service: NsdServiceInfo) {
             // A service was found! Do something with it.
-            Log.d(TAG, "Service discovery success. $service")
+            Log.d(TAG, "NSDManager. Service discovery success. $service")
             when {
                 service.serviceType != SERVICE_TYPE -> // Service type is the string containing the protocol and
                     // transport layer for this service.
-                    Log.d(TAG, "Unknown Service Type: ${service.serviceType}")
-                service.serviceName == SERVICE_NAME -> // The name of the service tells the user what they'd be
-                    // connecting to. It could be "Bob's Chat App".
-                {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        delay(1000)
-                        nsdManager.resolveService(service, resolveListener)
-                    }
-
-                    Log.d(TAG, "Same machine: $SERVICE_NAME")
+                    Log.d(TAG, "NSDManager. Unknown Service Type: ${service.serviceType}")
+//                service.serviceName ==  serviceInfo!!.serviceName ->{
+//                    Log.d(TAG, "NSDManager. Same machine: $SERVICE_NAME")
+//                    return
+//                }
+                service.serviceName.contains(SERVICE_NAME) ->{nsdManager.resolveService(service, resolveListener)
+//                    nsdManager.registerServiceInfoCallback(
+//                        service,
+//                        Executors.newSingleThreadExecutor(),
+//                        serviceInfoCallback)
                 }
-
-                service.serviceName.contains(SERVICE_NAME) -> nsdManager.resolveService(service, resolveListener)
             }
         }
 
         override fun onServiceLost(service: NsdServiceInfo) {
             // When the network service is no longer available.
             // Internal bookkeeping code goes here.
-            Log.i(TAG, "service lost: $service")
+            Log.i(TAG, "NSDManager. service lost: $service")
+            //nsdManager.unregisterServiceInfoCallback(serviceInfoCallback)
+            //TODO(рассмотреть вариант удаления соответствующего пользователя)
         }
 
         override fun onDiscoveryStopped(serviceType: String) {
-            Log.i(TAG, "Discovery stopped: $serviceType")
+            Log.i(TAG, "NSDManager. Discovery stopped: $serviceType")
         }
 
         override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
-            Log.e(TAG, "Discovery failed: Error code:$errorCode")
+            Log.e(TAG, "NSDManager. Discovery failed: Error code:$errorCode")
             sendToastIntend("Start discovery failed: Error code:$errorCode")
-            //nsdManager.stopServiceDiscovery(this)
             stopService()
         }
 
         override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) {
-            Log.e(TAG, "Discovery failed: Error code:$errorCode")
+            Log.e(TAG, "NSDManager. Discovery failed: Error code:$errorCode")
             sendToastIntend("Stop Discovery failed: Error code:$errorCode")
             //nsdManager.stopServiceDiscovery(this)
             stopService()
@@ -131,7 +157,7 @@ class NSDManager (private val applicationContext: Context,
     fun startNSDService(port:Int = 0) {
         //nsdManager = applicationContext.getSystemService(Context.NSD_SERVICE) as NsdManager   transfered
         Log.d("GrimBerry","NSD  set port $port")
-        val serviceInfo = NsdServiceInfo().apply {
+        serviceInfo = NsdServiceInfo().apply {
             // The name is subject to change based on conflicts
             // with other services advertised on the same network.
             serviceName = SERVICE_NAME
@@ -140,12 +166,10 @@ class NSDManager (private val applicationContext: Context,
             setPort(SERVICE_PORT!!)
         }
         nsdManager.apply {
-            registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener)
             discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
+            registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener)
         }
-        Log.d("GrimBerry","NSD service Info port: ${serviceInfo.port}")
-        Log.d(TAG,"NSD has been started")
-        Log.i(TAG,"NSD service name: $SERVICE_NAME, service type: $SERVICE_TYPE")
+        Log.i(TAG,"NSD has been started. Port: $SERVICE_PORT")
 
     }
     fun stopNSDService(){
@@ -158,7 +182,7 @@ class NSDManager (private val applicationContext: Context,
             stopServiceDiscovery(discoveryListener)
 
         }
-        Log.d(TAG,"NSD has been stopped")
+        Log.d(TAG,"NSDManager. NSD has been stopped")
     }
 
     private fun stopService(){

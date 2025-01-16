@@ -9,6 +9,7 @@ import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.database.repository.ChatRepository
 import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
+import com.lackofsky.cloud_s.data.usecase.FriendRequestType
 import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.MessageType
@@ -71,15 +72,16 @@ class NettyServerHandler(
                                 ipAddr = remoteIpAddress.address.hostAddress!!,
                                 port = data.ownServerPort
                             )
-//                        user.ipAddr =
-//                        user.port = remoteIpAddress.port
+                        if(user.uniqueID != clientPartP2P.userOwner.value!!.uniqueID){
+                            Log.d(
+                                "service $SERVICE_NAME server handler",
+                                "received message-user from: $remoteIpAddress"
+                            )
+                            Log.d("service $SERVICE_NAME server handler", "received: $user")
+                            clientPartP2P.addActiveUser(user)
+                        }
+                        Log.d("service $SERVICE_NAME server handler", "massage from the same service")
 
-                        Log.d(
-                            "service $SERVICE_NAME server handler",
-                            "received message-user from: $remoteIpAddress"
-                        )
-                        Log.d("service $SERVICE_NAME server handler", "received: $user")
-                        clientPartP2P.addActiveUser(user)
                     } else {
                         throw Exception("Sender ip address is unknown")
                     }
@@ -122,7 +124,26 @@ class NettyServerHandler(
 //                    }
 //
 //                }
+                MessageType.FRIEND_REQUEST_TYPE ->{
+                    val request = gson.fromJson(data.content, FriendRequestType::class.java)
+                    val sender = gson.fromJson(data.sender, User::class.java)
+                    when (request!!) {
+                        FriendRequestType.USER_INFO -> {
+                            val content = gson.toJson(clientPartP2P.userInfo.value)
+                            val from = gson.toJson(clientPartP2P.userOwner.value)
 
+                            val transportData = TransportData(
+                                messageType = MessageType.USER_INFO,
+                                senderId = clientPartP2P.userOwner.value!!.uniqueID,
+                                sender = from,
+                                content = content
+                            )
+                            val json = gson.toJson(transportData)
+                            clientPartP2P.activeFriends.value.get(sender)!!.sendMessage(json)
+                            //todo(обработка неудачной отправки)
+                        }
+                    }
+                }
                 MessageType.REQUEST -> {
                     val request = gson.fromJson(data.content, Request::class.java)
                     val sender = gson.fromJson(data.sender, User::class.java)
@@ -146,6 +167,7 @@ class NettyServerHandler(
                         Request.APPROVE -> {/*** approving a requested stranger*/
                             userRepository.insertUser(sender)
                             clientPartP2P.removeRequestedStranger(sender)
+
                             //friendResponseUseCase.approvedFriendResponse(sender)
                         }
                     }
