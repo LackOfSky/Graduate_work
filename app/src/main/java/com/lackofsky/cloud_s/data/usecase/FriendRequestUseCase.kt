@@ -33,5 +33,9 @@ class FriendRequestUseCase @Inject constructor(val gson: Gson, val clientPartP2P
     }
 }
 enum class FriendRequestType {
-    USER_INFO
+    USER_INFO, DATA_CHANGED
+}
+enum class DataChanged{
+    //todo создать notification "data changed" с указанием конкретных полей, что изменились.
+    // по запросу пиров отправлять єти данные
 }

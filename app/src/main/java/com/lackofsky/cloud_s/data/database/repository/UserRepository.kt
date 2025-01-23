@@ -8,11 +8,13 @@ import androidx.room.OnConflictStrategy
 import com.lackofsky.cloud_s.data.database.dao.UserDao
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
+import com.lackofsky.cloud_s.data.usecase.FriendRequestUseCase
 import com.lackofsky.cloud_s.service.model.MessageType
 import com.lackofsky.cloud_s.service.model.TransportData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,14 +23,13 @@ import javax.inject.Singleton
 class UserRepository @Inject constructor(private val userDao: UserDao, private val chatRepository: ChatRepository) {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertUser(user: User){
-        userDao.insertUser(user)
-
-
-         //mirror for friends viewModel
-            //if(getUserInfoById(user.uniqueID).isInitialized == false){
-
-            //}
-            chatRepository.createPrivateChat(user.uniqueID)
+        val newUser = User(
+            uniqueID = user.uniqueID,
+            fullName = user.fullName,
+            login = user.login,
+        )
+        userDao.insertUser(newUser)
+        chatRepository.createPrivateChat(newUser.uniqueID)
 
     }
     suspend fun updateUser(user: User) = userDao.updateUser(user)
@@ -46,7 +47,22 @@ class UserRepository @Inject constructor(private val userDao: UserDao, private v
 
     fun getUserById(id: Int): Flow<User> = userDao.getUserById(id)
     fun getUserByUniqueID(uniqueID: String): Flow<User> = userDao.getUserByUniqueID(uniqueID)
-    fun getUserInfoById(uniqueID: String?): Flow<UserInfo> = userDao.getUserInfoById(uniqueID)
+    fun getUserInfoById(uniqueID: String?,
+                        friendRequestUseCase: FriendRequestUseCase? = null): Flow<UserInfo>{
+        /***  #payload
+         * make request to client, if userInfo is empty
+         * * подумать, куда перенести (в бэкэнде обычно к репозиторию стучит сервис-уровень)*/
+        val flowUserInfo = userDao.getUserInfoById(uniqueID)
+        CoroutineScope(Dispatchers.IO).launch {
+            friendRequestUseCase?.let{
+                val user = getUserByUniqueID(uniqueID!!).first()
+                if(it.requestUserInfo(user)){
+                    Log.i("GrimBerry UserRepository", "requested user info")
+                }
+            }
+        }
+        return flowUserInfo
+    }
 
     fun getAllUsers(): Flow<List<User>> = userDao.getAllUsers()
 

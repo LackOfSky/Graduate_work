@@ -62,11 +62,6 @@ class NettyServerHandler(
 
                 MessageType.USER -> {
                     if (remoteIpAddress is InetSocketAddress) {
-                        Log.d(
-                            "service $SERVICE_NAME server handler",
-                            "addr: " + remoteIpAddress.address + remoteIpAddress.port
-                        )
-                        //TODO
                         val user = gson.fromJson(data.content, User::class.java)
                             .copy(
                                 ipAddr = remoteIpAddress.address.hostAddress!!,
@@ -81,16 +76,14 @@ class NettyServerHandler(
                             clientPartP2P.addActiveUser(user)
                         }
                         Log.d("service $SERVICE_NAME server handler", "massage from the same service")
-
                     } else {
                         throw Exception("Sender ip address is unknown")
                     }
                 }
-
                 MessageType.USER_INFO -> {
-                    TODO("переделать модель БД, реализовать прием данных")
+                    //todo обработка ошибок
                     val userInfo = gson.fromJson(data.content, UserInfo::class.java)
-                    //sharedState.addFriendContent(userInfo)
+                    userRepository.updateUserInfo(userInfo)
                 }
 
                 MessageType.STATUS -> {
@@ -142,6 +135,8 @@ class NettyServerHandler(
                             clientPartP2P.activeFriends.value.get(sender)!!.sendMessage(json)
                             //todo(обработка неудачной отправки)
                         }
+
+                        FriendRequestType.DATA_CHANGED -> TODO("Концепция уведомления об изменении своих данных")
                     }
                 }
                 MessageType.REQUEST -> {
@@ -166,6 +161,7 @@ class NettyServerHandler(
                         }
                         Request.APPROVE -> {/*** approving a requested stranger*/
                             userRepository.insertUser(sender)
+                            userRepository.insertUserInfo(UserInfo(sender.uniqueID))
                             clientPartP2P.removeRequestedStranger(sender)
 
                             //friendResponseUseCase.approvedFriendResponse(sender)
