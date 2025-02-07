@@ -29,6 +29,8 @@ class NSDManager (private val applicationContext: Context,
     private val registeredServices = mutableSetOf<String>()
     private var serviceInfo: NsdServiceInfo? = null
 
+    private val discoveredServices = mutableSetOf<String>()
+
     private val resolveListener = object : NsdManager.ResolveListener {
 
         override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
@@ -111,6 +113,7 @@ class NSDManager (private val applicationContext: Context,
         override fun onServiceFound(service: NsdServiceInfo) {
             // A service was found! Do something with it.
             Log.d(TAG, "NSDManager. Service discovery success. $service")
+
             when {
                 service.serviceType != SERVICE_TYPE -> // Service type is the string containing the protocol and
                     // transport layer for this service.
@@ -119,7 +122,15 @@ class NSDManager (private val applicationContext: Context,
 //                    Log.d(TAG, "NSDManager. Same machine: $SERVICE_NAME")
 //                    return
 //                }
-                service.serviceName.contains(SERVICE_NAME) ->{nsdManager.resolveService(service, resolveListener)
+                service.serviceName.contains(SERVICE_NAME) ->{
+                    CoroutineScope(Dispatchers.IO).launch {
+                        if (discoveredServices.contains(service.serviceName)) {
+                            Log.d(TAG, "NSDManager. Service already being resolved: ${service.serviceName}")
+                            return@launch
+                        }
+                        discoveredServices.add(service.serviceName)
+                        nsdManager.resolveService(service, resolveListener)
+                    }
 //                    nsdManager.registerServiceInfoCallback(
 //                        service,
 //                        Executors.newSingleThreadExecutor(),
@@ -132,6 +143,7 @@ class NSDManager (private val applicationContext: Context,
             // When the network service is no longer available.
             // Internal bookkeeping code goes here.
             Log.i(TAG, "NSDManager. service lost: $service")
+            discoveredServices.remove(service.serviceName)
             //nsdManager.unregisterServiceInfoCallback(serviceInfoCallback)
             //TODO(рассмотреть вариант удаления соответствующего пользователя)
         }
@@ -180,7 +192,6 @@ class NSDManager (private val applicationContext: Context,
         nsdManager.apply {
             unregisterService(registrationListener)
             stopServiceDiscovery(discoveryListener)
-
         }
         Log.d(TAG,"NSDManager. NSD has been stopped")
     }
@@ -188,6 +199,7 @@ class NSDManager (private val applicationContext: Context,
     private fun stopService(){
         val intent = Intent(applicationContext, P2PServer::class.java)
         applicationContext.stopService(intent)
+        clientPartP2P.onTurnOff()
     }
     private fun sendToastIntend(message: String){
         val intent = Intent("com.lackofsky.cloud_s.SHOW_TOAST")

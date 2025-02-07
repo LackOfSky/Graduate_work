@@ -10,6 +10,7 @@ import com.lackofsky.cloud_s.service.client.usecase.StrangerRequestUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,6 +32,7 @@ class FriendsViewModel @Inject constructor(
     val tabTitlesList = listOf("Friends", "Add Friends")
     val tabTitlesItem = "Incoming requests"
     fun sendFriendRequest(stranger: User):Boolean{
+        peers.let { item -> Log.d("GrimBerry test",item.value.keys.contains(stranger).toString() )}
         if(strangerRequestUseCase.sendFriendRequest(stranger)){
             clientPartP2P.addRequestedStranger(stranger)
             return true
@@ -47,7 +49,11 @@ class FriendsViewModel @Inject constructor(
         }
     }
     fun rejectFriendRequest(stranger: User):Boolean{
+//        Log.d("GrimBerry test",peers.value.toString() )
+//        Log.d("GrimBerry test",stranger.toString() )
+        val test =peers.value.get(stranger)
         if(strangerRequestUseCase.rejectFriendRequest(stranger)){
+            Log.d("GrimBerry", "rejectFriendRequest step 2 ")
             clientPartP2P.removePendingStranger(stranger)
             return true
         }else{
@@ -56,6 +62,7 @@ class FriendsViewModel @Inject constructor(
     }
     fun approveFriendRequest(stranger: User):Boolean{
         if(strangerRequestUseCase.approveFriendRequest(stranger)){
+            Log.d("GrimBerry", "approveFriendRequest step 2")
             CoroutineScope(Dispatchers.IO).launch{
                 userRepository.insertUser(stranger)
                 clientPartP2P.removePendingStranger(stranger)

@@ -197,4 +197,8 @@ class ClientPartP2P @Inject constructor(
                 }
             }
         }
+    fun onTurnOff(){
+        _activeStrangers.value = mutableMapOf()
+        _activeFriends.value = mutableMapOf()
+    }
 }

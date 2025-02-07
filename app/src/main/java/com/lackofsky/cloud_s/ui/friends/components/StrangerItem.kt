@@ -1,5 +1,6 @@
 package com.lackofsky.cloud_s.ui.friends.components
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image

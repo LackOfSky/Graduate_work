@@ -62,9 +62,10 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatList
                 )
         ) {
             try{//пересмотреть, возможно не актуально
-                bitmap = BitmapFactory.decodeByteArray(chatListItem.userIcon, 0, chatListItem.userIcon.size)
-                isIconExist = true
-
+                chatListItem.userIcon?.let {
+                    bitmap = BitmapFactory.decodeByteArray(it, 0, it.size)
+                    isIconExist = true
+                }
             }catch (e:Exception){
                 isIconExist = false
             }
