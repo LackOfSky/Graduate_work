@@ -195,14 +195,13 @@ class NettyServerHandler(
                             //friendResponseUseCase.deletedFriendResponse(sender)
                         }
 
-                        Request.APPROVE -> {
+                        Request.APPROVE -> { //+зеркало
                             /*** approving a requested stranger*/
                             userRepository.insertUser(sender)
                             userRepository.insertUserInfo(UserInfo(sender.uniqueID))
                             clientPartP2P.removeRequestedStranger(sender)
-                            clientPartP2P.removeActiveUser(Peer(name ="", address = sender.ipAddr))
-                            delay(1000)
-                            clientPartP2P.addActiveUser(sender)
+
+                            clientPartP2P.addStrangerToFriend(Peer(name ="", address = sender.ipAddr))
 
                             //friendResponseUseCase.approvedFriendResponse(sender)
                         }

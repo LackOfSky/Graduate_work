@@ -47,8 +47,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatListItem) {
     var isIconExist by remember { mutableStateOf(false) }
 
-    var bitmap: Bitmap?
-    bitmap = null
+    var bitmap: Bitmap? = null
+
 //    val friendPlaceholder by viewModel.currentUser.collectAsState()//TODO friends placeholder
 //    val strangers by viewModel.strangers.collectAsState()
 //    val navController = rememberNavController()

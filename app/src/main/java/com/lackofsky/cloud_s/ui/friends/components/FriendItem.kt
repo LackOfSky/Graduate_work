@@ -72,7 +72,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(), navController: NavHostController){
+fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(),
+               navController: NavHostController,
+               isOnline:Boolean = false){
     var isExpandedItemMenu by remember { mutableStateOf(false) }
 
             Row(
@@ -101,8 +103,8 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(), n
                         .weight(weight = 8f)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        //val onlineColor = if (userFriend.isOnline) Color.Green else Color.Gray
-                        val onlineColor =  Color.Green
+                        val onlineColor = if (isOnline) Color.Green else Color.Gray
+                        //val onlineColor =  Color.Green
                         Box(
                             modifier = Modifier
                                 .padding(end = 8.dp)
@@ -111,8 +113,8 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(), n
                                 .background(onlineColor) // Цвет индикатора
                         )
                         Text(
-                            //text = if (userFriend.isOnline) "Online" else "Offline",
-                            text =  "Online",
+                            text = if (isOnline) "Online" else "Offline",
+                            //text =  "Online",
                             style = MaterialTheme.typography.bodySmall,
                             color = onlineColor
                         )

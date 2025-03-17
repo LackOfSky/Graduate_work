@@ -3,6 +3,7 @@ package com.lackofsky.cloud_s.service
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.User
@@ -18,9 +19,12 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,7 +37,7 @@ class ClientPartP2P @Inject constructor(
     private val metadata: Metadata
 ) {
     // Поток данных для обмена между компонентами
-
+    private val TAG = "GrimBerry P2P (clientPart)"
     val discoveredPeers = MutableStateFlow<MutableSet<Peer>>(mutableSetOf())
 
     private val _activeFriends = MutableStateFlow<MutableMap<User, NettyClient>>(mutableMapOf())
@@ -60,6 +64,10 @@ class ClientPartP2P @Inject constructor(
      *            посторонние
      *
      * */
+
+
+
+
     fun addPendingStranger(user: User) {
         _pendingStrangers.value.add(user)
     }
@@ -91,6 +99,11 @@ class ClientPartP2P @Inject constructor(
                     _userInfo.value = info
                 }
             }
+
+
+
+
+
             //CoroutineScope(Dispatchers.IO).launch {
 //            userOwner =
 //                userRepository.getUserOwner() //TODO( ISSUE:при смене данных о пользователе будут отправлятся изначальные данные  bad flow)
@@ -114,33 +127,81 @@ class ClientPartP2P @Inject constructor(
                 client.connect()
                 if (userRepository.getUserByUniqueID(user.uniqueID).firstOrNull() != null) {
                     //userRepository.updateUser(user) TODO
-                    _activeFriends.value.put(user, client)
+                    _activeFriends.update {currentMap ->
+                        currentMap.toMutableMap().apply {
+                            put(user, client)
+                        }
+
+                    }
+                    //_activeFriends.value[user] = client
                 } else {
-                    _activeStrangers.value.put(user, client)
+                    _activeStrangers.update {currentMap ->
+                        currentMap.toMutableMap().apply {
+                            put(user, client)
+                        }
+
+                    }
                 }
 
             }
 
         }
+    fun addStrangerToFriend(peer: Peer){
+        _activeStrangers.update { users ->
+            val userToRemove = users.keys.find { it.ipAddr == peer.address }
+            if (userToRemove != null) {
+                _activeFriends.update { friends ->
+                    val client = users.remove(userToRemove)!!
+                    friends.put(userToRemove, client)
+                    friends
+                 }
+                Log.d("service $SERVICE_NAME :client", "addStrangerToFriend: ok")
+            }
+            else {
+                Log.d("service $SERVICE_NAME :client", "addStrangerToFriend: failure")
+            }
+            users
+        }
+    }
 
         fun removeActiveUser(peer: Peer) {
             CoroutineScope(Dispatchers.IO).launch {
-                _activeFriends.update { users ->
-                    val userToRemove = users.keys.find { it.ipAddr == peer.address }
+                _activeFriends.update {currentMap ->
+                    val userToRemove = currentMap.keys.find { it.ipAddr == peer.address }
                     if (userToRemove != null) {
-                        users.remove(userToRemove)
-                            ?.close()
-                        Log.d("service $SERVICE_NAME :client", "removeActiveUser: userToRemove removed")
+                        currentMap.toMutableMap().apply {
+                            remove(userToRemove)?.close()
+                            Log.d("service $SERVICE_NAME :client", "removeActiveUser: userToRemove removed")
+                        }
                     }
-                 else {
-                     Log.d("service $SERVICE_NAME :client", "removeActiveUser: userToRemove is null")
-                 }
-                    users
+                    currentMap
                 }
-                _activeStrangers.update { users ->
-                    users.keys.removeIf { it.ipAddr == peer.address }
-                    users
+                _activeStrangers.update {currentMap ->
+                    val userToRemove = currentMap.keys.find { it.ipAddr == peer.address }
+                    if (userToRemove != null) {
+                        currentMap.toMutableMap().apply {
+                            remove(userToRemove)?.close()
+                            Log.d("service $SERVICE_NAME :client", "removeActiveUser: userToRemove removed")
+                        }
+                    }
+                    currentMap
                 }
+//                _activeFriends.update { users ->
+//                    val userToRemove = users.keys.find { it.ipAddr == peer.address }
+//                    if (userToRemove != null) {
+//                        users.remove(userToRemove)
+//                            ?.close()
+//                        Log.d("service $SERVICE_NAME :client", "removeActiveUser: userToRemove removed")
+//                    }
+//                 else {
+//                     Log.d("service $SERVICE_NAME :client", "removeActiveUser: userToRemove is null")
+//                 }
+//                    users
+//                }
+//                _activeStrangers.update { users ->
+//                    users.keys.removeIf { it.ipAddr == peer.address }
+//                    users
+//                }
             }
 
         }

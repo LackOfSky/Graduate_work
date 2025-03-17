@@ -115,38 +115,13 @@ fun FriendsContainer(viewModel: FriendsViewModel = hiltViewModel(),
 
 @Composable
 fun FriendList(viewModel: FriendsViewModel,navController: NavHostController) {
-
-    val friendList by viewModel.friends.collectAsState(null)
-    val activeFriends by viewModel.activeFriends.collectAsState(null)
-
+    val friendsOnline by viewModel.friendsOnline.collectAsState(null)
+    val friendsOffline by viewModel.friendsOffline.collectAsState(null)
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
-        activeFriends?.let {
-            items(it.keys.toList()) { friend ->
-                Card(//navigate
-                    elevation = CardDefaults.cardElevation(10.dp),
-                    colors = CardDefaults.cardColors(Color.White),
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier
-                        .height(80.dp)
-                        .padding(1.dp, 2.dp)
-                        .clickable {
-                            navController.navigate(UserRoutes.User.createRoute(friend.id))
-                        }
-                ) {
-                    FriendItem(friend, navController  = navController)
-                }
-            }
-        }
-        item{Text(text="",modifier = Modifier.height(80.dp))}
-    }
-    Divider()
-
-    LazyColumn(modifier = Modifier
-        .fillMaxSize()
-        .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
-        friendList?.let {
+        item{Text(text="Online",modifier = Modifier.height(40.dp))}
+        friendsOnline?.let {
             items(it.toList()) { friend ->
                 Card(//navigate
                     elevation = CardDefaults.cardElevation(10.dp),
@@ -159,12 +134,35 @@ fun FriendList(viewModel: FriendsViewModel,navController: NavHostController) {
                             navController.navigate(UserRoutes.User.createRoute(friend.id))
                         }
                 ) {
-                    FriendItem(friend, navController  = navController)
+                    FriendItem(friend, navController  = navController, isOnline = true)
+                }
+            }
+        }
+        item { Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp), thickness = 1.dp, color = Color.LightGray ) }
+        item{Text(text="All friends",modifier = Modifier.height(40.dp))}
+
+        friendsOffline?.let {
+            items(it.toList()) { friend ->
+                Card(//navigate
+                    elevation = CardDefaults.cardElevation(10.dp),
+                    colors = CardDefaults.cardColors(Color.White),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .height(80.dp)
+                        .padding(1.dp, 2.dp)
+                        .clickable {
+                            navController.navigate(UserRoutes.User.createRoute(friend.id))
+                        }
+                ) {
+                    FriendItem(friend, navController  = navController, isOnline = false)
                 }
             }
         }
         item{Text(text="",modifier = Modifier.height(80.dp))}
+
     }
+
+
 }
 
 @Composable
