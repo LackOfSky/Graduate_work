@@ -1,5 +1,6 @@
 package com.lackofsky.cloud_s.service.client.usecase
 
+import android.util.Log
 import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.service.ClientPartP2P

@@ -250,7 +250,7 @@ fun PendingList(viewModel: FriendsViewModel,navController:NavHostController) {
                         navController.navigate(UserRoutes.User.createRoute(peer.id))
                     }
             ) {
-                PendingStrangerItem(peer,viewModel)
+                PendingStrangerItem(peer, viewModel)
             }
         }
         item{Text(text="",modifier = Modifier.height(80.dp))}
