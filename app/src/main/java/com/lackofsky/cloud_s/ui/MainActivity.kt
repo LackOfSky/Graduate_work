@@ -51,6 +51,9 @@ import com.lackofsky.cloud_s.ui.splash_screen.SplashScreen
 import com.lackofsky.cloud_s.ui.theme.CLOUD_sTheme
 import com.lackofsky.cloud_s.ui.wellcome.WelcomeScreen
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -172,7 +175,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        //stopService(p2PServer)
+        val intent = Intent(applicationContext, P2PServer::class.java)
+        applicationContext.stopService(intent)
         super.onDestroy()
         unregisterReceiver(broadcastReceiver)
 

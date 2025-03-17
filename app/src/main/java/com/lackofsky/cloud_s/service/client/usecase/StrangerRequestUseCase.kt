@@ -31,7 +31,8 @@ class StrangerRequestUseCase @Inject constructor(val gson: Gson, val clientPartP
 //        return defaultFriendRequest(sendTo,Request.DELETE)
 //    }
     private fun defaultStrangerRequest(sendTo: User, request: Request):Boolean{
-        val client = clientPartP2P.activeStrangers.value.get(sendTo)
+        val targetUser = clientPartP2P.activeStrangers.value.keys.find { it.uniqueID == sendTo.uniqueID }
+        val client = clientPartP2P.activeStrangers.value.get(targetUser)
         if(client !=null){
             val content = gson.toJson(request)
             val sender = gson.toJson(clientPartP2P.userOwner.value)

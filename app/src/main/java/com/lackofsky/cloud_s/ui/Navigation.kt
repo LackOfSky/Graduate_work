@@ -67,7 +67,6 @@ import com.lackofsky.cloud_s.ui.friends.FriendProfile
 import com.lackofsky.cloud_s.ui.friends.FriendsContainer
 import com.lackofsky.cloud_s.ui.friends.FriendsScreen
 import com.lackofsky.cloud_s.ui.friends.UserRoutes
-import com.lackofsky.cloud_s.ui.friends.components.StrangerItem
 import com.lackofsky.cloud_s.ui.profile.ProfileScreen
 import dagger.hilt.android.qualifiers.ApplicationContext
 

@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -116,6 +117,32 @@ fun FriendsContainer(viewModel: FriendsViewModel = hiltViewModel(),
 fun FriendList(viewModel: FriendsViewModel,navController: NavHostController) {
 
     val friendList by viewModel.friends.collectAsState(null)
+    val activeFriends by viewModel.activeFriends.collectAsState(null)
+
+    LazyColumn(modifier = Modifier
+        .fillMaxSize()
+        .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
+        activeFriends?.let {
+            items(it.keys.toList()) { friend ->
+                Card(//navigate
+                    elevation = CardDefaults.cardElevation(10.dp),
+                    colors = CardDefaults.cardColors(Color.White),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .height(80.dp)
+                        .padding(1.dp, 2.dp)
+                        .clickable {
+                            navController.navigate(UserRoutes.User.createRoute(friend.id))
+                        }
+                ) {
+                    FriendItem(friend, navController  = navController)
+                }
+            }
+        }
+        item{Text(text="",modifier = Modifier.height(80.dp))}
+    }
+    Divider()
+
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(8.dp, 0.dp, 8.dp, 0.dp)) {

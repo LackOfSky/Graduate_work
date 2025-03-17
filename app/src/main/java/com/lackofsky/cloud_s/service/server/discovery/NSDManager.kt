@@ -22,27 +22,14 @@ class NSDManager (private val applicationContext: Context,
                   private val clientPartP2P: ClientPartP2P
 ) {
     private val TAG = "GrimBerry NSDManager"
-    private var SERVICE_NAME = "cLoud_s"
+    private var SERVICE_NAME = "cLoud_s_${System.currentTimeMillis()}"
+    private val STATIC_NAME = "cLoud_s"
     private val SERVICE_TYPE = "_cLouds._tcp."
-    private var SERVICE_PORT: Int? = null
+    private var SERVICE_PORT: Int = 0
     private var nsdManager: NsdManager = applicationContext.getSystemService(Context.NSD_SERVICE) as NsdManager
     private val registeredServices = mutableSetOf<String>()
     private var serviceInfo: NsdServiceInfo? = null
 
-    private val resolveListener = object : NsdManager.ResolveListener {
-
-        override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-            // Called when the resolve fails. Use the error code to debug.
-            Log.e(TAG, "Resolve failed: $errorCode")
-        }
-
-        override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-            Log.e(TAG, "Resolve Succeeded. $serviceInfo")
-            val port: Int = serviceInfo.port
-            val host: InetAddress = serviceInfo.host
-            clientPartP2P.sendWhoAmI(host.hostAddress!!, port, ownPort = SERVICE_PORT!!)
-        }
-    }
 
 //    val serviceInfoCallback = object : NsdManager.ServiceInfoCallback {
 //        override fun onServiceInfoCallbackRegistrationFailed(errorCode: Int) {
@@ -81,22 +68,27 @@ class NSDManager (private val applicationContext: Context,
             Log.e(TAG, "NSDManager. service registered successfully. $serviceInfo")
             Log.e(TAG, "NSDManager. Preview service name $SERVICE_NAME")
             SERVICE_NAME = serviceInfo.serviceName
+            serviceInfo.serviceType = SERVICE_TYPE
             Log.e(TAG, "NSDManager. New service name $SERVICE_NAME")
         }
 
         override fun onRegistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
             Log.d(TAG, "NSDManager. service registration failed. Reason $errorCode")
             // Registration failed! Put debugging code here to determine why.
+            stopService()
+            startNSDService()
         }
 
         override fun onServiceUnregistered(serviceInfo: NsdServiceInfo) {
             // Service has been unregistered. This only happens when you call
             // NsdManager.unregisterService() and pass in this listener.
+            clientPartP2P.onDestroy("nsdManager - service is unregistered")
             Log.d(TAG, "NSDManager. service is unregistered")
         }
 
         override fun onUnregistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
             // Unregistration failed. Put debugging code here to determine why.
+            clientPartP2P.onDestroy("nsdManager - Service unregistration failed")
             Log.d(TAG, "NSDManager. Service unregistration failed. Reason $errorCode")
         }
     }
@@ -119,11 +111,33 @@ class NSDManager (private val applicationContext: Context,
 //                    Log.d(TAG, "NSDManager. Same machine: $SERVICE_NAME")
 //                    return
 //                }
-                service.serviceName.contains(SERVICE_NAME) ->{nsdManager.resolveService(service, resolveListener)
-//                    nsdManager.registerServiceInfoCallback(
-//                        service,
-//                        Executors.newSingleThreadExecutor(),
-//                        serviceInfoCallback)
+                service.serviceName == SERVICE_NAME -> {
+                    Log.i(TAG,"NSDManager. the same machine")
+                }
+                service.serviceName.contains(STATIC_NAME) -> {
+                    nsdManager.resolveService(
+                        service,
+                        object : NsdManager.ResolveListener {
+
+                            override fun onResolveFailed(
+                                serviceInfo: NsdServiceInfo,
+                                errorCode: Int
+                            ) {
+                                // Called when the resolve fails. Use the error code to debug.
+                                Log.e(TAG, "Resolve failed: $errorCode")
+                            }
+
+                            override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
+                                Log.e(TAG, "Resolve Succeeded. $serviceInfo")
+                                val port: Int = serviceInfo.port
+                                val host: InetAddress = serviceInfo.host
+                                clientPartP2P.sendWhoAmI(
+                                    host.hostAddress!!,
+                                    port,
+                                    ownPort = SERVICE_PORT
+                                )
+                            }
+                        })
                 }
             }
         }
@@ -144,6 +158,7 @@ class NSDManager (private val applicationContext: Context,
             Log.e(TAG, "NSDManager. Discovery failed: Error code:$errorCode")
             sendToastIntend("Start discovery failed: Error code:$errorCode")
             stopService()
+            startNSDService()
         }
 
         override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) {
@@ -154,7 +169,7 @@ class NSDManager (private val applicationContext: Context,
         }
     }
 
-    fun startNSDService(port:Int = 0) {
+    fun startNSDService(port:Int = SERVICE_PORT) {
         //nsdManager = applicationContext.getSystemService(Context.NSD_SERVICE) as NsdManager   transfered
         Log.d("GrimBerry","NSD  set port $port")
         serviceInfo = NsdServiceInfo().apply {
@@ -163,11 +178,13 @@ class NSDManager (private val applicationContext: Context,
             serviceName = SERVICE_NAME
             serviceType = SERVICE_TYPE
             SERVICE_PORT = port
-            setPort(SERVICE_PORT!!)
+            setPort(SERVICE_PORT)
         }
         nsdManager.apply {
-            discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
-            registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener)
+            //CoroutineScope(Dispatchers.IO).launch {
+                registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener)
+                discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
+            //}
         }
         Log.i(TAG,"NSD has been started. Port: $SERVICE_PORT")
 
@@ -176,10 +193,10 @@ class NSDManager (private val applicationContext: Context,
 //        registrationListener.let {
 //            nsdManager.unregisterService(it)
 //        }
-
         nsdManager.apply {
-            unregisterService(registrationListener)
             stopServiceDiscovery(discoveryListener)
+            unregisterService(registrationListener)
+
 
         }
         Log.d(TAG,"NSDManager. NSD has been stopped")

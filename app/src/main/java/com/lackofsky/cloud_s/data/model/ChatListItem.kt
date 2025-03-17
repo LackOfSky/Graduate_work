@@ -10,6 +10,6 @@ data class ChatListItem(
     val lastMessageDate: Date?,
     val userId: String,
     val userName: String,
-    val userAbout: String,
-    val userIcon: ByteArray
+    val userAbout: String?,
+    val userIcon: ByteArray?
 )

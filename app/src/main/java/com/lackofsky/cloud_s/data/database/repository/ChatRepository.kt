@@ -62,6 +62,7 @@ class ChatRepository @Inject constructor(
         // Create a new private chat
         val newChat = Chat(
             name = userId2,
+            chatId = userId2,
             type = ChatType.PRIVATE,
         )
         if(!insertChat(newChat)) throw Exception("GrimBerry.ChatRepository. Error in function insertChat")

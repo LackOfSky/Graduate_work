@@ -2,6 +2,7 @@ package com.lackofsky.cloud_s.service.server
 
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonParseException
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.User
@@ -13,12 +14,14 @@ import com.lackofsky.cloud_s.data.usecase.FriendRequestType
 import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.MessageType
+import com.lackofsky.cloud_s.service.model.Peer
 import com.lackofsky.cloud_s.service.model.Request
 import com.lackofsky.cloud_s.service.model.TransportData
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 
@@ -29,35 +32,50 @@ class NettyServerHandler(
     private val clientPartP2P: ClientPartP2P,
     //private val friendResponseUseCase: FriendResponseUseCase
 ) : SimpleChannelInboundHandler<String>() {
-    val gson = Gson()
+    val gson = GsonBuilder()
+        .setDateFormat("MMM dd, yyyy HH:mm:ss") // Указываем формат даты
+        .create()
+
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: String) {
         try {
-                val data = gson.fromJson(msg, TransportData::class.java)
-            Log.d("service $SERVICE_NAME server handler","received: $data")
-                processMessage(ctx, data)
-        }catch (e: JsonParseException) {
-            Log.e("service GrimBerry SH"+" NettyServerHandler", "Error parsing message: ")
-            Log.d("service GrimBerry SH", "non typical message: "+msg)
-        }catch (e: IllegalStateException){
-            Log.e("service GrimBerry SH"+" NettyServerHandler", "Error json syntax message: $msg")
-            Log.d("service GrimBerry SH", "non typical message: "+msg)
-        } catch (_: Exception){
-            Log.e("service GrimBerry SH", "received unknown type of message:" +msg)
+            val data = gson.fromJson(msg, TransportData::class.java)
+            Log.d("service $SERVICE_NAME server handler", "received: $data")
+            processMessage(ctx, data)
+        } catch (e: JsonParseException) {
+            Log.e("service GrimBerry SH" + " NettyServerHandler", "Error parsing message: ")
+            Log.d("service GrimBerry SH", "non typical message: " + msg)
+        } catch (e: IllegalStateException) {
+            Log.e("service GrimBerry SH" + " NettyServerHandler", "Error json syntax message: $msg")
+            Log.d("service GrimBerry SH", "non typical message: " + msg)
+        } catch (_: Exception) {
+            Log.e("service GrimBerry SH", "received unknown type of message:" + msg)
         }
-        ctx.writeAndFlush("Message received from "+ctx.channel().remoteAddress())//TODO обработка логики подтверждения приема сообщенияс
+        ctx.writeAndFlush(
+            "Message received from " + ctx.channel().remoteAddress()
+        )//TODO обработка логики подтверждения приема сообщенияс
 
     }
-    private fun processMessage(ctx: ChannelHandlerContext,data: TransportData) {
+
+    private fun processMessage(ctx: ChannelHandlerContext, data: TransportData) {
         // Здесь можно обработать сообщение и взаимодействовать с messageRepository
         CoroutineScope(Dispatchers.IO).launch {
             val remoteIpAddress = ctx.pipeline().channel().remoteAddress()
 
             when (data.messageType) {
                 MessageType.MESSAGE -> {
-                    messageRepository.insertMessage(
-                        gson.fromJson(data.content, Message::class.java)
-                    )
+                    val message = gson.fromJson(data.content, Message::class.java)
+                    Log.d("service $SERVICE_NAME server handler", message.toString())
+                    try {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            chatRepository.getAllChats().collect { chats ->Log.d("service $SERVICE_NAME server handler", chats.toString())}
+                            chatRepository.getChatById(message.chatId).collect{chat ->Log.d("service $SERVICE_NAME server handler", chat.toString())}
+                        }
+                        messageRepository.insertMessage(message)
+                    }catch (e:Exception){
+                        Log.d("service $SERVICE_NAME server handler", e.toString())
+                    }
+                    Log.d("service $SERVICE_NAME server handler", "message added")
                 }
 
                 MessageType.USER -> {
@@ -67,19 +85,29 @@ class NettyServerHandler(
                                 ipAddr = remoteIpAddress.address.hostAddress!!,
                                 port = data.ownServerPort
                             )
-                        if(user.uniqueID != clientPartP2P.userOwner.value!!.uniqueID){
+                        Log.d(
+                            "service $SERVICE_NAME server handler",
+                            "user unique: ${clientPartP2P.userOwner.value?.uniqueID}"
+                        )
+                        if (user.uniqueID != clientPartP2P.userOwner.value!!.uniqueID) {
                             Log.d(
                                 "service $SERVICE_NAME server handler",
                                 "received message-user from: $remoteIpAddress"
                             )
                             Log.d("service $SERVICE_NAME server handler", "received: $user")
                             clientPartP2P.addActiveUser(user)
+                        } else {
+                            Log.d(
+                                "service $SERVICE_NAME server handler",
+                                "massage from the same service"
+                            )
                         }
-                        Log.d("service $SERVICE_NAME server handler", "massage from the same service")
+
                     } else {
                         throw Exception("Sender ip address is unknown")
                     }
                 }
+
                 MessageType.USER_INFO -> {
                     //todo обработка ошибок
                     val userInfo = gson.fromJson(data.content, UserInfo::class.java)
@@ -117,7 +145,7 @@ class NettyServerHandler(
 //                    }
 //
 //                }
-                MessageType.FRIEND_REQUEST_TYPE ->{
+                MessageType.FRIEND_REQUEST_TYPE -> {
                     val request = gson.fromJson(data.content, FriendRequestType::class.java)
                     val sender = gson.fromJson(data.sender, User::class.java)
                     when (request!!) {
@@ -139,30 +167,42 @@ class NettyServerHandler(
                         FriendRequestType.DATA_CHANGED -> TODO("Концепция уведомления об изменении своих данных")
                     }
                 }
+
                 MessageType.REQUEST -> {
                     val request = gson.fromJson(data.content, Request::class.java)
                     val sender = gson.fromJson(data.sender, User::class.java)
                     when (request!!) {
-                        Request.ADD -> {/*** add a requested stranger*/
+                        Request.ADD -> {
+                            /*** add a requested stranger*/
                             clientPartP2P.addPendingStranger(sender)
                             //friendResponseUseCase.addedFriendResponse(sender)
                         }//логика подтверждения\отклонения ведётся с клиента
-                        Request.CANCEL -> {/*** cancelling a requested stranger*/
+                        Request.CANCEL -> {
+                            /*** cancelling a requested stranger*/
                             clientPartP2P.removePendingStranger(sender)
                             //friendResponseUseCase.canceledFriendResponse(sender)
                         }
-                        Request.REJECT -> {/*** rejecting a requested stranger*/
+
+                        Request.REJECT -> {
+                            /*** rejecting a requested stranger*/
                             clientPartP2P.removeRequestedStranger(sender)
                             //friendResponseUseCase.rejectedFriendResponse(sender)
                         }
-                        Request.DELETE -> {/*** delete a friend*/
+
+                        Request.DELETE -> {
+                            /*** delete a friend*/
                             userRepository.deleteUser(sender)
                             //friendResponseUseCase.deletedFriendResponse(sender)
                         }
-                        Request.APPROVE -> {/*** approving a requested stranger*/
+
+                        Request.APPROVE -> {
+                            /*** approving a requested stranger*/
                             userRepository.insertUser(sender)
                             userRepository.insertUserInfo(UserInfo(sender.uniqueID))
                             clientPartP2P.removeRequestedStranger(sender)
+                            clientPartP2P.removeActiveUser(Peer(name ="", address = sender.ipAddr))
+                            delay(1000)
+                            clientPartP2P.addActiveUser(sender)
 
                             //friendResponseUseCase.approvedFriendResponse(sender)
                         }

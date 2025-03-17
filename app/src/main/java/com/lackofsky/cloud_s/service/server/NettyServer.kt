@@ -69,18 +69,18 @@ class NettyServer @Inject constructor(
                         )
                         ch.closeFuture().addListener { future ->//TODO (обработку ошибок)
                             try {
-//                                clientPartP2P.removeActiveUser(
-//                                    Peer(
-//                                        name = "",
-//                                        address = ch.remoteAddress().address.address.toString()
-//                                    )
-//                                )
+                                clientPartP2P.removeActiveUser(
+                                    Peer(
+                                        name = "",
+                                        address = ch.remoteAddress().address.address.toString()
+                                    )
+                                )
 
                             }catch (e: Exception){
                                 Log.e("service $serviceName", "Error while removing active user: ${e.message}")
                             }
                             Log.i(
-                                "service $serviceName",
+                                "service $serviceName NettyServer",
                                 "Connection closed: ${ch.remoteAddress()}"
                             )
                         }

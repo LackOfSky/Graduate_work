@@ -76,7 +76,9 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
             chatRepository.getChatById(chatId).collect{
                 _activeChat.value = it
                 if (_activeChat.value!!.type == ChatType.PRIVATE){//TODO обработку ошибок
-
+                    chatMemberRepository.getMembersByChat(chatId).collect{
+                        chatMembers.value = it
+                    }
                 } else{
             //TODO("Реализация логики многопользовательского чата")
                 }
@@ -104,23 +106,32 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                         id = id,
                         userId = activeUserOwner.value!!.uniqueID,
                         uniqueId = activeUserOwner.value!!.uniqueID + id,
-                chatId = _activeChat.value!!.chatId,
+                chatId = activeUserOwner.value!!.uniqueID,// у власника чат айді = _activeChat.value!!.chatId, у другої сторони = айді власника
                 content = text)
 
+            val ownChatId = _activeChat.value!!.chatId
+            val messageToSave = message.copy(chatId = ownChatId)
+
+
             if(chatMembers.value.isNullOrEmpty()){
+                Log.d("GrimBerry chatDialogVM", "chatMembers.value.isNullOrEmpty()")
                 messageRepository.insertMessage(message)
             }else{
                 try{
                     chatMembers.value?.forEach { member ->
                         //todo - фактически данная логика поставлена на то, что все пользователи онлайн
+                        Log.d("GrimBerry chatDialogVM", message.toString())
                         clientPartP2P.sendMessage(
                             activeFriend = userRepository.getUserByUniqueID(member.userId).first(),
                             message = message
                         )
+                        Log.d("GrimBerry chatDialogVM", "send message")
                     }
-                    messageRepository.insertMessage(message)
+
+                    messageRepository.insertMessage( messageToSave )
                 }catch (e: Exception){
-                    TODO(e.toString())
+                    //додати вспливаюче повідомлення що користувач не онлайн
+                    Log.d("GrimBerry chatDialogVM", e.toString())
                 }
             }
 

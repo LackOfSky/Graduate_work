@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
@@ -99,6 +100,24 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(), n
                     modifier = Modifier
                         .weight(weight = 8f)
                 ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        //val onlineColor = if (userFriend.isOnline) Color.Green else Color.Gray
+                        val onlineColor =  Color.Green
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(8.dp) // Размер индикатора
+                                .clip(RoundedCornerShape(50)) // Круглый индикатор
+                                .background(onlineColor) // Цвет индикатора
+                        )
+                        Text(
+                            //text = if (userFriend.isOnline) "Online" else "Offline",
+                            text =  "Online",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = onlineColor
+                        )
+                    }
+
                     Text(
                         text = userFriend.fullName,
                         color = Color(0xff1d1b20),

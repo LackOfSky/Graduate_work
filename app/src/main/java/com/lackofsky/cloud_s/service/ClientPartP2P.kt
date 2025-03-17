@@ -108,12 +108,12 @@ class ClientPartP2P @Inject constructor(
 //            userInfo = it
 //        }
 //    }
-        suspend fun addActiveUser(user: User) {
+        fun addActiveUser(user: User) {
             CoroutineScope(Dispatchers.IO).launch {
                 val client = NettyClient(user.ipAddr, user.port)
                 client.connect()
                 if (userRepository.getUserByUniqueID(user.uniqueID).firstOrNull() != null) {
-                    userRepository.updateUser(user)
+                    //userRepository.updateUser(user) TODO
                     _activeFriends.value.put(user, client)
                 } else {
                     _activeStrangers.value.put(user, client)
@@ -130,10 +130,11 @@ class ClientPartP2P @Inject constructor(
                     if (userToRemove != null) {
                         users.remove(userToRemove)
                             ?.close()
+                        Log.d("service $SERVICE_NAME :client", "removeActiveUser: userToRemove removed")
                     }
-//                 else {
-//                     throw Exception("GrimBerry. Attempt to remove user that doesn't exist")
-//                 }
+                 else {
+                     Log.d("service $SERVICE_NAME :client", "removeActiveUser: userToRemove is null")
+                 }
                     users
                 }
                 _activeStrangers.update { users ->
@@ -145,7 +146,9 @@ class ClientPartP2P @Inject constructor(
         }
 
         fun sendMessage(activeFriend: User, message: Message): Boolean {
-            val client = _activeFriends.value.get(activeFriend)
+
+            val client = _activeFriends.value.entries.find { it.key.uniqueID == activeFriend.uniqueID }?.value
+
             if (client != null) {
                 val content = gson.toJson(message)
                 val sender = gson.toJson(
@@ -197,4 +200,16 @@ class ClientPartP2P @Inject constructor(
                 }
             }
         }
+    fun onDestroy(info: String){
+        _activeFriends.value.forEach { (_, client) ->
+            client.close()
+        }
+        _activeStrangers.value.forEach { (_, client) ->
+            client.close()
+        }
+        _activeFriends.value.clear()
+        Log.i("service $SERVICE_NAME :client", "onDestroy: $info")
+
+    }
+
 }
