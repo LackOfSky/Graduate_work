@@ -86,39 +86,24 @@ fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewMo
         Log.d("placeholder. TODO:DELETE",paddingValues.toString())
 
         //MessageListTest(paddingValues)// for Testing ui items
-        MessagesList(viewModel)
-            // Поле ввода нового сообщения
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(8.dp),
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                TextField(
-//                    value = messageText,
-//                    onValueChange = { messageText = it },
-//                    placeholder = { Text("Введите сообщение...") },
-//                    modifier = Modifier.weight(1f)
-//                )
-//                Spacer(modifier = Modifier.width(8.dp))
-//                Button(onClick = {
-//                    if (messageText.isNotBlank()) {
-//                        viewModel.sendMessage(messageText)
-//                        messageText = ""
-//                    }
-//                }) {
-//                    Text("Отправить")
-//                }
-//            }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                //.padding(8.dp, 0.dp, 8.dp, 80.dp)//end = BottomLineSend +8
+
+        ) {
+            MessagesList(viewModel)
         }
+    }
 }
 
 @Composable
-fun MessagesList(viewModel: ChatDialogViewModel) {
+fun MessagesList(viewModel: ChatDialogViewModel, modifier: Modifier = Modifier) {
     val messagesList by viewModel.messages.collectAsState()
     LazyColumn(modifier = Modifier
         .fillMaxSize()
-        .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
+        ) {
         messagesList?.let {
             items(it.toList()) { message ->
                     MessageDialogItem(message = message)
@@ -126,6 +111,53 @@ fun MessagesList(viewModel: ChatDialogViewModel) {
         }
     }
 }
+
+//@Composable
+//fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewModel()) {
+//    viewModel.setChatId(chatId)
+//    val messages by viewModel.messages.collectAsState(initial = emptyList())
+//    var inputText by remember { mutableStateOf("") }
+//
+//    val paddingValue = 8.dp // Extracted constant for consistent spacing.
+//
+//    Scaffold(
+//        modifier = Modifier.fillMaxSize(),
+//        bottomBar = {
+//            BottomLineSend(
+//                modifier = Modifier
+//                    .padding(all = paddingValue)
+//                    .fillMaxWidth(),
+//                viewModel = viewModel
+//            )
+//        }
+//    ) { innerPadding ->
+//        innerPadding.toString()
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                //.padding(innerPadding)
+//                .padding(8.dp, 0.dp, 8.dp, 48.dp)
+//
+//        ) {
+//            LazyColumn(
+//                modifier = Modifier
+//                    .weight(1f) // Ensure MessagesList fills available space dynamically.
+//                    .fillMaxWidth(),
+//                contentPadding = PaddingValues(bottom = 42.dp) // Space for the input field.
+//            ) {
+//                messages?.let {
+//                items(it) { message ->
+//                    MessageDialogItem(message = message)
+//                }
+//                }
+//            }
+//        }
+//    }
+//}
+
+
+
+
 
 @Composable
 fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel = hiltViewModel()) {
