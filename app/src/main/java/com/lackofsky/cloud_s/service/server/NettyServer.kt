@@ -9,6 +9,7 @@ import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.model.Peer
 import com.lackofsky.cloud_s.service.server.handlers.LoggingHandler
 import io.netty.bootstrap.ServerBootstrap
+import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
 import io.netty.channel.nio.NioEventLoopGroup
@@ -67,23 +68,6 @@ class NettyServer @Inject constructor(
                             chatRepository,
                             clientPartP2P)
                         )
-                        ch.closeFuture().addListener { future ->//TODO (обработку ошибок)
-                            try {
-                                clientPartP2P.removeActiveUser(
-                                    Peer(
-                                        name = "",
-                                        address = ch.remoteAddress().address.address.toString()
-                                    )
-                                )
-
-                            }catch (e: Exception){
-                                Log.e("service $serviceName", "Error while removing active user: ${e.message}")
-                            }
-                            Log.i(
-                                "service $serviceName NettyServer",
-                                "Connection closed: ${ch.remoteAddress()}"
-                            )
-                        }
                     }
                 })
 

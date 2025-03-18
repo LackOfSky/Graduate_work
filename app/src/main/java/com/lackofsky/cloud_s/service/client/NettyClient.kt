@@ -39,12 +39,17 @@ class NettyClient( private val host: String, private val port: Int) {//private v
                         pipeline.addLast(StringEncoder(Charset.forName("UTF-8")))
                         //pipeline.addLast(SecurityHandler(isClient = true))  // Обработчик  для шифрования todo
                         pipeline.addLast(NettyClientHandler())  // Основной обработчик сообщений sharedState
+                        ch.closeFuture().addListener {
+                            removeActiveUserCallback?.apply {
+                                Log.d("service GrimBerry :client","removeActiveUserCallback invoked")
+                                invoke()
+                            }
+                        }
                     }
 
                     override fun channelInactive(ctx: ChannelHandlerContext?) {
-                        super.channelInactive(ctx)
-                        removeActiveUserCallback?.invoke()
                         Log.d("service GrimBerry :client","client connection closed.Host: $host, Port: $port")
+                        super.channelInactive(ctx)
                     }
                 })
 
@@ -58,7 +63,7 @@ class NettyClient( private val host: String, private val port: Int) {//private v
         if (channel?.isOpen == true) {
             channel?.let {
                 val future = it.writeAndFlush(message)
-                future.addListener { it ->
+                future.addListener {
                     if (it.isSuccess) {
                         Log.d("service GrimBerry :client", "sent message: $message")
                     } else {

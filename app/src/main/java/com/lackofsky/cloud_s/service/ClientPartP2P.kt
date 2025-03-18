@@ -124,84 +124,85 @@ class ClientPartP2P @Inject constructor(
         fun addActiveUser(user: User) {
             CoroutineScope(Dispatchers.IO).launch {
                 val client = NettyClient(user.ipAddr, user.port)
-                client.connect()
+                client.connect(
+                    removeActiveUserCallback = {
+                    removeActiveUser(
+                        Peer(name = "", address = user.ipAddr)
+                    )
+                Log.i(
+                    "service $SERVICE_NAME :client",
+                    "removeActiveUserCallback. Connection closed: ${user.ipAddr + user.port}"
+                )
+            }
+            )
                 if (userRepository.getUserByUniqueID(user.uniqueID).firstOrNull() != null) {
                     //userRepository.updateUser(user) TODO
                     _activeFriends.update {currentMap ->
                         currentMap.toMutableMap().apply {
                             put(user, client)
                         }
-
                     }
-                    //_activeFriends.value[user] = client
                 } else {
                     _activeStrangers.update {currentMap ->
                         currentMap.toMutableMap().apply {
                             put(user, client)
                         }
-
                     }
                 }
 
             }
 
         }
-    fun addStrangerToFriend(peer: Peer){
-        _activeStrangers.update { users ->
-            val userToRemove = users.keys.find { it.ipAddr == peer.address }
-            if (userToRemove != null) {
-                _activeFriends.update { friends ->
-                    val client = users.remove(userToRemove)!!
-                    friends.put(userToRemove, client)
-                    friends
-                 }
-                Log.d("service $SERVICE_NAME :client", "addStrangerToFriend: ok")
+        fun addStrangerToFriend(peer: Peer){
+            CoroutineScope(Dispatchers.IO).launch {
+                var userToRemove: User? = null
+                var client: NettyClient? = null
+                _activeStrangers.update { users ->
+                    users.toMutableMap().apply {
+                        userToRemove = keys.find { it.ipAddr == peer.address }
+                        client = remove(userToRemove)
+                    }
+                }
+                try {
+                    _activeFriends.update { friends ->
+                        friends.toMutableMap().apply {
+                            friends.put(userToRemove!!, client!!)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.d(
+                        "service $SERVICE_NAME :client",
+                        "addStrangerToFriend: exception $e .user = $userToRemove, client = $client"
+                    )
+                }
             }
-            else {
-                Log.d("service $SERVICE_NAME :client", "addStrangerToFriend: failure")
-            }
-            users
         }
-    }
 
         fun removeActiveUser(peer: Peer) {
             CoroutineScope(Dispatchers.IO).launch {
-                _activeFriends.update {currentMap ->
+                _activeFriends.update { currentMap ->
+
+                    Log.d("service $SERVICE_NAME :client", "removeActiveUser: ${currentMap.keys.toString()}")
+                    Log.d("service $SERVICE_NAME :client", "removeActiveUser: ${peer.address.toString()}")
                     val userToRemove = currentMap.keys.find { it.ipAddr == peer.address }
-                    if (userToRemove != null) {
-                        currentMap.toMutableMap().apply {
-                            remove(userToRemove)?.close()
-                            Log.d("service $SERVICE_NAME :client", "removeActiveUser: userToRemove removed")
-                        }
+                    currentMap.toMutableMap().apply {
+                        remove(userToRemove)?.close()
+                        Log.d(
+                            "service $SERVICE_NAME :client",
+                            "removeActiveUser: $userToRemove removed"
+                        )
                     }
-                    currentMap
                 }
-                _activeStrangers.update {currentMap ->
+                _activeStrangers.update { currentMap ->
                     val userToRemove = currentMap.keys.find { it.ipAddr == peer.address }
-                    if (userToRemove != null) {
-                        currentMap.toMutableMap().apply {
-                            remove(userToRemove)?.close()
-                            Log.d("service $SERVICE_NAME :client", "removeActiveUser: userToRemove removed")
-                        }
+                    currentMap.toMutableMap().apply {
+                        remove(userToRemove)?.close()
+                        Log.d(
+                            "service $SERVICE_NAME :client",
+                            "removeActiveUser: $userToRemove removed"
+                        )
                     }
-                    currentMap
                 }
-//                _activeFriends.update { users ->
-//                    val userToRemove = users.keys.find { it.ipAddr == peer.address }
-//                    if (userToRemove != null) {
-//                        users.remove(userToRemove)
-//                            ?.close()
-//                        Log.d("service $SERVICE_NAME :client", "removeActiveUser: userToRemove removed")
-//                    }
-//                 else {
-//                     Log.d("service $SERVICE_NAME :client", "removeActiveUser: userToRemove is null")
-//                 }
-//                    users
-//                }
-//                _activeStrangers.update { users ->
-//                    users.keys.removeIf { it.ipAddr == peer.address }
-//                    users
-//                }
             }
 
         }
@@ -262,18 +263,20 @@ class ClientPartP2P @Inject constructor(
             }
         }
     fun onDestroy(info: String){
-        _activeFriends.value.forEach { (_, client) ->
-            client.close()
+        CoroutineScope(Dispatchers.IO).launch {
+        _activeFriends.update { map ->
+            map.toMutableMap().apply {
+                forEach( { (_, client) -> client.close()})
+                clear()
+            }
         }
-        _activeStrangers.value.forEach { (_, client) ->
-            client.close()
+        _activeStrangers.update { map ->
+            map.toMutableMap().apply {
+                forEach( { (_, client) -> client.close()})
+                clear()
+            }
         }
-        _activeFriends.value.clear()
         Log.i("service $SERVICE_NAME :client", "onDestroy: $info")
-
-    }
-    fun onTurnOff(){
-        _activeStrangers.value = mutableMapOf()
-        _activeFriends.value = mutableMapOf()
+}
     }
 }
