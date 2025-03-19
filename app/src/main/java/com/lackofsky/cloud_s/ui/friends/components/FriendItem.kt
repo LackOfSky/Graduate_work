@@ -231,12 +231,13 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(),
                         colors = CardDefaults.cardColors(Color.White),
                         modifier = Modifier.fillMaxWidth()
                     ){
-                    Text("Обмен данными", fontSize=18.sp, modifier = Modifier.padding(10.dp))}
+                    Text("Обмін данними (втратило актуальність)", fontSize=18.sp, modifier = Modifier.padding(10.dp))
+                    }
                         //todo иконки под поля
-                    Text("Закрепить", fontSize=18.sp, modifier = Modifier.padding(10.dp))
+                    Text("Закріпити (в майбутніх версіях)", fontSize=18.sp, modifier = Modifier.padding(10.dp))
                     TextButton(
                         onClick = {
-                            viewModel.deleteFriend(userFriend)
+                            //viewModel.deleteFriend(userFriend)
                         },
                         elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
                         contentPadding = PaddingValues(
@@ -247,7 +248,7 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(),
 
                     ) {
                         Text(
-                            "edit name",
+                            "edit name (в майбутніх версіях)",
                             fontSize = 18.sp, color = Color.Black
                         )
                     }
@@ -266,6 +267,22 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(),
                     ) {
                         Text("delete",
                             fontSize = 18.sp,color = Color.Black)
+                    }
+                    TextButton(
+                        enabled = isOnline,
+                        onClick = {
+                            viewModel.deleteFriend(userFriend,forAll = true)
+                        },
+                        elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
+                        contentPadding = PaddingValues(
+                            horizontal = 16.dp, // Set horizontal padding to 20dp
+                            vertical = 5.dp // Set vertical padding to 10dp
+                        ), border = BorderStroke(1.dp, Color.Transparent),
+                        modifier = Modifier.background(Color.Transparent, RectangleShape)
+
+                    ) {
+                        Text("delete for all",
+                            fontSize = 18.sp,color = if(isOnline) Color.Black else Color.Gray)
                     }
                 }
             }

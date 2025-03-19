@@ -10,7 +10,6 @@ import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.database.repository.ChatRepository
 import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
-import com.lackofsky.cloud_s.data.usecase.FriendRequestType
 import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.MessageType
@@ -78,7 +77,7 @@ class NettyServerHandler(
                     Log.d("service $SERVICE_NAME server handler", "message added")
                 }
 
-                MessageType.USER -> {
+                MessageType.USER_CONNECT -> {
                     if (remoteIpAddress is InetSocketAddress) {
                         val user = gson.fromJson(data.content, User::class.java)
                             .copy(
@@ -107,11 +106,19 @@ class NettyServerHandler(
                         throw Exception("Sender ip address is unknown")
                     }
                 }
-
-                MessageType.USER_INFO -> {
+                MessageType.USER_UPDATE -> {
+                    //todo обработка ошибок
+                    val user = gson.fromJson(data.content, User::class.java)
+                    userRepository.updateUser(user)
+                }
+                MessageType.USER_INFO_UPDATE -> {
                     //todo обработка ошибок
                     val userInfo = gson.fromJson(data.content, UserInfo::class.java)
                     userRepository.updateUserInfo(userInfo)
+                }
+                MessageType.USER_FRIEND_DELETE ->{
+                    val userToDelete = gson.fromJson(data.sender, User::class.java)
+                    userRepository.deleteUser(userToDelete)
                 }
 
                 MessageType.STATUS -> {
@@ -122,51 +129,28 @@ class NettyServerHandler(
                     TODO("Not implemented")
                 }
 
-//                MessageType.RESPONSE -> {
-//                    val response = gson.fromJson(data.content, Response::class.java)
+//                MessageType.FRIEND_REQUEST_TYPE -> {
+//                    val request = gson.fromJson(data.content, FriendRequestType::class.java)
 //                    val sender = gson.fromJson(data.sender, User::class.java)
-//                    when (response!!) {
-//                        Response.APPROVED -> {
-//                            clientPartP2P.removePendingStranger(sender)
-//                            userRepository.insertUser(sender)
-//                        }
-//                        Response.REJECTED -> {
-//                            clientPartP2P.removePendingStranger(sender)
-//                        }
-//                        Response.CANCELED -> {
-//                            clientPartP2P.removeRequestedStranger(sender)
-//                        }
-//                        Response.DELETED -> {
-//                            userRepository.deleteUser(sender)// TODO(проверить логику добавления и удаления пользователей из базы данных)
-//                        }
-//                        Response.ADDED -> {
-//                            clientPartP2P.addRequestedStranger(sender)
-//                        }
-//                    }
+//                    when (request!!) {
+//                        FriendRequestType.USER_INFO -> {
+//                            val content = gson.toJson(clientPartP2P.userInfo.value)
+//                            val from = gson.toJson(clientPartP2P.userOwner.value)
 //
+//                            val transportData = TransportData(
+//                                messageType = MessageType.USER_INFO_UPDATE,
+//                                senderId = clientPartP2P.userOwner.value!!.uniqueID,
+//                                sender = from,
+//                                content = content
+//                            )
+//                            val json = gson.toJson(transportData)
+//                            clientPartP2P.activeFriends.value.get(sender)!!.sendMessage(json)
+//                            //todo(обработка неудачной отправки)
+//                        }
+//
+//                        FriendRequestType.DATA_CHANGED -> TODO("Концепция уведомления об изменении своих данных")
+//                    }
 //                }
-                MessageType.FRIEND_REQUEST_TYPE -> {
-                    val request = gson.fromJson(data.content, FriendRequestType::class.java)
-                    val sender = gson.fromJson(data.sender, User::class.java)
-                    when (request!!) {
-                        FriendRequestType.USER_INFO -> {
-                            val content = gson.toJson(clientPartP2P.userInfo.value)
-                            val from = gson.toJson(clientPartP2P.userOwner.value)
-
-                            val transportData = TransportData(
-                                messageType = MessageType.USER_INFO,
-                                senderId = clientPartP2P.userOwner.value!!.uniqueID,
-                                sender = from,
-                                content = content
-                            )
-                            val json = gson.toJson(transportData)
-                            clientPartP2P.activeFriends.value.get(sender)!!.sendMessage(json)
-                            //todo(обработка неудачной отправки)
-                        }
-
-                        FriendRequestType.DATA_CHANGED -> TODO("Концепция уведомления об изменении своих данных")
-                    }
-                }
 
                 MessageType.REQUEST -> {
                     val request = gson.fromJson(data.content, Request::class.java)

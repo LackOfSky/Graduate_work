@@ -94,7 +94,6 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
     }
 
     fun sendMessage(text: String){
-        //TODO("SEND message(text)")
         CoroutineScope(Dispatchers.IO).launch {
             var id = 0
             if(messages.value!!.isEmpty()){

@@ -12,6 +12,7 @@ import com.lackofsky.cloud_s.data.model.ChatListItem
 import com.lackofsky.cloud_s.data.model.ChatType
 import com.lackofsky.cloud_s.data.model.User
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 @Dao
 interface ChatDao {

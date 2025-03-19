@@ -9,6 +9,7 @@ import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.client.NettyClient
+import com.lackofsky.cloud_s.service.client.usecase.FriendRequestUseCase
 import com.lackofsky.cloud_s.service.client.usecase.StrangerRequestUseCase
 import com.lackofsky.cloud_s.service.model.Peer
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -29,7 +31,8 @@ class FriendsViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val chatRepository: ChatRepository,
     private val clientPartP2P: ClientPartP2P,
-    private val strangerRequestUseCase: StrangerRequestUseCase
+    private val strangerRequestUseCase: StrangerRequestUseCase,
+    private val friendRequestUseCase: FriendRequestUseCase
 //    private val clientServiceInterface: ClientInterface
 ) : ViewModel() {
       //val peers = MutableStateFlow<MutableSet<User>>(mutableSetOf()) //placeholder for strangers peers1
@@ -47,6 +50,7 @@ class FriendsViewModel @Inject constructor(
                       val (online, offline) = allUsers.partition { user ->
                           Log.d("service GrimBerry :client", "Active friends emitted: ${user.toString()}")
                           activeFriends.keys.any{activeUser->activeUser.uniqueID == user.uniqueID}
+
                       }
                       Pair(online, offline)
                   }
@@ -57,29 +61,8 @@ class FriendsViewModel @Inject constructor(
                       Log.d("service GrimBerry :client", _friendsOnline.value.toString())
                   }
           }
-//                  userRepository.getAllUsers().collect { users ->
-//                      Log.d("service $SERVICE_NAME :client", "users: ${users.toString()}")
-//                      _friendsOffline.update { users }
-//                  }
-//              launch {
-//                  clientPartP2P.activeFriends.collect { users ->
-//                      // Поточний список друзів
-//                      // Розподілити користувачів між онлайн і офлайн
-//                      _friendsOffline.update { frOffline ->
-//                          val (online, offline) =   frOffline.partition { user -> users.keys.contains(user) }
-//                          _friendsOnline.update { online }
-//                          Log.d("service $SERVICE_NAME :client", "activeFriends: ${offline.toString()}")
-//                          offline}
-//
-//                  }
-//              }
-
-
       }
 
-      //val activeFriends = clientPartP2P.activeFriends.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
-//      val friendsOnline = clientPartP2P.friendsOnline
-//      val friendsOffline = clientPartP2P.friendsOffline//.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     private val _friendsOnline = MutableStateFlow(emptyList<User>())
     val friendsOnline : StateFlow<List<User>> get() = _friendsOnline
 
@@ -166,10 +149,22 @@ class FriendsViewModel @Inject constructor(
         }
         return true
     }
-    fun deleteFriend(friend: User):Boolean{
+    fun deleteFriend(friend: User, forAll: Boolean = false):Boolean{
         try {
             CoroutineScope(Dispatchers.IO).launch {
+            if(forAll){
+                val client = clientPartP2P.activeFriends.value.entries
+                    .firstOrNull { it.key.uniqueID == friend.uniqueID }?.value
+
+                Log.d("GrimBerry friends view model", "client "+ client.toString())
+                if(friendRequestUseCase.deleteFriendRequest(client!!)){
+                    Log.d("GrimBerry friends view model", "deleteFriend: success")
+                    userRepository.deleteUser(friend)
+                }
+            }else{
                 userRepository.deleteUser(friend)
+            }
+
             }
         }catch (e: Exception){
             Log.d("GrimBerry friends view model", e.toString())

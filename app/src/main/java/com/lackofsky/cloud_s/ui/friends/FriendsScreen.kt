@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -70,38 +71,42 @@ fun FriendsScreen(viewModel: FriendsViewModel = hiltViewModel(),
 @Composable
 fun FriendsContainer(viewModel: FriendsViewModel = hiltViewModel(),
                      navController: NavHostController){
-    var isPendingExists by remember { mutableStateOf(false) }
+    //var isPendingExists by remember { mutableStateOf(false) }
+    val pending by viewModel.pendingStrangers.collectAsState(emptyList())
     val tabIndex = remember { mutableStateOf(0) }
     Column {
         // Компонент вкладок
-        TabRow(selectedTabIndex = tabIndex.value) {
-            viewModel.tabTitlesList.forEachIndexed { index, title ->
-                Tab(
-                    selected = tabIndex.value == index,
-                    onClick = {
+        key(pending.size) {
+            TabRow(selectedTabIndex = tabIndex.value) {
+                viewModel.tabTitlesList.forEachIndexed { index, title ->
+                    Tab(
+                        selected = tabIndex.value == index,
+                        onClick = {
                             tabIndex.value = index
-                    },
-                    text = { Text(text = title) }
-                )
-            }
+                        },
+                        text = { Text(text = title) }
+                    )
+                }
                 Tab(
                     selected = tabIndex.value == 2,
-                    onClick = { if( viewModel.pendingStrangers.value.isEmpty()){
-                        isPendingExists = false
-                    }else{
-                        tabIndex.value = 2
-                        isPendingExists = true
-                    }
-                    },
-                    text = { if(!isPendingExists){
-                        Text(text = viewModel.tabTitlesItem, color = Color.Gray)
-                    }else{
-                        Text(text = viewModel.tabTitlesItem)
+                    onClick = {
+                        if (pending.isNotEmpty()) {
+                            tabIndex.value = 2
                         }
+                    },
+                    //},
+                    enabled = pending.isNotEmpty(),
+                    text = {
+                        if (pending.isNotEmpty()) Text(text = viewModel.tabTitlesItem) else Text(
+                            text = viewModel.tabTitlesItem,
+                            color = Color.Gray
+                        )
                     }
                 )
-            if(!isPendingExists){
-                ShowToast(message = "No incoming requests")
+                if(tabIndex.value == 2 && pending.isEmpty()) tabIndex.value = 1
+                if (pending.isNotEmpty()) {
+                    ShowToast(message = "Incoming request")
+                }
             }
         }
         // Содержимое вкладок

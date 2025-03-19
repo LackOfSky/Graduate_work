@@ -69,19 +69,43 @@ class ClientPartP2P @Inject constructor(
 
 
     fun addPendingStranger(user: User) {
-        _pendingStrangers.value.add(user)
+        _pendingStrangers.update {
+            it.toMutableSet().let{
+                it.add(user)
+                it
+            }
+        }
+//        _pendingStrangers.value.add(user)
     }
 
     fun removePendingStranger(user: User) {
-        _pendingStrangers.value.remove(user)
+        _pendingStrangers.update {
+            it.toMutableSet().let{
+                it.remove(user)
+                it
+            }
+        }
+//        _pendingStrangers.value.remove(user)
     }
 
     fun addRequestedStranger(user: User) {
-        _requestedStrangers.value.add(user)
+        _requestedStrangers.update {
+            it.toMutableSet().let{
+                it.add(user)
+                it
+            }
+        }
+//        _requestedStrangers.value.add(user)
     }
 
     fun removeRequestedStranger(user: User) {
-        _requestedStrangers.value.remove(user)
+        _requestedStrangers.update {
+            it.toMutableSet().let{
+                it.remove(user)
+                it
+            }
+        }
+        //_requestedStrangers.value.remove(user)
     }
 
     //lateinit var userOwner: MutableLiveData<User>
@@ -136,7 +160,12 @@ class ClientPartP2P @Inject constructor(
             }
             )
                 if (userRepository.getUserByUniqueID(user.uniqueID).firstOrNull() != null) {
-                    //userRepository.updateUser(user) TODO
+                    /*** якщо користувач вже є в БД, т.е. - вже є в друзях
+                     * оновлюємо користувача в базі данних
+                     * додаємо до "друзів онлайн"
+                     * */
+                    //val updateUser = existingFriend.copy(fullName = user.fullName, login = user.login)
+                    userRepository.updateUser(user)//updateUser) //TODO check
                     _activeFriends.update {currentMap ->
                         currentMap.toMutableMap().apply {
                             put(user, client)
@@ -244,7 +273,7 @@ class ClientPartP2P @Inject constructor(
                     val content = gson.toJson(userOwner.value)
                     val sender = gson.toJson(userOwner.value)
                     val transportData = TransportData(
-                        messageType = MessageType.USER,
+                        messageType = MessageType.USER_CONNECT,
                         senderId = userOwner.value!!.uniqueID,
                         ownServerPort = ownPort,
                         sender = sender,

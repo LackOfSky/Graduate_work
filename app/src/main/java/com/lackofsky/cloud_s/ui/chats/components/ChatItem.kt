@@ -102,7 +102,7 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatList
                     .weight(weight = 8f)
             ) {
                 Text(
-                    text = chatListItem.userName,//
+                    text = chatListItem.userName?.orEmpty() ?: "Deleted User",//
                     color = Color(0xff1d1b20),
                     textAlign = TextAlign.Left,
                     fontSize = 20.sp,

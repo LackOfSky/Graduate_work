@@ -23,6 +23,7 @@ import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.data.storage.StorageRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
+import com.lackofsky.cloud_s.service.client.usecase.ChangesNotifierUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +40,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val storageRepository: StorageRepository
+    private val storageRepository: StorageRepository,
+    private val clientPartP2P: ClientPartP2P,
+    private val changesNotifierUseCase: ChangesNotifierUseCase
 ) : ViewModel() {
 
     private val _isHeaderEdit = MutableStateFlow(false)
@@ -114,21 +117,42 @@ class ProfileViewModel @Inject constructor(
             _editUser.value?.let { userRepository.updateUser(_user.value!!.copy(login =it.login, fullName = it.fullName,)) }
         }
     fun onConfirmUpdateNameLogin() = viewModelScope.launch {
-            userRepository.updateUser(_user.value!!.copy(
-                login = _editUser.value!!.login,
-                fullName = _editUser.value!!.fullName))
+        val user = _user.value!!.copy(
+            login = _editUser.value!!.login,
+            fullName = _editUser.value!!.fullName)
+        userRepository.updateUser(user)
+        changesNotifierUseCase.userChangesNotifierRequest(
+            sendTo = clientPartP2P.activeFriends.value.values.toList(),
+            user = user)
+        changesNotifierUseCase.userChangesNotifierRequest(
+            sendTo = clientPartP2P.activeStrangers.value.values.toList(),
+            user = user)
     }
     fun onConfirmUpdateAboutUser() = viewModelScope.launch {
         _userInfo.value?.let{
-            userRepository.updateUserInfo(it.copy(
-                about = editUserInfo.value!!.about))
+            val userInfo = it.copy(about = editUserInfo.value!!.about)
+
+            userRepository.updateUserInfo(userInfo)
+            changesNotifierUseCase.userInfoChangesNotifierRequest(
+                sendTo = clientPartP2P.activeFriends.value.values.toList(),
+                userInfo = userInfo
+            )
         }
+
     }
     fun onConfirmUpdateUserInfo() = viewModelScope.launch {
         _userInfo.value?.let{
-            userRepository.updateUserInfo(it.copy(
-                info = editUserInfo.value!!.info))
+            val userInfo = it.copy(info = editUserInfo.value!!.info)
+
+            userRepository.updateUserInfo(userInfo)
+            changesNotifierUseCase.userInfoChangesNotifierRequest(
+                sendTo = clientPartP2P.activeFriends.value.values.toList(),
+                userInfo = userInfo
+            )
         }
+
+
+
     }
 
     fun onCancelUpdate() = viewModelScope.launch {
