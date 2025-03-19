@@ -119,6 +119,7 @@ class NettyServerHandler(
                 MessageType.USER_FRIEND_DELETE ->{
                     val userToDelete = gson.fromJson(data.sender, User::class.java)
                     userRepository.deleteUser(userToDelete)
+                    clientPartP2P.deleteFriendToStranger(userToDelete.uniqueID)
                 }
 
                 MessageType.STATUS -> {
@@ -169,6 +170,7 @@ class NettyServerHandler(
 
                         Request.REJECT -> {
                             /*** rejecting a requested stranger*/
+                            Log.d("service $SERVICE_NAME server handler", "rejecting a requested stranger")
                             clientPartP2P.removeRequestedStranger(sender)
                             //friendResponseUseCase.rejectedFriendResponse(sender)
                         }
@@ -185,7 +187,7 @@ class NettyServerHandler(
                             userRepository.insertUserInfo(UserInfo(sender.uniqueID))
                             clientPartP2P.removeRequestedStranger(sender)
 
-                            clientPartP2P.addStrangerToFriend(Peer(name ="", address = sender.ipAddr))
+                            clientPartP2P.addStrangerToFriend(sender.uniqueID)
 
                             //friendResponseUseCase.approvedFriendResponse(sender)
                         }

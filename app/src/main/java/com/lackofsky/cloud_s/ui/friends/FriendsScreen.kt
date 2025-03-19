@@ -32,20 +32,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.lackofsky.cloud_s.ui.friends.components.FriendItem
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.setValue
 import com.lackofsky.cloud_s.ui.ShowToast
 import com.lackofsky.cloud_s.ui.friends.components.PendingStrangerItem
 import com.lackofsky.cloud_s.ui.friends.components.StrangerItem
 
-//import com.lackofsky.cloud_s.ui.friends.components.StrangerItem
-
-//import androidx.hilt.navigation.compose.hiltViewModel
 
 
 sealed class UserRoutes(val route: String) {
@@ -57,21 +48,15 @@ sealed class UserRoutes(val route: String) {
 @Composable
 fun FriendsScreen(viewModel: FriendsViewModel = hiltViewModel(),
                   navController: NavHostController) {
-    var isPeerRequested by remember { mutableStateOf(false) }
-//    val friendPlaceholder by viewModel.currentUser.collectAsState()//TODO friends placeholder
-//    val strangers by viewModel.strangers.collectAsState()
-//    val navController = rememberNavController()
+    //var isPeerRequested by remember { mutableStateOf(false) }
     FriendsContainer(viewModel = viewModel,
         navController = navController)
-
-
 }
 
 
 @Composable
 fun FriendsContainer(viewModel: FriendsViewModel = hiltViewModel(),
                      navController: NavHostController){
-    //var isPendingExists by remember { mutableStateOf(false) }
     val pending by viewModel.pendingStrangers.collectAsState(emptyList())
     val tabIndex = remember { mutableStateOf(0) }
     Column {
@@ -94,7 +79,6 @@ fun FriendsContainer(viewModel: FriendsViewModel = hiltViewModel(),
                             tabIndex.value = 2
                         }
                     },
-                    //},
                     enabled = pending.isNotEmpty(),
                     text = {
                         if (pending.isNotEmpty()) Text(text = viewModel.tabTitlesItem) else Text(
@@ -171,8 +155,9 @@ fun FriendList(viewModel: FriendsViewModel,navController: NavHostController) {
 }
 
 @Composable
-fun PeerList(viewModel: FriendsViewModel,navController: NavHostController) {
-    val peers by viewModel.peers.collectAsState()
+fun PeerList(viewModel: FriendsViewModel, navController: NavHostController) {
+    val peers by viewModel.peers.collectAsState(emptySet())
+
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(8.dp, 0.dp, 8.dp, 0.dp)) {
@@ -185,11 +170,11 @@ fun PeerList(viewModel: FriendsViewModel,navController: NavHostController) {
                     .height(80.dp)
                     .padding(1.dp, 2.dp)
                     .clickable {
-                        navController.navigate(UserRoutes.User.createRoute(peer.first.id))
+                        navController.navigate(UserRoutes.User.createRoute(peer.id))
                     }
             ) {
                 //FriendItem(peer.user)
-                    StrangerItem(peer.first,viewModel,viewModel.isPeerInRequested(peer.first))
+                    StrangerItem(peer)
 
             }
         }

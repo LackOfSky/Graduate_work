@@ -1,7 +1,6 @@
 package com.lackofsky.cloud_s.ui.friends.components
 
-import android.util.Log
-import android.widget.Toast
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,47 +15,35 @@ import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lackofsky.cloud_s.R
-import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.ui.friends.FriendsViewModel
-import kotlinx.coroutines.delay
 
-//import com.lackofsky.cloud_s.services.p2pService.HostUser
 
 @Composable
-fun StrangerItem(userStranger: User, viewModel: FriendsViewModel,isRequested:Boolean){
-    var isPeerRequested by remember { mutableStateOf(isRequested) }
+fun StrangerItem(userStranger: User, viewModel: FriendsViewModel = hiltViewModel()){
+    val requestedPeers by viewModel.requestedStrangers.collectAsState()
+    val isRequested = requestedPeers.contains(userStranger)
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
@@ -107,10 +94,11 @@ fun StrangerItem(userStranger: User, viewModel: FriendsViewModel,isRequested:Boo
             )
 
         }
-        if(!isPeerRequested){
+        if(!isRequested){
             TextButton(
                 onClick = {
-                    isPeerRequested = viewModel.sendFriendRequest(userStranger)
+                    //isPeerRequested =
+                    viewModel.sendFriendRequest(userStranger)
                     //isPeerRequested = !isPeerRequested
                     //isPeerRequested = viewModel.isPeerInRequested(userStranger)
                 },
@@ -132,7 +120,8 @@ fun StrangerItem(userStranger: User, viewModel: FriendsViewModel,isRequested:Boo
         }else {
                 TextButton(
                     onClick = {
-                        isPeerRequested = !viewModel.cancelFriendRequest(userStranger)
+                        //isPeerRequested =
+                        viewModel.cancelFriendRequest(userStranger)
                     },
                     elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
                     contentPadding = PaddingValues(

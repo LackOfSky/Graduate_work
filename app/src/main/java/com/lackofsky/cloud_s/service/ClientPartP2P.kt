@@ -41,19 +41,18 @@ class ClientPartP2P @Inject constructor(
     val discoveredPeers = MutableStateFlow<MutableSet<Peer>>(mutableSetOf())
 
     private val _activeFriends = MutableStateFlow<MutableMap<User, NettyClient>>(mutableMapOf())
-    val activeFriends: StateFlow<MutableMap<User, NettyClient>> = _activeFriends
+    val activeFriends: StateFlow<Map<User, NettyClient>> = _activeFriends
     private val _activeStrangers = MutableStateFlow<MutableMap<User, NettyClient>>(mutableMapOf())
-    val activeStrangers: StateFlow<MutableMap<User, NettyClient>> = _activeStrangers
+    val activeStrangers: StateFlow<Map<User, NettyClient>> = _activeStrangers
 
     /***
      * outgoing requests */
     private val _requestedStrangers = MutableStateFlow<MutableSet<User>>(mutableSetOf())
-    val requestedStrangers: StateFlow<MutableSet<User>> = _requestedStrangers
-
+    val requestedStrangers: StateFlow<Set<User>> = _requestedStrangers
     /***
      * incoming requests */
     private val _pendingStrangers = MutableStateFlow<MutableSet<User>>(mutableSetOf())
-    val pendingStrangers: StateFlow<MutableSet<User>> = _pendingStrangers
+    val pendingStrangers: StateFlow<Set<User>> = _pendingStrangers
 
     /*** добавить флоу пиров (friends+strangers)
      *
@@ -101,7 +100,7 @@ class ClientPartP2P @Inject constructor(
     fun removeRequestedStranger(user: User) {
         _requestedStrangers.update {
             it.toMutableSet().let{
-                it.remove(user)
+                it.removeIf( { it.uniqueID == user.uniqueID })
                 it
             }
         }
@@ -182,54 +181,75 @@ class ClientPartP2P @Inject constructor(
             }
 
         }
-        fun addStrangerToFriend(peer: Peer){
+        fun addStrangerToFriend(userUniqueId: String){
             CoroutineScope(Dispatchers.IO).launch {
                 var userToRemove: User? = null
                 var client: NettyClient? = null
+
                 _activeStrangers.update { users ->
+                    userToRemove = users.keys.find { it.uniqueID == userUniqueId }
+                    Log.d("Service $SERVICE_NAME :client", "addStrangerToFriend0: ${users.keys} .userToRemove = $userToRemove")
                     users.toMutableMap().apply {
-                        userToRemove = keys.find { it.ipAddr == peer.address }
                         client = remove(userToRemove)
                     }
                 }
                 try {
                     _activeFriends.update { friends ->
                         friends.toMutableMap().apply {
-                            friends.put(userToRemove!!, client!!)
+                            put(userToRemove!!, client!!)
                         }
                     }
+                    Log.d("Service $SERVICE_NAME :client", "123" +_activeFriends.value.toString())
+                    Log.d("Service $SERVICE_NAME :client", "123" + userToRemove.toString() +" " + client.toString())
                 } catch (e: Exception) {
                     Log.d(
                         "service $SERVICE_NAME :client",
-                        "addStrangerToFriend: exception $e .user = $userToRemove, client = $client"
+                        "addStrangerToFriend3: exception $e .user = $userToRemove, client = $client"
                     )
                 }
+
             }
         }
+    fun deleteFriendToStranger(userUniqueId: String){
+        CoroutineScope(Dispatchers.IO).launch {
+            var userToRemove: User? = null
+            var client: NettyClient? = null
+
+            _activeFriends.update { users ->
+                userToRemove = users.keys.find { it.uniqueID == userUniqueId }
+                users.toMutableMap().apply {
+                    client = remove(userToRemove)
+
+                }
+            }
+            try {
+                _activeStrangers.update { friends ->
+                    friends.toMutableMap().apply {
+                        put(userToRemove!!, client!!)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.d(
+                    "service $SERVICE_NAME :client",
+                    "addStrangerToFriend: exception $e .user = $userToRemove, client = $client"
+                )
+            }
+        }
+    }
 
         fun removeActiveUser(peer: Peer) {
             CoroutineScope(Dispatchers.IO).launch {
                 _activeFriends.update { currentMap ->
 
-                    Log.d("service $SERVICE_NAME :client", "removeActiveUser: ${currentMap.keys.toString()}")
-                    Log.d("service $SERVICE_NAME :client", "removeActiveUser: ${peer.address.toString()}")
                     val userToRemove = currentMap.keys.find { it.ipAddr == peer.address }
                     currentMap.toMutableMap().apply {
                         remove(userToRemove)?.close()
-                        Log.d(
-                            "service $SERVICE_NAME :client",
-                            "removeActiveUser: $userToRemove removed"
-                        )
                     }
                 }
                 _activeStrangers.update { currentMap ->
                     val userToRemove = currentMap.keys.find { it.ipAddr == peer.address }
                     currentMap.toMutableMap().apply {
                         remove(userToRemove)?.close()
-                        Log.d(
-                            "service $SERVICE_NAME :client",
-                            "removeActiveUser: $userToRemove removed"
-                        )
                     }
                 }
             }

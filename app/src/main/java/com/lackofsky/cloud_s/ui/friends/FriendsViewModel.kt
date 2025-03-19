@@ -19,8 +19,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -39,9 +41,15 @@ class FriendsViewModel @Inject constructor(
       init {
 
           viewModelScope.launch {
-              clientPartP2P.activeFriends.collect { activeFriends ->
-                  Log.d("service GrimBerry :client", "Active friends emitted: $activeFriends")
-              }
+//              clientPartP2P.activeStrangers.collect { activeStrangers ->
+////                  _peers.update { activeStrangers.keys.toMutableSet() }
+////              }
+//                  activeStrangers?.let { map ->
+//                      _peers.update { map.keys.toMutableSet() }
+//                  } ?: run {
+//                      _peers.update { emptySet() }
+//                  }
+//              }
           }
 
           viewModelScope.launch {
@@ -50,7 +58,6 @@ class FriendsViewModel @Inject constructor(
                       val (online, offline) = allUsers.partition { user ->
                           Log.d("service GrimBerry :client", "Active friends emitted: ${user.toString()}")
                           activeFriends.keys.any{activeUser->activeUser.uniqueID == user.uniqueID}
-
                       }
                       Pair(online, offline)
                   }
@@ -69,24 +76,16 @@ class FriendsViewModel @Inject constructor(
     private val _friendsOffline = MutableStateFlow(emptyList<User>())
     val friendsOffline : StateFlow<List<User>> get() = _friendsOffline
 
-    val peers = clientPartP2P.activeStrangers
-          .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
-      val requestedStrangers = clientPartP2P.requestedStrangers
+    val peers: StateFlow<Set<User>> = clientPartP2P.activeStrangers.map { activeFriendsMap ->
+        activeFriendsMap.keys.toSet()
+    }.stateIn(scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = emptySet()
+    )
+
+    val requestedStrangers : StateFlow<Set<User>> = clientPartP2P.requestedStrangers
+    val pendingStrangers = clientPartP2P.pendingStrangers
           .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-      val pendingStrangers = clientPartP2P.pendingStrangers
-          .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-//    val activeFriends: StateFlow<Map<User, NettyClient>> = clientPartP2P.activeFriends
-//        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
-
-//    val friends = userRepository.getAllUsers()
-//        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-
-
-
-
-
 
 
     val tabTitlesList = listOf("Friends", "Add Friends")
@@ -127,7 +126,7 @@ class FriendsViewModel @Inject constructor(
                 Log.d("GrimBerry friends view model", "approveFriendRequest 2")
                 userRepository.insertUser(stranger)
                 clientPartP2P.removePendingStranger(stranger)
-                clientPartP2P.addStrangerToFriend(Peer(name ="", address = stranger.ipAddr))
+                clientPartP2P.addStrangerToFriend(stranger.uniqueID)
             }
             return true
         }else{
@@ -160,6 +159,7 @@ class FriendsViewModel @Inject constructor(
                 if(friendRequestUseCase.deleteFriendRequest(client!!)){
                     Log.d("GrimBerry friends view model", "deleteFriend: success")
                     userRepository.deleteUser(friend)
+                    clientPartP2P.deleteFriendToStranger(friend.uniqueID)
                 }
             }else{
                 userRepository.deleteUser(friend)
