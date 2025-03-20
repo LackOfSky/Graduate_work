@@ -62,7 +62,6 @@ import com.lackofsky.cloud_s.ui.chats.ChatDialogScreen
 import com.lackofsky.cloud_s.ui.chats.ChatList
 import com.lackofsky.cloud_s.ui.chats.ChatRoutes
 import com.lackofsky.cloud_s.ui.chats.ChatsScreen
-import com.lackofsky.cloud_s.ui.friends.AddFriends
 import com.lackofsky.cloud_s.ui.friends.FriendProfile
 import com.lackofsky.cloud_s.ui.friends.FriendsContainer
 import com.lackofsky.cloud_s.ui.friends.FriendsScreen

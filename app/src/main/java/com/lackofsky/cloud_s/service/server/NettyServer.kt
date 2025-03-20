@@ -8,6 +8,7 @@ import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.model.Peer
 import com.lackofsky.cloud_s.service.server.handlers.LoggingHandler
+import com.lackofsky.cloud_s.service.server.handlers.MessageHandler
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInitializer
@@ -62,7 +63,12 @@ class NettyServer @Inject constructor(
                         pipeline.addLast(StringEncoder(Charset.forName("UTF-8")))
 
                         pipeline.addFirst(LoggingHandler())
-                        pipeline.addLast(NettyServerHandler( // Основной обработчик сообщений
+//                        pipeline.addLast(MessageHandler( // handler для повідомлень]
+//                            messageRepository,
+//                            userRepository,
+//                            chatRepository,
+//                            clientPartP2P))
+                        pipeline.addLast(NettyServerHandler( // Основний обробник для всіх повідомлень (на данному етапі)
                             messageRepository,
                             userRepository,
                             chatRepository,

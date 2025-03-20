@@ -1,7 +1,11 @@
 package com.lackofsky.cloud_s.service.model
 
 enum class MessageType {
-    MESSAGE,USER_CONNECT, USER_UPDATE, USER_INFO_UPDATE, USER_FRIEND_DELETE, STATUS, HANDSHAKE,
+    MESSAGE, MESSAGE_DELETE, MESSAGE_EDIT, //user messages types
+    USER_CONNECT,
+    USER_UPDATE, USER_INFO_UPDATE,
+    USER_FRIEND_DELETE,
+    STATUS, HANDSHAKE,
     REQUEST
     //FRIEND_REQUEST_TYPE,
 //RESPONSE,  //USER, USER_INFO, - нужно ли

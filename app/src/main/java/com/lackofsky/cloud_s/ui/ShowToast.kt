@@ -7,7 +7,7 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 
 @Composable
-fun ShowToast(message: String) {
+fun ShowToast(message: String, onDismiss: (() -> Unit)? = null) {
     val context = LocalContext.current
     //var showToast by remember { mutableStateOf(false) }
 
@@ -16,13 +16,7 @@ fun ShowToast(message: String) {
         LaunchedEffect(Unit) {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             delay(2000)  // Продолжительность перед скрытием Toast
+            onDismiss?.invoke()
         }
-            //showToast = false
-        //}
-    //}
 
-    // Кнопка для отображения Toast
-//    Button(onClick = { showToast = true }) {
-//        Text("Показать Toast")
-//    }
 }

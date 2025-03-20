@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -40,10 +41,21 @@ class ClientPartP2P @Inject constructor(
     private val TAG = "GrimBerry P2P (clientPart)"
     val discoveredPeers = MutableStateFlow<MutableSet<Peer>>(mutableSetOf())
 
+    /*** Активні клієнти */
     private val _activeFriends = MutableStateFlow<MutableMap<User, NettyClient>>(mutableMapOf())
     val activeFriends: StateFlow<Map<User, NettyClient>> = _activeFriends
     private val _activeStrangers = MutableStateFlow<MutableMap<User, NettyClient>>(mutableMapOf())
     val activeStrangers: StateFlow<Map<User, NettyClient>> = _activeStrangers
+    /*** */
+
+    /*** Hot Stream of online\offline friends */
+    private val _friendsOnline = MutableStateFlow(emptyList<User>())
+    val friendsOnline : StateFlow<List<User>> get() = _friendsOnline
+
+    private val _friendsOffline = MutableStateFlow(emptyList<User>())
+    val friendsOffline : StateFlow<List<User>> get() = _friendsOffline
+
+    /*** */
 
     /***
      * outgoing requests */
@@ -64,9 +76,6 @@ class ClientPartP2P @Inject constructor(
      *
      * */
 
-
-
-
     fun addPendingStranger(user: User) {
         _pendingStrangers.update {
             it.toMutableSet().let{
@@ -76,7 +85,6 @@ class ClientPartP2P @Inject constructor(
         }
 //        _pendingStrangers.value.add(user)
     }
-
     fun removePendingStranger(user: User) {
         _pendingStrangers.update {
             it.toMutableSet().let{
@@ -86,7 +94,6 @@ class ClientPartP2P @Inject constructor(
         }
 //        _pendingStrangers.value.remove(user)
     }
-
     fun addRequestedStranger(user: User) {
         _requestedStrangers.update {
             it.toMutableSet().let{
@@ -96,7 +103,6 @@ class ClientPartP2P @Inject constructor(
         }
 //        _requestedStrangers.value.add(user)
     }
-
     fun removeRequestedStranger(user: User) {
         _requestedStrangers.update {
             it.toMutableSet().let{
@@ -107,7 +113,6 @@ class ClientPartP2P @Inject constructor(
         //_requestedStrangers.value.remove(user)
     }
 
-    //lateinit var userOwner: MutableLiveData<User>
     private val _userOwner = MutableStateFlow<User?>(null)
     val userOwner: StateFlow<User?> get() = _userOwner
     private val _userInfo = MutableStateFlow<UserInfo?>(null)
@@ -122,21 +127,22 @@ class ClientPartP2P @Inject constructor(
                     _userInfo.value = info
                 }
             }
-
-
-
-
-
-            //CoroutineScope(Dispatchers.IO).launch {
-//            userOwner =
-//                userRepository.getUserOwner() //TODO( ISSUE:при смене данных о пользователе будут отправлятся изначальные данные  bad flow)
-            //userInfo = userRepository.getUserInfoById(userOwner.value!!.id)
-//                userRepository.getUserOwner().observeForever { user ->
-//                    _userOwner.value = user
-//                    //TODO("добавить send whoami при изменении данных")
-//            }
-
-            // }
+        }
+        CoroutineScope(Dispatchers.IO).launch { /***_friendsOnline, _friendsOffline hot stream */
+            userRepository.getAllUsers()
+                .combine(activeFriends) { allUsers, activeFriends ->
+                    val (online, offline) = allUsers.partition { user ->
+                        Log.d("service GrimBerry :client", "Active friends emitted: ${user.toString()}")
+                        activeFriends.keys.any{activeUser->activeUser.uniqueID == user.uniqueID}
+                    }
+                    Pair(online, offline)
+                }
+                .collect { (online, offline) ->
+                    Log.d("service GrimBerry :client", "add active friend")
+                    _friendsOnline.value = online
+                    _friendsOffline.value = offline
+                    Log.d("service GrimBerry :client", _friendsOnline.value.toString())
+                }
         }
     }
         //    userOwner.value?.uniqueID.let{//todo delete

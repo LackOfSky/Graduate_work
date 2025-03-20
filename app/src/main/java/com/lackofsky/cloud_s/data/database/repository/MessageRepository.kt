@@ -4,6 +4,7 @@ import com.lackofsky.cloud_s.data.database.dao.MessageDao
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.SyncStatus
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class MessageRepository @Inject constructor(
@@ -12,6 +13,18 @@ class MessageRepository @Inject constructor(
 
     suspend fun insertMessage(message: Message) {
         messageDao.insertMessage(message)
+//        message.uniqueId?.let{ messageUniqueId ->
+//            messageDao.insertMessage(message)
+//            return //messageDao.getMessageById( messageUniqueId).first()
+//        }
+//        val messageId = messageDao.insertMessage(message)
+//        messageDao.updateMessageUniqueId(messageId, message.chatId+messageId)
+//        return //message.copy(uniqueId = message.chatId+messageId)
+    }
+
+    /***first add */
+    suspend fun insertAndUpdateMessage(message: Message):Message{
+        return messageDao.insertAndUpdateMessageUniqueId(message)
     }
 
     suspend fun deleteMessage(message: Message){

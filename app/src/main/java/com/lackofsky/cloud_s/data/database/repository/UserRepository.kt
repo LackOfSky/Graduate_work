@@ -9,10 +9,6 @@ import com.lackofsky.cloud_s.data.database.dao.UserDao
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.service.client.usecase.FriendRequestUseCase
-import com.lackofsky.cloud_s.service.model.MessageType
-import com.lackofsky.cloud_s.service.model.TransportData
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch

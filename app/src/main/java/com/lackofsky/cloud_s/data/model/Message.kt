@@ -22,9 +22,9 @@ import java.util.UUID
 data class Message (
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "messageId")
-    val id: Int = 0,
+    val id: Long = 0,
     @ColumnInfo(name = "messageUniqueId")//TODO подумать
-    val uniqueId: String?,
+    val uniqueId: String? = null,
     @ColumnInfo(name = "chatId")
     val chatId: String,//nullable for send message    /***chatId = Owner+Sender ID */
     @ColumnInfo(name = "userId")

@@ -42,17 +42,18 @@ class NettyServerHandler(
             Log.d("service $SERVICE_NAME server handler", "received: $data")
             processMessage(ctx, data)
         } catch (e: JsonParseException) {
-            Log.e("service GrimBerry SH" + " NettyServerHandler", "Error parsing message: ")
-            Log.d("service GrimBerry SH", "non typical message: " + msg)
+            Log.e("service GrimBerry SH" + " NettyServerHandler",
+                "Error parsing message. non typical message: " + msg )
         } catch (e: IllegalStateException) {
             Log.e("service GrimBerry SH" + " NettyServerHandler", "Error json syntax message: $msg")
             Log.d("service GrimBerry SH", "non typical message: " + msg)
         } catch (_: Exception) {
             Log.e("service GrimBerry SH", "received unknown type of message:" + msg)
         }
-        ctx.writeAndFlush(
-            "Message received from " + ctx.channel().remoteAddress()
-        )//TODO обработка логики подтверждения приема сообщенияс
+
+//        ctx.writeAndFlush(
+//            "Message received from " + ctx.channel().remoteAddress()
+//        )//TODO обработка логики подтверждения приема сообщенияс
 
     }
 
@@ -130,29 +131,6 @@ class NettyServerHandler(
                     TODO("Not implemented")
                 }
 
-//                MessageType.FRIEND_REQUEST_TYPE -> {
-//                    val request = gson.fromJson(data.content, FriendRequestType::class.java)
-//                    val sender = gson.fromJson(data.sender, User::class.java)
-//                    when (request!!) {
-//                        FriendRequestType.USER_INFO -> {
-//                            val content = gson.toJson(clientPartP2P.userInfo.value)
-//                            val from = gson.toJson(clientPartP2P.userOwner.value)
-//
-//                            val transportData = TransportData(
-//                                messageType = MessageType.USER_INFO_UPDATE,
-//                                senderId = clientPartP2P.userOwner.value!!.uniqueID,
-//                                sender = from,
-//                                content = content
-//                            )
-//                            val json = gson.toJson(transportData)
-//                            clientPartP2P.activeFriends.value.get(sender)!!.sendMessage(json)
-//                            //todo(обработка неудачной отправки)
-//                        }
-//
-//                        FriendRequestType.DATA_CHANGED -> TODO("Концепция уведомления об изменении своих данных")
-//                    }
-//                }
-
                 MessageType.REQUEST -> {
                     val request = gson.fromJson(data.content, Request::class.java)
                     val sender = gson.fromJson(data.sender, User::class.java)
@@ -193,6 +171,8 @@ class NettyServerHandler(
                         }
                     }
                 }
+
+                else -> { TODO("not implemented yet OR skipped target handler") }
             }
         }
     }

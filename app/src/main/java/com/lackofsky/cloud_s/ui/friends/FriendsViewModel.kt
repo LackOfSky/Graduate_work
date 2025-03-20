@@ -37,44 +37,9 @@ class FriendsViewModel @Inject constructor(
     private val friendRequestUseCase: FriendRequestUseCase
 //    private val clientServiceInterface: ClientInterface
 ) : ViewModel() {
-      //val peers = MutableStateFlow<MutableSet<User>>(mutableSetOf()) //placeholder for strangers peers1
-      init {
 
-          viewModelScope.launch {
-//              clientPartP2P.activeStrangers.collect { activeStrangers ->
-////                  _peers.update { activeStrangers.keys.toMutableSet() }
-////              }
-//                  activeStrangers?.let { map ->
-//                      _peers.update { map.keys.toMutableSet() }
-//                  } ?: run {
-//                      _peers.update { emptySet() }
-//                  }
-//              }
-          }
-
-          viewModelScope.launch {
-              userRepository.getAllUsers()
-                  .combine(clientPartP2P.activeFriends) { allUsers, activeFriends ->
-                      val (online, offline) = allUsers.partition { user ->
-                          Log.d("service GrimBerry :client", "Active friends emitted: ${user.toString()}")
-                          activeFriends.keys.any{activeUser->activeUser.uniqueID == user.uniqueID}
-                      }
-                      Pair(online, offline)
-                  }
-                  .collect { (online, offline) ->
-                      Log.d("service GrimBerry :client", "add active friend")
-                      _friendsOnline.value = online
-                      _friendsOffline.value = offline
-                      Log.d("service GrimBerry :client", _friendsOnline.value.toString())
-                  }
-          }
-      }
-
-    private val _friendsOnline = MutableStateFlow(emptyList<User>())
-    val friendsOnline : StateFlow<List<User>> get() = _friendsOnline
-
-    private val _friendsOffline = MutableStateFlow(emptyList<User>())
-    val friendsOffline : StateFlow<List<User>> get() = _friendsOffline
+    val friendsOnline : StateFlow<List<User>> get() = clientPartP2P.friendsOnline
+    val friendsOffline : StateFlow<List<User>> get() = clientPartP2P.friendsOffline
 
     val peers: StateFlow<Set<User>> = clientPartP2P.activeStrangers.map { activeFriendsMap ->
         activeFriendsMap.keys.toSet()

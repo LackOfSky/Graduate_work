@@ -14,7 +14,7 @@ class LoggingHandler : ChannelInboundHandlerAdapter() {
         if (msg is ByteBuf) {
             val message = msg.toString(Charsets.UTF_8)
             Log.i("service GrimBerry LoggHandler", "Received message from " + ctx.channel().remoteAddress() + message)// : $message
-            ctx.fireChannelRead(msg)
+            ctx.fireChannelRead(msg)//Send message to next pipeline
         } else {
             Log.e("service GrimBerry LoggHandler","Invalid message from " + ctx.channel().remoteAddress())//"Получено сообщение неизвестного типа: ${msg::class.java}"
         }
