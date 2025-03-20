@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +46,7 @@ import com.lackofsky.cloud_s.ui.chats.components.MessageDialogItem
 fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewModel()){
     viewModel.setChatId(chatId)
     val chat by viewModel.activeChat.collectAsState()
+    val activeUser by viewModel.activeUserOne2One.collectAsState()
     val isFriendOnline by viewModel.isFriendOnline.collectAsState(initial = false)
     Scaffold(
         bottomBar = {
@@ -60,13 +63,14 @@ fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewMo
                 //.padding(8.dp, 0.dp, 8.dp, 80.dp)//end = BottomLineSend +8
 
         ) {
-            Row(){
-                Text(text = chat?.name.orEmpty())
+            Row(Modifier.padding(end = 16.dp).align(Alignment.CenterHorizontally),){
+                Text(text = activeUser?.fullName.orEmpty(),style = MaterialTheme.typography.titleLarge)
                 Text(text = if (isFriendOnline) "Online" else "Offline",
                     style = MaterialTheme.typography.bodySmall,
                     color = if (isFriendOnline) Color.Green else Color.Gray
                 )
             }
+            Divider()
             MessagesList(viewModel)
         }
     }

@@ -30,6 +30,9 @@ class MessageRepository @Inject constructor(
     suspend fun deleteMessage(message: Message){
         messageDao.deleteMessage(message)
     }
+    suspend fun deleteMessagesByMessageId(messageUniqueId: String){
+        messageDao.deleteMessagesByUniqueId(messageUniqueId)
+    }
 
     fun getMessageByUniqueId(messageUniqueId: String): Flow<Message> {
         return messageDao.getMessageById(messageUniqueId)

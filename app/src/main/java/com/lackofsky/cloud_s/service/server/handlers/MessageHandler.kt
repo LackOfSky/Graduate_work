@@ -74,14 +74,6 @@ class MessageHandler(private val messageRepository: MessageRepository,
                 MessageType.MESSAGE -> {
                     val message = gson.fromJson(data.content, Message::class.java)
                     Log.d("service $SERVICE_NAME server handler", " mess age " + message.toString())
-                    //try {
-
-//                            chatRepository.getAllChats().collect { chats ->
-//                                Log.d(
-//                                    "service $SERVICE_NAME server handler",
-//                                    chats.toString()
-//                                )
-//                            }
                     chatRepository.getChatById(message.chatId).collect { chat ->
                         Log.d(
                             "service $SERVICE_NAME server handler",

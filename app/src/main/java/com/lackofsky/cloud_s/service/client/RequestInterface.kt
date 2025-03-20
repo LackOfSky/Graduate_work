@@ -31,6 +31,6 @@ interface MessageRequestInterface {
 
     fun sendMessageRequest(sendTo: NettyClient, content: Message):Boolean
     //fun sendMessageRequest(sendTo: List<User>, content: Message):Boolean
-    fun deleteMessageOne2OneRequest(sendTo: NettyClient,  messageKey: MessageKey):Boolean //todo знайти більш вдале рішення
+    fun deleteMessageOne2OneRequest(sendTo: NettyClient,  messageUniqueId: String):Boolean
     //fun updateMessageOne2OneRequest(sendTo: NettyClient, message: Message):Boolean
 }

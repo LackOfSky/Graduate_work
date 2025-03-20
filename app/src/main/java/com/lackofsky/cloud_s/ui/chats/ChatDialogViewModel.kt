@@ -54,6 +54,15 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
     private val _activeChat = MutableStateFlow<Chat?>(null)
     val activeChat: StateFlow<Chat?> get() = _activeChat
     val activeUserOwner = MutableStateFlow<User?>(null)
+    val activeUserOne2One = clientPartP2P.activeFriends.map { friends->
+        friends.keys.find { user ->
+            user.uniqueID == _activeChat.value?.name && _activeChat.value?.type == ChatType.PRIVATE
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = null
+    )
 
     private val _selectedMessages = MutableStateFlow<MutableList<Message>>(mutableListOf())
     val selectedMessages: StateFlow<MutableList<Message>> = _selectedMessages
@@ -156,7 +165,7 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
         }
     }
 
-    fun deleteMessage(message: Message, forOneToOne: Boolean = false):Boolean{
+    fun deleteMessage(message: Message, forOneToOne: Boolean = true):Boolean{
         //фича - удаление сообщений будет производится лишь у себя
         try {
             CoroutineScope(Dispatchers.IO).launch {
@@ -168,11 +177,7 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                             it.key.uniqueID == activeChat.name && activeChat.type == ChatType.PRIVATE
                         }?.value!!
 
-                    val isSuccess = messageRequestUseCase.deleteMessageOne2OneRequest(client,
-                        MessageKey(chatName = activeChat.name!!,
-                            contentHashCode = message.content.hashCode(),
-                            date = message.sentAt)
-                    )
+                    val isSuccess = messageRequestUseCase.deleteMessageOne2OneRequest(client, message.uniqueId!!)
                     if(isSuccess){
                         messageRepository.deleteMessage(message)
                         Log.d("GrimBerry chat dialog viewModel", "deleteMessage: success")

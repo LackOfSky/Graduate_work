@@ -38,18 +38,17 @@ class MessageRequestUseCase @Inject constructor(
         return defaultMessageRequest(sendTo, contentJSON, MessageType.MESSAGE)
     }
 
-    override fun deleteMessageOne2OneRequest(sendTo: NettyClient, messageKey: MessageKey): Boolean {
-        val contentJSON = gson.toJson(messageKey)
-        return defaultMessageRequest(sendTo = sendTo, contentJSON = contentJSON, messageType = MessageType.MESSAGE_DELETE)
+    override fun deleteMessageOne2OneRequest(sendTo: NettyClient, messageId: String): Boolean {
+        return defaultMessageRequest(sendTo = sendTo, content = messageId, messageType = MessageType.MESSAGE_DELETE)
     }
-    private fun defaultMessageRequest(sendTo: NettyClient, contentJSON: String, messageType: MessageType): Boolean {
+    private fun defaultMessageRequest(sendTo: NettyClient, content: String, messageType: MessageType): Boolean {
         try {
             val sender = gson.toJson(clientPartP2P.userOwner.value)
             val transportData = TransportData(
                 messageType = messageType,
                 senderId = clientPartP2P.userOwner.value!!.uniqueID,
                 sender = sender,
-                content = contentJSON
+                content = content
             )
             Log.d("service $SERVICE_NAME :messageRequestUseCase", "defaultMessageRequest: $transportData")
             val json = gson.toJson(transportData)

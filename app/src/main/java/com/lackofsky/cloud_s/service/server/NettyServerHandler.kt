@@ -12,6 +12,7 @@ import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.ClientPartP2P
+import com.lackofsky.cloud_s.service.model.MessageKey
 import com.lackofsky.cloud_s.service.model.MessageType
 import com.lackofsky.cloud_s.service.model.Peer
 import com.lackofsky.cloud_s.service.model.Request
@@ -21,6 +22,7 @@ import io.netty.channel.SimpleChannelInboundHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 
@@ -76,6 +78,16 @@ class NettyServerHandler(
                         Log.d("service $SERVICE_NAME server handler", e.toString())
                     }
                     Log.d("service $SERVICE_NAME server handler", "message added")
+                }
+                MessageType.MESSAGE_DELETE -> {
+                    try{
+                        CoroutineScope(Dispatchers.IO).launch {
+                            messageRepository.deleteMessagesByMessageId(data.content)
+                            Log.d("service $SERVICE_NAME server handler", "message: ${data.content} deleted")
+                        }
+                    }catch (e:Exception){
+                        Log.d("service $SERVICE_NAME server handler", "exception while deleting message: $e")
+                    }
                 }
 
                 MessageType.USER_CONNECT -> {
