@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
@@ -26,11 +27,13 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,12 +48,12 @@ import com.lackofsky.cloud_s.ui.chats.components.MessageDialogItem
 @Composable
 fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewModel()){
     viewModel.setChatId(chatId)
-    val chat by viewModel.activeChat.collectAsState()
     val activeUser by viewModel.activeUserOne2One.collectAsState()
     val isFriendOnline by viewModel.isFriendOnline.collectAsState(initial = false)
+    val isNotesChat by viewModel.isNotesChat.collectAsState(initial = true)
     Scaffold(
         bottomBar = {
-            BottomLineSend(isFriendOnline = isFriendOnline)
+            BottomLineSend(isFriendOnline = isFriendOnline, isNotesChat = isNotesChat)
         }
     ) { paddingValues ->
         Log.d("placeholder. TODO:DELETE",paddingValues.toString())
@@ -63,28 +66,53 @@ fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewMo
                 //.padding(8.dp, 0.dp, 8.dp, 80.dp)//end = BottomLineSend +8
 
         ) {
-            Row(Modifier.padding(end = 16.dp).align(Alignment.CenterHorizontally),){
-                Text(text = activeUser?.fullName.orEmpty(),style = MaterialTheme.typography.titleLarge)
-                Text(text = if (isFriendOnline) "Online" else "Offline",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isFriendOnline) Color.Green else Color.Gray
-                )
+            if(!isNotesChat){
+                Row(Modifier.padding(end = 16.dp).align(Alignment.CenterHorizontally),){
+                    Text(text = activeUser?.fullName.orEmpty(),style = MaterialTheme.typography.titleLarge)
+                    Text(text = if (isFriendOnline) "Online" else "Offline",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isFriendOnline) Color.Green else Color.Gray
+                    )
+                }
+                Divider()
             }
-            Divider()
-            MessagesList(viewModel)
+
+            MessagesList(viewModel, isFriendOnline = isFriendOnline, isNotesChat = isNotesChat)
         }
     }
 }
 
 @Composable
-fun MessagesList(viewModel: ChatDialogViewModel, modifier: Modifier = Modifier) {
+fun MessagesList(viewModel: ChatDialogViewModel, modifier: Modifier = Modifier,
+                 isFriendOnline: Boolean = false, isNotesChat: Boolean = true) {
     val messagesList by viewModel.messages.collectAsState()
+    val listState = rememberLazyListState()
+    var isAtBottom by remember { mutableStateOf(true) }
+
+    // Следим за положением списка
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
+            .collect { visibleItems ->
+                val lastIndex = listState.layoutInfo.totalItemsCount - 1
+                if (visibleItems.isNotEmpty()) {
+                    isAtBottom = visibleItems.last().index >= lastIndex - 1
+                }
+            }
+    }
+
+    // Автоскроллим, если пользователь был внизу
+    LaunchedEffect(messagesList) {
+        if (isAtBottom && !messagesList.isNullOrEmpty()) {
+            listState.animateScrollToItem(messagesList!!.size -1)
+        }
+    }
     LazyColumn(modifier = Modifier
-        .fillMaxSize()
+        .fillMaxSize(),
+        state = listState,
         ) {
         messagesList?.let {
-            items(it.toList()) { message ->
-                    MessageDialogItem(message = message)
+            items(it) { message ->
+                    MessageDialogItem(message = message, isFriendOnline = isFriendOnline, isNotesChat = isNotesChat)
             }
         }
     }
@@ -138,7 +166,8 @@ fun MessagesList(viewModel: ChatDialogViewModel, modifier: Modifier = Modifier) 
 
 
 @Composable
-fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel = hiltViewModel(), isFriendOnline: Boolean = false) {
+fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel = hiltViewModel(),
+                   isFriendOnline: Boolean = false, isNotesChat: Boolean = true) {
     var messageText by remember { mutableStateOf("") }
 
     var showToast by remember { mutableStateOf(false) }
@@ -184,7 +213,7 @@ fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel
                     .background(color = Color.Transparent)
             )
             IconButton(//ButtonSend
-                onClick = { if(isFriendOnline) {
+                onClick = { if(isFriendOnline or isNotesChat) {
                     if (messageText.isNotBlank()) {
                         viewModel.sendMessage(messageText)
                         messageText = ""
@@ -196,9 +225,7 @@ fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel
                 }
 
             ) {
-                ShowToast("User is offline."){
-                    showToast = false
-                }
+                if(showToast) ShowToast("User is offline."){ showToast = false }
                 Column(
                     verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
                     horizontalAlignment = Alignment.CenterHorizontally,

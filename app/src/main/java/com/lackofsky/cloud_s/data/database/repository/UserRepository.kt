@@ -25,9 +25,20 @@ class UserRepository @Inject constructor(private val userDao: UserDao, private v
             login = user.login,
         )
         userDao.insertUser(newUser)
-        chatRepository.createPrivateChat(newUser.uniqueID)
-
+        val userOwner = getUserOwner().first()
+        chatRepository.createPrivateChat(newUser.uniqueID, userOwner.uniqueID)
     }
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertUserOwner(user: User){
+        val newUser = User(
+            uniqueID = user.uniqueID,
+            fullName = user.fullName,
+            login = user.login,
+        )
+        userDao.insertUser(newUser)
+        chatRepository.createPrivateChat(newUser.uniqueID)
+    }
+
     suspend fun updateUser(user: User){
         try {
             getUserByUniqueID(user.uniqueID).first().let {

@@ -12,6 +12,7 @@ import com.lackofsky.cloud_s.data.model.ChatRole
 import com.lackofsky.cloud_s.data.model.ChatType
 import com.lackofsky.cloud_s.data.model.User
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
@@ -53,7 +54,7 @@ class ChatRepository @Inject constructor(
         return chatDao.getChatById(id)
     }
     @Transaction
-    suspend fun createPrivateChat( userId2: String): String {//userId1: String,
+    suspend fun createPrivateChat( userId2: String, userOwnerId: String? = null): String {//userId1: String,
         // Check if a private chat between these two users exists
         val existingChat = chatDao.getChatByName(userId2).firstOrNull()//userId1,
         existingChat?.let {
@@ -65,15 +66,25 @@ class ChatRepository @Inject constructor(
             chatId = userId2,
             type = ChatType.PRIVATE,
         )
-        if(!insertChat(newChat)) throw Exception("GrimBerry.ChatRepository. Error in function insertChat")
-        if(!chatMemberRepository.addChatMember (
-            ChatMember(
-                chatId = newChat.chatId,
-                userId = userId2,
-                role = ChatRole.ADMIN
+        if (!insertChat(newChat)) throw Exception("GrimBerry.ChatRepository. Error in function insertChat")
+        if (!chatMemberRepository.addChatMember(
+                ChatMember(
+                    chatId = newChat.chatId,
+                    userId = userId2,
+                    role = ChatRole.ADMIN
+                )
             )
-        )) throw Exception("GrimBerry.ChatRepository. Error in function insertChatMember")
-
+        ) throw Exception("GrimBerry.ChatRepository. Error in function insertChatMember")
+        userOwnerId?.let { uniqueId ->
+            if (!chatMemberRepository.addChatMember(
+                    ChatMember(
+                        chatId = newChat.chatId,
+                        userId = uniqueId,
+                        role = ChatRole.ADMIN
+                    )
+                )
+            ) throw Exception("GrimBerry.ChatRepository. Error in function insertChatMember")
+        }
         return newChat.chatId
     }
     suspend fun getPrivateChatIdByUser(userId: String):String?{

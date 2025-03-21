@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,8 +15,6 @@ import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,10 +43,11 @@ import com.lackofsky.cloud_s.ui.chats.ChatsViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
-fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatListItem) {
+fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: Pair<ChatListItem, Boolean>) {
     var isIconExist by remember { mutableStateOf(false) }
 
-    var bitmap: Bitmap? = null
+    var bitmap: Bitmap?
+    bitmap = null
 
 //    val friendPlaceholder by viewModel.currentUser.collectAsState()//TODO friends placeholder
 //    val strangers by viewModel.strangers.collectAsState()
@@ -63,7 +63,7 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatList
                 )
         ) {
             try{//пересмотреть, возможно не актуально
-                chatListItem.userIcon?.let {
+                chatListItem.first.userIcon?.let {
                     bitmap = BitmapFactory.decodeByteArray(it, 0, it.size)
                     isIconExist = true
                 }
@@ -101,19 +101,27 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: ChatList
                 modifier = Modifier
                     .weight(weight = 8f)
             ) {
+                Row(Modifier) {
+                    Text(
+                        text = chatListItem.first.userName.orEmpty(),
+                        color = Color(0xff1d1b20),
+                        textAlign = TextAlign.Left,
+                        fontSize = 20.sp,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier
+                            .padding(12.dp, 0.dp, 4.dp, 4.dp)
+//                            .requiredWidth(160.dp)
+//                            .wrapContentHeight(align = Alignment.CenterVertically)
+                    )
+                    Text(
+                        text = if (chatListItem.second) "Online" else "Offline",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (chatListItem.second) Color.Green else Color.Gray
+                    )
+                }
+
                 Text(
-                    text = chatListItem.userName?.orEmpty() ?: "Deleted User",//
-                    color = Color(0xff1d1b20),
-                    textAlign = TextAlign.Left,
-                    fontSize = 20.sp,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier
-                        .padding(12.dp, 0.dp, 4.dp, 4.dp)
-                        .requiredWidth(160.dp)
-                        .wrapContentHeight(align = Alignment.CenterVertically)
-                )
-                Text(
-                    text = chatListItem.lastMessageText.orEmpty(),
+                    text = chatListItem.first.lastMessageText.orEmpty(),
                     color = Color(0xff49454f),
                     textAlign = TextAlign.Left,
                     style = TextStyle(

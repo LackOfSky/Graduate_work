@@ -52,4 +52,7 @@ class MessageRepository @Inject constructor(
     suspend fun getMessagesCount(chatId: String):Long {
         return messageDao.getMessagesCount(chatId)
     }
+    fun getLastNoteMessage():Flow<Message>{
+        return messageDao.getLastNoteMessage()
+    }
 }

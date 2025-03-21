@@ -62,4 +62,15 @@ interface MessageDao {
 
     @Query("SELECT COUNT(*) FROM messages WHERE chatId = :chatId ")
     suspend fun getMessagesCount(chatId: String):Long
+
+    @Query("""
+    SELECT * 
+    FROM messages 
+    WHERE messageId = (SELECT MAX(messageId) 
+                       FROM messages 
+                       WHERE chatId = (SELECT uniqueId 
+                                       FROM users 
+                                       WHERE userId = 1))
+""")
+    fun getLastNoteMessage(): Flow<Message>
 }

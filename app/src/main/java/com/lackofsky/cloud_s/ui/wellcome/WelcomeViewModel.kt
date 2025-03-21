@@ -28,7 +28,7 @@ class WelcomeViewModel @Inject constructor(private val userRepository: UserRepos
 
         //user.uniqueID = android (welcomeScreen)
         viewModelScope.launch {
-            userRepository.insertUser(user)
+            userRepository.insertUserOwner(user)
             userRepository.insertUserInfo(userInfo)
         }
     }

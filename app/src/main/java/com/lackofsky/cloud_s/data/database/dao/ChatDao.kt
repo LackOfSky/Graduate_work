@@ -56,7 +56,9 @@ interface ChatDao {
     LEFT JOIN users u ON cm.userId = u.uniqueID
     LEFT JOIN usersInfo ui ON ui.userId = u.uniqueID
     LEFT JOIN messages m ON m.chatId = c.chatId
+    WHERE u.userId > 1
     GROUP BY c.chatId, u.uniqueID
+    ORDER BY MAX(m.sentAt) DESC
 """)
 fun getChatListItems(): Flow<List<ChatListItem>>
 //    @Query("""

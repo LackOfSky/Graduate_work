@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -48,14 +49,14 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
     ): ViewModel() {
     private val _messages = MutableStateFlow<List<Message>?>(null)
     val messages: StateFlow<List<Message>?> get() = _messages
-    private val chatMembers = MutableStateFlow<List<ChatMember>?>(null)
+    private val chatMembers = MutableStateFlow<List<ChatMember>>(emptyList())
 
     //val activeFriends = MutableStateFlow<List<User?>?>(null)
     private val _activeChat = MutableStateFlow<Chat?>(null)
     val activeChat: StateFlow<Chat?> get() = _activeChat
     val activeUserOwner = MutableStateFlow<User?>(null)
-    val activeUserOne2One = clientPartP2P.activeFriends.map { friends->
-        friends.keys.find { user ->
+    val activeUserOne2One = userRepository.getAllUsers().map { friends->
+        friends.find { user ->
             user.uniqueID == _activeChat.value?.name && _activeChat.value?.type == ChatType.PRIVATE
         }
     }.stateIn(
@@ -63,6 +64,9 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
         started = SharingStarted.Lazily,
         initialValue = null
     )
+    val isNotesChat: StateFlow<Boolean> = activeChat.combine(activeUserOwner){chat, owner ->
+        chat?.chatId.orEmpty() == owner?.uniqueID.orEmpty()
+    }.stateIn(scope = viewModelScope,started = SharingStarted.Lazily, initialValue = false)
 
     private val _selectedMessages = MutableStateFlow<MutableList<Message>>(mutableListOf())
     val selectedMessages: StateFlow<MutableList<Message>> = _selectedMessages
@@ -127,33 +131,34 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
 
     fun sendMessage(text: String){//todo change to sendPrivateMessage
         CoroutineScope(Dispatchers.IO).launch {
-            val chatId = _activeChat.value!!.chatId
+            //val chatId = _activeChat.value!!.chatId
             val ownId = activeUserOwner.value!!.uniqueID
             val messageToSave = Message(
                         userId = activeUserOwner.value!!.uniqueID,
                 chatId = _activeChat.value!!.chatId ,// у власника чат айді = _activeChat.value!!.chatId, у другої сторони = айді власника
                 content = text)
 
-
-            if(chatMembers.value.isNullOrEmpty()){
-                Log.d("GrimBerry chatDialogVM", "chatMembers.value.isNullOrEmpty()")
+            Log.d("GrimBerry chatDialogVM", "chatMembers.value ${chatMembers.value.toString()} ")
+            //if(chatMembers.value.isNullOrEmpty()){//TODO (СКОРЕЕ всего проверка должна быть на = 1)
+            if(chatMembers.value.size == 1){
+                Log.d("GrimBerry chatDialogVM", "chatMembers.value ${chatMembers.value.toString()} ")
                 messageRepository.insertAndUpdateMessage(messageToSave)
             }else{
                 try{
                     val activeChat = _activeChat.value!!
-                    chatMembers.value?.forEach { member ->
+                    val messageToSend = messageRepository.insertAndUpdateMessage( messageToSave )
+                        .copy(chatId = ownId)
+                    chatMembers.value.forEach { member ->
                         //todo - фактически данная логика поставлена на то, что все пользователи онлайн
                         // upd - наразі ця логіка для використання для one2one
-                        val client = clientPartP2P.activeFriends.value.entries
-                            .firstOrNull {
-                                it.key.uniqueID == activeChat.name && activeChat.type == ChatType.PRIVATE
-                            }?.value!!
-                        Log.d("GrimBerry chatDialogVM", "to save  "+ messageToSave.toString())
-                        val messageToSend = messageRepository.insertAndUpdateMessage( messageToSave )
-                            .copy(chatId = ownId)
-                        Log.d("GrimBerry chatDialogVM", "to send  "+ messageToSend.toString())
-                        messageRequestUseCase.sendMessageRequest(client, messageToSend)
-                        Log.d("GrimBerry chatDialogVM", "send message")
+                        if(member.userId != activeUserOwner.value!!.uniqueID){
+                            val client = clientPartP2P.activeFriends.value.entries
+                                .firstOrNull {
+                                    it.key.uniqueID == activeChat.name && activeChat.type == ChatType.PRIVATE
+                                }?.value!!
+                            messageRequestUseCase.sendMessageRequest(client, messageToSend)
+                            Log.d("GrimBerry chatDialogVM", "send message")
+                        }
                     }
 
                 }catch (e: Exception){
@@ -164,11 +169,20 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
 
         }
     }
-
-    fun deleteMessage(message: Message, forOneToOne: Boolean = true):Boolean{
+    fun deleteNotedMessage(message: Message){
+        CoroutineScope(Dispatchers.IO).launch {
+            messageRepository.deleteMessage(message)
+        }
+    }
+    fun updateMessage(message: Message){}
+    fun deleteMessage(message: Message, forOneToOne: Boolean = true, forMyself: Boolean = false):Boolean{
         //фича - удаление сообщений будет производится лишь у себя
         try {
             CoroutineScope(Dispatchers.IO).launch {
+                if(forMyself){
+                    messageRepository.deleteMessage(message)
+                    return@launch
+                }
                 if(forOneToOne){
                     //clientPartP2P.activeFriends.value
                     val activeChat = _activeChat.value!!
@@ -202,6 +216,7 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
 
 
     }
+
     fun copyToClipboard(context: Context, text: String):Boolean {
         // Получаем ClipboardManager
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

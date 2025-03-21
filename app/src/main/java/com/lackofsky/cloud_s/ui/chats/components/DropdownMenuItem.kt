@@ -1,13 +1,10 @@
 package com.lackofsky.cloud_s.ui.chats.components
 
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.Icon
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -20,13 +17,10 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import com.lackofsky.cloud_s.R
-import com.lackofsky.cloud_s.ui.chats.ChatDialogViewModel
 
 
 @Composable
-fun DropdownMenuItem(label:String, onCLick: ()->Boolean, @DrawableRes drawableIcon: Int){
+fun DropdownMenuItem(label:String, onCLick: () -> Unit, @DrawableRes drawableIcon: Int){
     TextButton(
         onClick = {
             onCLick()

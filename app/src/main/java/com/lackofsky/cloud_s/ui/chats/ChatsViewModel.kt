@@ -14,46 +14,48 @@ import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.database.repository.ChatRepository
 import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
+import com.lackofsky.cloud_s.service.ClientPartP2P
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
 class ChatsViewModel @Inject constructor(val userRepository: UserRepository,
-                                         val chatRepository: ChatRepository, val messageRepository: MessageRepository
+                                         val chatRepository: ChatRepository,
+                                         val messageRepository: MessageRepository,
+    val clientPartP2P: ClientPartP2P
 ) :ViewModel() {
-    private val _chats = MutableStateFlow<List<ChatListItem>?>(null)
-    val chats: StateFlow<List<ChatListItem>?> get() = _chats
+//    val chats: StateFlow<List<ChatListItem>?> = chatRepository.getChatListItems()
+//        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    init{
-        viewModelScope.launch {
-            chatRepository.getChatListItems().collect{
-                _chats.value = it
-            }
-        }
-
-//        chatRepository.getChatListItems().observeForever {
-//            chatList->chats.value =  chatList
-//        Log.d("GrimBerry 321 chatvm", chatList.toString())
+//    val chats: StateFlow<Map<ChatListItem, Boolean>> = chatRepository.getChatListItems().map { items->
+//        items.associateWith {item ->
+//            clientPartP2P.activeFriends.value.keys.any { it.uniqueID == item.chatName }
 //        }
 
-    }
-    //val chats = MutableLiveData<MutableSet<Chat>>(mutableSetOf())
-
-    //val chatDtoList = MutableLiveData<MutableSet<ChatDTO>>(mutableSetOf())
-//    init {
-//        userRepository.getAllUsers()
-////        for (i in 5..20) {
-////
-////            chats.value!!.add(Chat("chat " + i, "name " + i.toString(),ChatType.PRIVATE))
-//////            val i = getLastMessageFrom("")
-//////            i.value?.last()
-////        }
-//    }
-    /***
-     * Сделать навигацию к диалогу
-     * */
+//    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap() )
+val chats: StateFlow<Map<ChatListItem, Boolean>> = chatRepository.getChatListItems()
+        .combine(clientPartP2P.activeFriends) { chatItems, activeFriends ->
+            chatItems.associateWith { item ->
+                activeFriends.keys.any { it.uniqueID == item.chatName }
+            }
+        }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = emptyMap()
+    )
+val lastNoteMessage: StateFlow<Message?> = messageRepository.getLastNoteMessage().stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.Eagerly,
+    initialValue = null )
+val userOwner: StateFlow<User?> = clientPartP2P.userOwner
+    .stateIn(scope = viewModelScope, SharingStarted.Eagerly,
+    initialValue = null )
 }
