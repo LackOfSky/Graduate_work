@@ -1,4 +1,4 @@
-package com.lackofsky.cloud_s.service.media_server.model
+package com.lackofsky.cloud_s.service.netty_media_p2p.model
 
 data class MediaChunk(
     val fileName: String,

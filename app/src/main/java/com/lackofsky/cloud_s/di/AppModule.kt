@@ -17,14 +17,13 @@ import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.data.storage.StorageRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
-import com.lackofsky.cloud_s.service.media_server.NettyMediaServer
+import com.lackofsky.cloud_s.service.netty_media_p2p.NettyMediaServer
 import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.server.MediaDispatcher
 import com.lackofsky.cloud_s.service.server.NettyServer
 import com.lackofsky.cloud_s.service.server.discovery.DirectDiscoveryManager
 import com.lackofsky.cloud_s.service.server.discovery.DirectGroupManager
 import com.lackofsky.cloud_s.service.server.discovery.NSDManager
-import com.lackofsky.cloud_s.service.server.discovery.WiFiDirectManager
 import com.lackofsky.cloud_s.service.server.discovery.WiFiDirectService
 import dagger.Module
 import dagger.Provides

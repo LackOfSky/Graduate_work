@@ -49,7 +49,7 @@ class MediaHandler (private val messageRepository: MessageRepository,
         val data = gson.fromJson(msg, TransportData::class.java)
         Log.d("service $SERVICE_NAME message handler", "received: $data")
         when (data.messageType) {
-            MessageType.MESSAGE_MEDIA -> {
+            MessageType.REQUEST_MEDIA_SERVER -> {
                     if (mediaDispatcher.requestTransfer(data.senderId)) {
                         // Дозволяємо передачу та перенаправляємо запит до медіасервера
                         responseAccept(ctx)

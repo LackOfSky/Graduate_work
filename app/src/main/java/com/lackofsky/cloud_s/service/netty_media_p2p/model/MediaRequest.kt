@@ -1,13 +1,11 @@
-package com.lackofsky.cloud_s.service.media_server.model
-
-import android.telephony.CellIdentity
+package com.lackofsky.cloud_s.service.netty_media_p2p.model
 
 data class MediaRequest(    val fileName: String?,
                             val messageId: String = "", //now for MEDIA_EXTERNAL
                             val mimeType: String,
                             val fileSize: Long,
                             val checksum: String?,       // Контрольна сума файлу (наприклад, SHA-256 для перевірки цілісності)
-                            val chunkSize: Int,          // Розмір одного пакету (опціонально, якщо передається частинами)
+                            val chunkSize: Int?,          // Розмір одного пакету (опціонально, якщо передається частинами)
                             val transferMode: TransferMode,    // "streaming" або "multipart" (щоб знати, як серверу обробляти файл)
                             val senderId: String,       // Ідентифікатор відправника (якщо потрібно)
                             val transferMediaIntend: TransferMediaIntend

@@ -1,22 +1,19 @@
-package com.lackofsky.cloud_s.service.media_server
+package com.lackofsky.cloud_s.service.netty_media_p2p
 
 import android.content.Context
 import android.util.Log
 import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
-import com.lackofsky.cloud_s.service.media_server.handlers.MediaHandler
+import com.lackofsky.cloud_s.service.netty_media_p2p.handlers.MediaHandler
 import javax.inject.Inject
 import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.server.MediaDispatcher
-import com.lackofsky.cloud_s.service.server.handlers.LoggingHandler
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.handler.stream.ChunkedWriteHandler
-import io.netty.handler.traffic.GlobalTrafficShapingHandler
 import java.net.InetSocketAddress
 
 class NettyMediaServer @Inject constructor(

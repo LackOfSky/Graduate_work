@@ -5,6 +5,7 @@ import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.service.model.MessageKey
 import com.lackofsky.cloud_s.service.model.MessageType
+import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMediaIntend
 
 interface StrangerRequestInterface {
     fun sendFriendRequest(sendTo: User):Boolean    //Request.ADD
@@ -23,7 +24,8 @@ interface FriendRequestInterface {
 
 interface ChangesNotifierRequestInterface {
     fun userChangesNotifierRequest(sendTo: List<NettyClient>, user: User): Boolean
-    fun userInfoChangesNotifierRequest(sendTo: List<NettyClient>, userInfo: UserInfo): Boolean
+    fun userInfoTextChangesNotifierRequest(sendTo: List<NettyClient>, userInfo: UserInfo): Boolean
+    fun userInfoMediaChangesNotifierRequest(sendTo: List<NettyClient>, transferIntend: TransferMediaIntend): Boolean
     //fun defaultNotifierRequest(sendTo: List<NettyClient>, content: String,messageType: MessageType):Boolean
 }
 

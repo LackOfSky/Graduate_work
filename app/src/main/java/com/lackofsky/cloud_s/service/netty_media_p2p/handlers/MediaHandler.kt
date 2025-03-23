@@ -1,4 +1,4 @@
-package com.lackofsky.cloud_s.service.media_server.handlers
+package com.lackofsky.cloud_s.service.netty_media_p2p.handlers
 
 import android.content.ContentValues
 import android.content.Context
@@ -10,8 +10,8 @@ import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.data.storage.UserInfoStorageFolder
-import com.lackofsky.cloud_s.service.media_server.model.MediaRequest
-import com.lackofsky.cloud_s.service.media_server.model.TransferMediaIntend
+import com.lackofsky.cloud_s.service.netty_media_p2p.model.MediaRequest
+import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMediaIntend
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
@@ -23,7 +23,6 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
-import java.nio.channels.FileChannel
 
 
 class MediaHandler(private val context: Context,

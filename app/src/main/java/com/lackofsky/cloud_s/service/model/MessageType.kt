@@ -1,9 +1,9 @@
 package com.lackofsky.cloud_s.service.model
 
 enum class MessageType {
-    MESSAGE, MESSAGE_DELETE, MESSAGE_EDIT, MESSAGE_MEDIA, //user messages types
+    MESSAGE, MESSAGE_DELETE, MESSAGE_EDIT, REQUEST_MEDIA_SERVER, //user messages types
     USER_CONNECT,
-    USER_UPDATE, USER_INFO_UPDATE,
+    USER_UPDATE, USER_INFO_UPDATE, USER_INFO_MEDIA_UPDATE,
     USER_FRIEND_DELETE,
     STATUS, HANDSHAKE,
     REQUEST

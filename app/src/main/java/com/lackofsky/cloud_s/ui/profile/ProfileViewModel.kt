@@ -1,5 +1,6 @@
 package com.lackofsky.cloud_s.ui.profile
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
@@ -133,6 +134,7 @@ class ProfileViewModel @Inject constructor(
             sendTo = clientPartP2P.activeStrangers.value.values.toList(),
             user = user)
     }
+    @SuppressLint("SuspiciousIndentation")
     fun onConfirmUpdateAboutUser() = viewModelScope.launch {
         val info = userInfo.value!!.copy(about = _editUserInfo.value!!.about)
             userRepository.updateUserInfo(info)
@@ -141,6 +143,7 @@ class ProfileViewModel @Inject constructor(
                 userInfo = info
             )
     }
+    @SuppressLint("SuspiciousIndentation")
     fun onConfirmUpdateUserInfo() = viewModelScope.launch {
         val info = userInfo.value!!.copy(info = _editUserInfo.value!!.info)
             userRepository.updateUserInfo(info)
