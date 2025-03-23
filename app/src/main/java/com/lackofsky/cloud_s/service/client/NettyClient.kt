@@ -12,6 +12,7 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.string.StringDecoder
 import io.netty.handler.codec.string.StringEncoder
+import java.net.InetSocketAddress
 import java.nio.charset.Charset
 
 /***README
@@ -78,7 +79,14 @@ class NettyClient( private val host: String, private val port: Int) {//private v
         }
 
     }
-
+    fun getIpAddress(): String? {
+        val socketAddress = channel?.remoteAddress() as InetSocketAddress
+        return socketAddress.hostName
+    }
+    fun getPort(): Int {
+        val socketAddress = channel?.remoteAddress() as InetSocketAddress
+        return socketAddress.port
+    }
     fun close() {
         channel?.close()?.sync()
         group?.shutdownGracefully()

@@ -78,7 +78,8 @@ fun WelcomeScreen(screenController: NavHostController, viewModel: WelcomeViewMod
         Button(onClick = {
             viewModel.saveUser(
                 User(id = 1,fullName = fullName, login = login, uniqueID = uniqueID),
-                UserInfo(userId = uniqueID, about = about, info = info)
+                UserInfo(userId = uniqueID, about = about, info = info,
+                    iconImgURI = null, bannerImgURI = null)
             )
             screenController.navigate("main")
         }) {

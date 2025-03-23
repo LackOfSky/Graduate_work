@@ -17,7 +17,9 @@ import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.data.storage.StorageRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
+import com.lackofsky.cloud_s.service.media_server.NettyMediaServer
 import com.lackofsky.cloud_s.service.model.Metadata
+import com.lackofsky.cloud_s.service.server.MediaDispatcher
 import com.lackofsky.cloud_s.service.server.NettyServer
 import com.lackofsky.cloud_s.service.server.discovery.DirectDiscoveryManager
 import com.lackofsky.cloud_s.service.server.discovery.DirectGroupManager
@@ -91,6 +93,16 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
                            ): NettyServer {//friendResponseUseCase: FriendResponseUseCase
         return NettyServer(clientPartP2P, messageRepository,userRepository, chatRepository, metadata)
     }
+    @Provides
+    fun provideNettyMediaServer(@ApplicationContext context: Context,
+                                metadata: Metadata,
+                                mediaDispatcher: MediaDispatcher,
+                                userRepository: UserRepository,
+                                messageRepository: MessageRepository): NettyMediaServer {
+        return NettyMediaServer(context, metadata,mediaDispatcher, userRepository, messageRepository)
+    }
+    @Provides @Singleton
+    fun provideMediaDispatcher(): MediaDispatcher {return MediaDispatcher()}
     @Provides
     @Singleton
     fun provideMetadata():Metadata{

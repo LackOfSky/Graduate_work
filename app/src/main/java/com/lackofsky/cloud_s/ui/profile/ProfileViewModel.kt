@@ -22,19 +22,24 @@ import com.lackofsky.cloud_s.data.model.UserDTO
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.data.storage.StorageRepository
+import com.lackofsky.cloud_s.data.storage.UserInfoStorageFolder
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.client.usecase.ChangesNotifierUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -53,33 +58,33 @@ class ProfileViewModel @Inject constructor(
     val isInfoEdit: StateFlow<Boolean> = _isInfoEdit
 
 
-    private val _user = MutableStateFlow<User?>(null)
-    val user: StateFlow<User?> get() = _user
+    val user: StateFlow<User?> = userRepository.getUserOwner() .stateIn(scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = null)//get() = _user
+    private val _userInfo = MutableStateFlow<UserInfo?>(null)
+    val userInfo: StateFlow<UserInfo?> = _userInfo
+
+
+
+
+
     private val _editUser = MutableStateFlow<UserDTO?>(null)
     val editUser: StateFlow<UserDTO?> get() = _editUser
-
-    private val _userInfo = MutableStateFlow<UserInfo?>(null)
-    val userInfo: StateFlow<UserInfo?> get() = _userInfo
     private val _editUserInfo = MutableStateFlow<UserInfo?>(null)
     val editUserInfo: StateFlow<UserInfo?> get() = _editUserInfo
 
-    private val maxImageSize = 1000000
 
     init {
         viewModelScope.launch {
             userRepository.getUserOwner().collect { user ->
-                _user.value = user
                 _editUser.value =  UserDTO(
-                    user.id,
-                    user.fullName,
-                    user.login,
-                    user.ipAddr
-                )
-                Log.d("GrimBerry ui", "user: "+user.toString()+"\n "+"edit user: "+_editUser.value.toString())
+                    user.id, user.fullName, user.login, user.ipAddr
+            )
                 launch {
-                    userRepository.getUserInfoById(user.uniqueID).collect { userInfo ->
-                        _userInfo.value = userInfo
+                    userRepository.getUserInfoById(user.uniqueID).collect { info ->
+                        _userInfo.value = info
                         _editUserInfo.value = _userInfo.value
+                        Log.d("GrimBerry","_editUserInfo.value = ${_editUserInfo.value.toString()} userInfo")
                     }
                 }
             }
@@ -113,13 +118,13 @@ class ProfileViewModel @Inject constructor(
             _isInfoEdit.value = newValue
         }
 
-        fun onConfirmUpdate() = viewModelScope.launch {
-            _editUser.value?.let { userRepository.updateUser(_user.value!!.copy(login =it.login, fullName = it.fullName,)) }
-        }
     fun onConfirmUpdateNameLogin() = viewModelScope.launch {
-        val user = _user.value!!.copy(
+        val user = user.first()!!.copy(
             login = _editUser.value!!.login,
             fullName = _editUser.value!!.fullName)
+//        val user = _user.value!!.copy(
+//            login = _editUser.value!!.login,
+//            fullName = _editUser.value!!.fullName)
         userRepository.updateUser(user)
         changesNotifierUseCase.userChangesNotifierRequest(
             sendTo = clientPartP2P.activeFriends.value.values.toList(),
@@ -129,40 +134,30 @@ class ProfileViewModel @Inject constructor(
             user = user)
     }
     fun onConfirmUpdateAboutUser() = viewModelScope.launch {
-        _userInfo.value?.let{
-            val userInfo = it.copy(about = editUserInfo.value!!.about)
-
-            userRepository.updateUserInfo(userInfo)
+        val info = userInfo.value!!.copy(about = _editUserInfo.value!!.about)
+            userRepository.updateUserInfo(info)
             changesNotifierUseCase.userInfoChangesNotifierRequest(
                 sendTo = clientPartP2P.activeFriends.value.values.toList(),
-                userInfo = userInfo
+                userInfo = info
             )
-        }
-
     }
     fun onConfirmUpdateUserInfo() = viewModelScope.launch {
-        _userInfo.value?.let{
-            val userInfo = it.copy(info = editUserInfo.value!!.info)
-
-            userRepository.updateUserInfo(userInfo)
+        val info = userInfo.value!!.copy(info = _editUserInfo.value!!.info)
+            userRepository.updateUserInfo(info)
             changesNotifierUseCase.userInfoChangesNotifierRequest(
                 sendTo = clientPartP2P.activeFriends.value.values.toList(),
-                userInfo = userInfo
+                userInfo = info
             )
-        }
-
-
-
     }
 
     fun onCancelUpdate() = viewModelScope.launch {
-        Log.d("GrimBerry ui", _user.value.toString()+"\n "+_editUser.value.toString())
-        _editUser.value = UserDTO(_user.value!!.id,
-            _user.value!!.fullName,
-            _user.value!!.login,
-            _user.value!!.ipAddr
+        Log.d("GrimBerry ui", user.value.toString()+"\n "+_editUser.value.toString())
+        _editUser.value = UserDTO(user.value!!.id,
+            user.value!!.fullName,
+            user.value!!.login,
+            user.value!!.ipAddr
         )
-        _editUserInfo.value = _userInfo.value
+        _editUserInfo.value = userInfo.value
     }
     fun closeEdit(){
         _isHeaderEdit.value = false
@@ -172,59 +167,35 @@ class ProfileViewModel @Inject constructor(
 
 
     /*** settingNewImage*/
-    private val _selectedImageUri = MutableStateFlow<Uri?>(null)
-    val selectedImageUri: StateFlow<Uri?> = _selectedImageUri
+    private val _selectedIconUri = MutableStateFlow<Uri?>(null)
+    val selectedIconUri: StateFlow<Uri?> = _selectedIconUri
+    private val _selectedBannerUri = MutableStateFlow<Uri?>(null)
+    val selectedBannerUri: StateFlow<Uri?> = _selectedBannerUri
 
     fun setImageUri(uri: Uri?,context: Context) {
             CoroutineScope(Dispatchers.IO).launch {
-                try{
-                    compressImageToByteArray(uri!!, context = context)?.let {
-
-
-                        if (it.size < maxImageSize){
-                            userRepository.updateUserInfo(
-                                userInfo.value!!.copy(iconImg = it)
-                            )
-                        }
-                    }
-                }catch (e:Exception){
-                    //TODO("предупреждение большого обьема файла")
+                uri?.let {
+                    val uriToSave = storageRepository.saveFileFromUri(context, it, uri.lastPathSegment!!,
+                        folder=UserInfoStorageFolder.USER_ICONS)
+                    userRepository.updateUserInfo(
+                        userInfo.value!!.copy(iconImgURI = uriToSave.toString())
+                    )
+                    _selectedIconUri.value = uri
                 }
 
             }
-        //}
+
     }
     fun setBannerUri(context: Context,uri: Uri?) {
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                storageRepository.saveFileFromUri(context, uri!!, "profileBanner")
+            uri?.let {
+                val uriToSave = storageRepository.saveFileFromUri(context, it, uri.lastPathSegment!!,
+                    folder=UserInfoStorageFolder.USER_BANNERS)
                 userRepository.updateUserInfo(
-                    userInfo.value!!.copy(bannerImgURI = uri.path!!)
+                    userInfo.value!!.copy(bannerImgURI = uriToSave.toString())
                 )
-            }catch (e:Exception){
-                //todo
+                _selectedBannerUri.value = uri
             }
-
             }
-    }
-    fun getBannerBitmap(context: Context):Bitmap?{
-        return storageRepository.loadBitmapFromFilesDir(context = context, fileName = "profileBanner")
-    }
-    private suspend fun compressImageToByteArray(uri: Uri,context: Context): ByteArray? {
-        val imageLoader = ImageLoader(context)
-        return withContext(Dispatchers.IO) {
-            val request = ImageRequest.Builder(context)
-                .data(uri) // URI изображения
-                .size(256, 256) // Размер для сжатия
-                .build()
-
-            val result = imageLoader.execute(request).drawable
-            val bitmap = (result as? BitmapDrawable)?.bitmap ?: return@withContext null
-
-            // Преобразование Bitmap в ByteArray
-            val outputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream) // Сжатие в JPEG с 80% качеством
-            outputStream.toByteArray()
-        }
     }
 }

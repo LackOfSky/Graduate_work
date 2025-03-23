@@ -18,7 +18,7 @@ import com.lackofsky.cloud_s.data.model.User
 
 import com.lackofsky.cloud_s.data.model.UserInfo
 
-@Database(entities = [User::class, ChatMember::class, UserInfo::class, Chat::class,  Message::class, ReadMessage::class], version = 2)
+@Database(entities = [User::class, ChatMember::class, UserInfo::class, Chat::class,  Message::class, ReadMessage::class], version = 6)
 @TypeConverters(DateTypeConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao

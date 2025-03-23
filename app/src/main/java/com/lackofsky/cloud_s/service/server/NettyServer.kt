@@ -30,7 +30,6 @@ class NettyServer @Inject constructor(
     private val userRepository: UserRepository,
     private val chatRepository: ChatRepository,
     private val metadata: Metadata,
-//    private val friendResponseUseCase: FriendResponseUseCase
 )  {
     private val serviceName = metadata.serviceName
     private var boundPort = 0
@@ -41,7 +40,6 @@ class NettyServer @Inject constructor(
      fun start() {
         Log.d("service $serviceName. nettyServer", "starting nettyServer")
 
-        //Log.d("service $serviceName"+ " ip-addr :",getLocalIpAddress()!!)
         bossGroup = NioEventLoopGroup(1)
         workerGroup = NioEventLoopGroup()
         try {
@@ -56,7 +54,6 @@ class NettyServer @Inject constructor(
                         Log.i("service $serviceName server" , "Netty server. Connected as server to " +
                                 ch.pipeline().channel().remoteAddress())
                         //pipeline.addLast(SecurityHandler(isClient = true))  // TODO
-                        /*** abandoned*///pipeline.addLast(MplexHandler())  // Mplex для мультиплексирования
                         //pipeline.addLast(LengthFieldBasedFrameDecoder(1024, 0, 4, 0, 4))
                         //pipeline.addLast(LengthFieldPrepender(4))
                         pipeline.addLast(StringDecoder(Charset.forName("UTF-8")))
@@ -96,39 +93,6 @@ class NettyServer @Inject constructor(
     fun stop() {
         bossGroup.shutdownGracefully()
         workerGroup.shutdownGracefully()
-        //Log.d("$serviceName netty server", "stopped")
     }
 
-//    fun getLocalIpAddress(): String? {
-//
-//        Log.d(
-//            "service $serviceName" + " ip-addr :",
-//            NetworkInterface.getNetworkInterfaces().toString()
-//        )
-//        for (networkInterface in NetworkInterface.getNetworkInterfaces()) {
-//            Log.d("service $serviceName"+ " ip-addr :",networkInterface.name.toString()+networkInterface.inetAddresses.toString()+networkInterface.interfaceAddresses.toString())
-//            when {
-//                networkInterface.name.startsWith("p2p") -> {
-//                    /* Wi-Fi Direct */ }
-//                networkInterface.name.startsWith("bnep") -> { /* Bluetooth PAN */ }
-//                networkInterface.name.startsWith("rndis") -> { /* USB Tethering */ }
-//                else -> { /* Other */ }
-//            }
-//        }
-//
-//        val interfaces = NetworkInterface.getNetworkInterfaces()
-//        for (networkInterface in interfaces) {
-//            val addresses = networkInterface.inetAddresses
-//            for (address in addresses) {
-//                if (!address.isLoopbackAddress && address is InetAddress) {
-//                    val hostAddress = address.hostAddress
-//                    // Проверяем, что это IPv4-адрес
-//                    if (hostAddress.indexOf(':') < 0) {
-//                        return hostAddress
-//                    }
-//                }
-//            }
-//        }
-//        return null
-//    }
 }

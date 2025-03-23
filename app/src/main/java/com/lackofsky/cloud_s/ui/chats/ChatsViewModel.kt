@@ -53,7 +53,7 @@ val chats: StateFlow<Map<ChatListItem, Boolean>> = chatRepository.getChatListIte
     )
 val lastNoteMessage: StateFlow<Message?> = messageRepository.getLastNoteMessage().stateIn(
     scope = viewModelScope,
-    started = SharingStarted.Eagerly,
+    started = SharingStarted.Lazily,
     initialValue = null )
 val userOwner: StateFlow<User?> = clientPartP2P.userOwner
     .stateIn(scope = viewModelScope, SharingStarted.Eagerly,

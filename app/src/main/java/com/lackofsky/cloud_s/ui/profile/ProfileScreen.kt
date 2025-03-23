@@ -64,14 +64,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelProvider
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.lackofsky.cloud_s.data.model.UserDTO
 import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.ui.profile.components.UserInfoContent
 import dagger.hilt.android.internal.lifecycle.HiltViewModelFactory
+import java.io.File
+import java.io.InputStream
 
 @Composable
 fun ProfileScreen(modifier: Modifier = Modifier,
@@ -81,12 +88,13 @@ fun ProfileScreen(modifier: Modifier = Modifier,
     //val currentUser by viewModel.currentUser.collectAsState()
     val editUser by viewModel.editUser.collectAsState()
     val editUserInfo by viewModel.editUserInfo.collectAsState()
+    val userInfo by viewModel.userInfo.collectAsState()
 
 
     editUser?.let {
     LazyColumn( Modifier.fillMaxSize()) {
         item {
-            BannerPicker(viewModel = viewModel)
+            BannerPicker(viewModel = viewModel, userInfo = userInfo)
         }
         item {
             Card(
@@ -107,7 +115,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,
                             vertical = 8.dp
                         )
                 ) {
-                    ImagePicker(viewModel)
+                    ImagePicker(viewModel, userInfo = userInfo)
                     //todo editUserInfo.ico
 //                    Image(
 //                        painter = painterResource(id = R.drawable.atom_ico),
@@ -137,7 +145,7 @@ fun ProfileScreen(modifier: Modifier = Modifier,
 
         }
         item {
-            UserInfoContent(viewModel = viewModel, currentUser = it, currentUserInfo = editUserInfo)
+            UserInfoContent(viewModel = viewModel, currentUserInfo = editUserInfo)
         }
     }
     }
@@ -320,9 +328,8 @@ fun UserProfileFeachures(){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ImagePicker(viewModel: ProfileViewModel) {
-    val imageUri by viewModel.selectedImageUri.collectAsState()
-    val userInfo by viewModel.userInfo.collectAsState()
+fun ImagePicker(viewModel: ProfileViewModel, userInfo: UserInfo?) {
+    val imageUri by viewModel.selectedIconUri.collectAsState()
     val context = LocalContext.current
     // Лаунчер для выбора изображения
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -337,17 +344,23 @@ fun ImagePicker(viewModel: ProfileViewModel) {
                 colors = CardDefaults.cardColors(Color.White),
                 onClick = {imagePickerLauncher.launch("image/*")},
                 modifier = Modifier.clip(CircleShape)
+                    .width(width = 70.dp)
+                    .height(height = 70.dp)
             ) {
                 imageUri?.let { uri ->
-                    AsyncImage(
-                        model = uri,
-                        contentDescription = "Выбранное изображение",
-                        modifier = Modifier
-                            .width(width = 70.dp)
-                            .height(height = 70.dp)
-                            .clip(shape = RoundedCornerShape(28.dp))
-                    )
-                    viewModel.setImageUri(uri, context = LocalContext.current)
+                    Log.d("ImagePicker", uri.toString())
+                        if(File(uri.path!!).exists()){
+                            Image(
+                                painter = rememberAsyncImagePainter(model = uri),
+                                contentDescription = "User Icon",
+                                modifier = Modifier
+                                    .width(width = 70.dp)
+                                    .height(height = 70.dp)
+                                    .clip(shape = RoundedCornerShape(28.dp))
+                            )
+                        }else{
+                            DefaultIcon(userInfo)
+                        }
                 } ?: DefaultIcon(userInfo)
 
         }
@@ -356,20 +369,23 @@ fun ImagePicker(viewModel: ProfileViewModel) {
 }
 @Composable
 fun DefaultIcon(userInfo: UserInfo?){
-    var bitmap: Bitmap?
-    userInfo?.let {
-        try {
-            bitmap = BitmapFactory.decodeByteArray(it.iconImg, 0, it.iconImg.size)
-        } catch (e: Exception) {
-            bitmap = null
-        }
-
-        bitmap?.let { Image(bitmap = it.asImageBitmap(),
-            contentDescription = "Image",
-            modifier = Modifier
-                .width(width = 70.dp)
-                .height(height = 70.dp)
-                .clip(shape = RoundedCornerShape(28.dp)))
+        userInfo?.let{
+            it.iconImgURI?.let{
+                Image(
+                    painter = rememberAsyncImagePainter(model = it),
+                    contentDescription = "User Icon",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            } ?: Image(
+                painter = painterResource(id = R.drawable.atom_ico),//default image
+                contentDescription = "Image",
+                modifier = Modifier
+                    //.align(alignment = Alignment.Top)
+                    .width(width = 70.dp)
+                    .height(height = 70.dp)
+                    .clip(shape = RoundedCornerShape(28.dp))
+            )
         } ?: Image(
             painter = painterResource(id = R.drawable.atom_ico),//default image
             contentDescription = "Image",
@@ -378,23 +394,19 @@ fun DefaultIcon(userInfo: UserInfo?){
                 .width(width = 70.dp)
                 .height(height = 70.dp)
                 .clip(shape = RoundedCornerShape(28.dp))
-        ) //Или предыдущее изображение
-
-    }
-
+        )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BannerPicker(viewModel: ProfileViewModel) {
-    val imageUri by viewModel.selectedImageUri.collectAsState()
-//    val userInfo by viewModel.userInfo.observeAsState()
+fun BannerPicker(viewModel: ProfileViewModel, userInfo: UserInfo?) {
+    val imageUri by viewModel.selectedBannerUri.collectAsState()
     val context = LocalContext.current
     // Лаунчер для выбора изображения
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        viewModel.setBannerUri(context = context,uri) // Устанавливаем URI через ViewModel
+        viewModel.setBannerUri(context, uri) // Устанавливаем URI через ViewModel
     }
 
     // Кнопка для выбора изображения
@@ -403,45 +415,45 @@ fun BannerPicker(viewModel: ProfileViewModel) {
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(Color.White),
         onClick = {imagePickerLauncher.launch("image/*")},
-        modifier = Modifier.height(150.dp)
+        modifier = Modifier.height(150.dp).fillMaxWidth()
     ) {
         //todo editUserInfo.banner
-
         imageUri?.let { uri ->
-            AsyncImage(
-                model = uri,
-                contentDescription = "Выбранное изображение",
-                contentScale = ContentScale.FillWidth
-            )
-            viewModel.setImageUri(uri, context = LocalContext.current)
-        } ?: DefaultBanner(viewModel = viewModel)
+            if(File(uri.path!!).exists()){
+                Image(
+                    painter = rememberAsyncImagePainter(model = uri),
+                    contentDescription = "User Banner",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }else{
+                DefaultBanner(userInfo = userInfo)
+            }
+        } ?: DefaultBanner(userInfo = userInfo)
     }
 
 }
 @Composable
-fun DefaultBanner(viewModel: ProfileViewModel) {
-    val userInfo by viewModel.userInfo.collectAsState()
-    var bitmap: Bitmap?
-    val context = LocalContext.current
-
-    userInfo?.let {
-        try {
-            bitmap = viewModel.getBannerBitmap(context)
-        } catch (e: Exception) {
-            bitmap = null
-        }
-
-        bitmap?.let {
+fun DefaultBanner( userInfo: UserInfo?) {
+    userInfo?.let{
+        it.bannerImgURI?.let{
             Image(
-                bitmap = it.asImageBitmap(),
-                contentDescription = "Image",
-                contentScale = ContentScale.FillWidth
+                painter = rememberAsyncImagePainter(model = it),
+                contentDescription = "User Banner",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
             )
         } ?: Image(
-            bitmap = ImageBitmap.imageResource(R.drawable.banner),
+            painter = painterResource(id = R.drawable.banner),
             contentScale = ContentScale.FillWidth,
-            contentDescription = "BANNER"
-        )//getBannerUri
-
-    }
+            contentDescription = "BANNER",
+            modifier = Modifier.fillMaxSize()
+        )
+    }?: Image(
+        painter = painterResource(id = R.drawable.banner),
+        contentScale = ContentScale.FillWidth,
+        contentDescription = "BANNER",
+        modifier = Modifier.fillMaxSize()
+    )//getBannerUri
 }
+

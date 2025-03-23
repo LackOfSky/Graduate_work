@@ -59,8 +59,6 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalLayoutApi::class)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-//    private lateinit var p2PServer: Intent
-    // List of permissions to request
     private val permissionsList = listOf(
         Manifest.permission.ACCESS_WIFI_STATE,
         Manifest.permission.CHANGE_WIFI_STATE,

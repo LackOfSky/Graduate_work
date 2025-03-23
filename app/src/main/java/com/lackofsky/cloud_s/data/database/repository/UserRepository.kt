@@ -67,11 +67,16 @@ class UserRepository @Inject constructor(private val userDao: UserDao, private v
     }
 
     suspend fun insertUserInfo(userInfo: UserInfo) = userDao.insertUserInfo(userInfo)
+
+
+
+
     suspend fun updateUserInfo(userInfo: UserInfo){
         getUserInfoById(userInfo.userId).first().let {
             userDao.updateUserInfo(it.copy(info = userInfo.info,
                 about = userInfo.about,
-                iconImg = userInfo.iconImg))
+                iconImgURI = userInfo.iconImgURI,
+                bannerImgURI = userInfo.bannerImgURI))
             //TODO передача баннера
         }
 
@@ -79,8 +84,7 @@ class UserRepository @Inject constructor(private val userDao: UserDao, private v
 
     fun getUserById(id: Int): Flow<User> = userDao.getUserById(id)
     fun getUserByUniqueID(uniqueID: String): Flow<User> = userDao.getUserByUniqueID(uniqueID)
-    fun getUserInfoById(uniqueID: String?,
-                        friendRequestUseCase: FriendRequestUseCase? = null): Flow<UserInfo>{
+    fun getUserInfoById(uniqueID: String?): Flow<UserInfo>{
         /***  #payload
          * make request to client, if userInfo is empty
          * * подумать, куда перенести (в бэкэнде обычно к репозиторию стучит сервис-уровень)*/

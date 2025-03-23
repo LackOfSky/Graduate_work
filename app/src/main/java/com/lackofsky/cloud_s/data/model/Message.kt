@@ -33,12 +33,22 @@ data class Message (
     val content: String,
     @ColumnInfo(name = "sentAt")
     val sentAt: Date = Date(),
-//    val version: Int = 1,
     @ColumnInfo(name = "syncStatus")
-    val syncStatus: SyncStatus = SyncStatus.PENDING
+    val syncStatus: SyncStatus = SyncStatus.PENDING,
+
+    //upd
+    @ColumnInfo(name = "replyMessageId")
+    val replyMessageId: String? = null,
+    @ColumnInfo(name = "contentType")
+    val contentType: MessageContentType = MessageContentType.TEXT,
+    @ColumnInfo(name = "mediaUri")
+    val mediaUri: String? = null
 )
 enum class SyncStatus {
     PENDING, SYNCED, FAILED
+}
+enum class MessageContentType {
+    TEXT, IMAGE, AUDIO, VIDEO, LOCATION, CONTACT, DOCUMENT
 }
 
 class DateTypeConverter {

@@ -174,7 +174,9 @@ class NettyServerHandler(
                         Request.APPROVE -> { //+зеркало
                             /*** approving a requested stranger*/
                             userRepository.insertUser(sender)
-                            userRepository.insertUserInfo(UserInfo(sender.uniqueID))
+                            userRepository.insertUserInfo(UserInfo(sender.uniqueID,
+                                iconImgURI = null,
+                                bannerImgURI = null))
                             clientPartP2P.removeRequestedStranger(sender)
 
                             clientPartP2P.addStrangerToFriend(sender.uniqueID)
@@ -183,7 +185,6 @@ class NettyServerHandler(
                         }
                     }
                 }
-
                 else -> { TODO("not implemented yet OR skipped target handler") }
             }
         }

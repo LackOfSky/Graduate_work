@@ -2,6 +2,7 @@ package com.lackofsky.cloud_s.ui.chats.components
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -46,8 +47,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: Pair<ChatListItem, Boolean>) {
     var isIconExist by remember { mutableStateOf(false) }
 
-    var bitmap: Bitmap?
-    bitmap = null
+    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
 
 //    val friendPlaceholder by viewModel.currentUser.collectAsState()//TODO friends placeholder
 //    val strangers by viewModel.strangers.collectAsState()
@@ -64,6 +64,7 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: Pair<Cha
         ) {
             try{//пересмотреть, возможно не актуально
                 chatListItem.first.userIcon?.let {
+                    if(it.isEmpty()) return@let
                     bitmap = BitmapFactory.decodeByteArray(it, 0, it.size)
                     isIconExist = true
                 }
@@ -71,6 +72,7 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: Pair<Cha
                 isIconExist = false
             }
             if(isIconExist){
+                Log.d("GrimBerry", "ChatItem exist: $isIconExist, ${bitmap!!.height} ${bitmap!!.width}")
                 bitmap?.let {
                     Image(
                         bitmap = it.asImageBitmap(),//            painter = painterResource(id = R.drawable.atom_ico),

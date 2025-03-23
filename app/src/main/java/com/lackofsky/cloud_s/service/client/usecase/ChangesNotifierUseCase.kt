@@ -23,7 +23,7 @@ class ChangesNotifierUseCase @Inject constructor(val gson: Gson, val clientPartP
         return defaultNotifierRequest(sendTo, content, MessageType.USER_UPDATE)
     }
     override fun userInfoChangesNotifierRequest(sendTo: List<NettyClient>, userInfo: UserInfo): Boolean {
-        val info = userInfo.copy(bannerImgURI = "", iconImg = ByteArray(0))
+        val info = userInfo.copy(bannerImgURI = "", iconImgURI = "")
         val content = gson.toJson(info)
         //TODO SEND MEDIA REQUEST
         return defaultNotifierRequest(sendTo, content, MessageType.USER_UPDATE)

@@ -74,10 +74,14 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
     val isSelectingMode: StateFlow<Boolean> = _isSelectingMode
 
     //private val _isFriendOnline = MutableStateFlow(false)//= clientPartP2P.friendsOnline.map { friends -> friends.any { it.uniqueID == _activeChat.value!!.name } }
-    val isFriendOnline: StateFlow<Boolean> get() = clientPartP2P.friendsOnline.map {
+    val isFriendOnline: StateFlow<Boolean> = clientPartP2P.friendsOnline.map { //get()
         friends -> friends.any{
             it.uniqueID == _activeChat.value?.name && _activeChat.value?.type == ChatType.PRIVATE}
     }.stateIn(viewModelScope, SharingStarted.Lazily, false)//_isFriendOnline
+
+//    val _isFriendOffline: StateFlow<Boolean> = clientPartP2P.friendsOnline.combine(_activeChat){
+//        friends, chat -> friends.any{chat!!.name == it.uniqueID && ChatType.PRIVATE}
+//    }
 
     init {
 //        CoroutineScope(Dispatchers.IO).launch {

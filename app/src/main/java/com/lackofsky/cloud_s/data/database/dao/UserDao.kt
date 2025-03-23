@@ -32,11 +32,13 @@ interface UserDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUserInfo(userInfo: UserInfo)
+
     @Update
     suspend fun updateUserInfo(userInfo: UserInfo)
 
     @Query("SELECT * FROM users WHERE userId > 1")
     fun getAllUsers(): Flow<List<User>>
+
     @Query("SELECT * FROM users WHERE userId = 1")
     fun getUserOwner(): Flow<User>
 

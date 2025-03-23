@@ -41,15 +41,7 @@ class MessageHandler(private val messageRepository: MessageRepository,
             try {
                 val data = gson.fromJson(msg, TransportData::class.java)
                 Log.d("service $SERVICE_NAME message handler", "received: $data")
-
-//                if (
                     processMessage(ctx, data, msg)
-//                    ) {
-//
-//                } else {
-//                    ctx.fireChannelRead(msg)
-//                }
-
             } catch (e: JsonParseException) {
                 Log.e(
                     "service $SERVICE_NAME message handler",

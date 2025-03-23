@@ -36,7 +36,7 @@ import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.ui.profile.ProfileViewModel
 
 @Composable
-fun UserInfoContent(viewModel: ProfileViewModel, currentUser: UserDTO, currentUserInfo: UserInfo?) {
+fun UserInfoContent(viewModel: ProfileViewModel, currentUserInfo: UserInfo?) {
     val isAboutEdit by viewModel.isAboutEdit.collectAsState(initial = false)
     val isInfoEdit by viewModel.isInfoEdit.collectAsState(initial = false)
     currentUserInfo?.let {
