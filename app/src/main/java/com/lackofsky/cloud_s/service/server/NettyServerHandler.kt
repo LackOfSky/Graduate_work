@@ -185,6 +185,9 @@ class NettyServerHandler(
                         }
                     }
                 }
+                MessageType.REQUEST_MEDIA_SERVER->{
+                    /*** at mediadispatcher */ throw Exception("Skipped mediadispatcher")
+                }
                 else -> { TODO("not implemented yet OR skipped target handler") }
             }
         }

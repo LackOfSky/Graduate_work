@@ -211,8 +211,8 @@ class NettyMediaClient(
                     ctx.writeAndFlush(Unpooled.wrappedBuffer(buffer, 0, bytesRead))
                 }
             }
-
             Log.d(TAG, "Файл успешно отправлен: $uri")
+            ctx.close()
         }
 }
 

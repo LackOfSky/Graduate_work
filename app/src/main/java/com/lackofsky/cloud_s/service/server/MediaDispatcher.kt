@@ -2,6 +2,7 @@ package com.lackofsky.cloud_s.service.server
 
 
 import android.provider.MediaStore
+import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMediaIntend
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -44,5 +45,11 @@ enum class MediaResponseStatus { QUEUETED, ACCEPTED, REJECTED }
 
 data class MediaResponse(val status: MediaResponseStatus,
                          val msIpAddress: String?,
-                         val msPort: Int?
+                         val msPort: Int?,
+                         val requestedIntend: TransferMediaIntend?,
+                         val messageId: String?/*** if intend = MEDIA_EXTERNAL  (message media)*/
+)
+data class MediaRequest(
+                       val requestedIntend: TransferMediaIntend,
+                       val messageId: String?/*** if intend = MEDIA_EXTERNAL  (message media)*/
 )

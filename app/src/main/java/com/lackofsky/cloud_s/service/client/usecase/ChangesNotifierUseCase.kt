@@ -10,6 +10,7 @@ import com.lackofsky.cloud_s.service.client.ChangesNotifierRequestInterface
 import com.lackofsky.cloud_s.service.client.NettyClient
 import com.lackofsky.cloud_s.service.model.MessageType
 import com.lackofsky.cloud_s.service.model.TransportData
+import com.lackofsky.cloud_s.service.server.MediaRequest
 import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMediaIntend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +43,10 @@ class ChangesNotifierUseCase @Inject constructor(val gson: Gson, val clientPartP
             Log.e("GrimBerry ChangesNotifierUseCase", "userInfoMediaChangesNotifierRequest: TransferMediaIntend.MEDIA_EXTERNAL is not allowed here")
             return false
         }
-        val content = gson.toJson(transferIntend)
+
+        val content = gson.toJson(
+            MediaRequest(transferIntend, null)
+        )
         return mediaNotifierRequest(sendTo, content, MessageType.REQUEST_MEDIA_SERVER)
     }
 

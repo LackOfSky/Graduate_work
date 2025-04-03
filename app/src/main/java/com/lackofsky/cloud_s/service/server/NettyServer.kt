@@ -7,7 +7,10 @@ import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.model.Peer
+import com.lackofsky.cloud_s.service.netty_media_p2p.NettyMediaClient
+import com.lackofsky.cloud_s.service.netty_media_p2p.NettyMediaServer
 import com.lackofsky.cloud_s.service.server.handlers.LoggingHandler
+import com.lackofsky.cloud_s.service.server.handlers.MediaHandler
 import com.lackofsky.cloud_s.service.server.handlers.MessageHandler
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelHandlerContext
@@ -30,6 +33,9 @@ class NettyServer @Inject constructor(
     private val userRepository: UserRepository,
     private val chatRepository: ChatRepository,
     private val metadata: Metadata,
+    private val mediaDispatcher: MediaDispatcher,
+    private val mediaServer: NettyMediaServer,
+    private val mediaClient: NettyMediaClient
 )  {
     private val serviceName = metadata.serviceName
     private var boundPort = 0
@@ -65,6 +71,8 @@ class NettyServer @Inject constructor(
 //                            userRepository,
 //                            chatRepository,
 //                            clientPartP2P))
+                        pipeline.addLast(MediaHandler(userRepository, mediaDispatcher,
+                            mediaClient, clientPartP2P, mediaServer))
                         pipeline.addLast(NettyServerHandler( // Основний обробник для всіх повідомлень (на данному етапі)
                             messageRepository,
                             userRepository,
