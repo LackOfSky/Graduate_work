@@ -10,6 +10,7 @@ import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.model.MessageType
+import com.lackofsky.cloud_s.service.model.ResponseData
 import com.lackofsky.cloud_s.service.model.TransportData
 import com.lackofsky.cloud_s.service.netty_media_p2p.NettyMediaClient
 import com.lackofsky.cloud_s.service.netty_media_p2p.NettyMediaServer
@@ -58,7 +59,7 @@ class MediaHandler (private val userRepository: UserRepository,
                     if (mediaDispatcher.requestTransfer(data.senderId)) {
                         val request = gson.fromJson(data.content, MediaRequest::class.java)
                         // Дозволяємо передачу та перенаправляємо запит до медіасервера
-                        responseAccept(ctx, request )
+                        responseAccept(ctx, request)
                     } else {
                         // Відправляємо клієнту повідомлення "Зачекайте"
                         responseQueueted(ctx)
@@ -96,18 +97,27 @@ class MediaHandler (private val userRepository: UserRepository,
     }
     private fun responseAccept(ctx: ChannelHandlerContext,response: MediaRequest) {
         // Тут логіка перекидання запиту на медіасервер (наприклад, через інший Netty-клієнт)
-        ctx.writeAndFlush(MediaResponse(
-            MediaResponseStatus.ACCEPTED,
-            mediaDispatcher.mediaServerAddress!!,
-            mediaDispatcher.mediaServerPort!!,
-            response.requestedIntend,
-            response.messageId)
+
+        val responseJson = gson.toJson(
+            MediaResponse(
+                MediaResponseStatus.ACCEPTED,
+                mediaDispatcher.mediaServerAddress!!,
+                mediaDispatcher.mediaServerPort!!,
+                response.requestedIntend,
+                response.messageId)
         )
+        response(ctx, responseJson)
     }
     private fun responseQueueted(ctx: ChannelHandlerContext){
-        ctx.writeAndFlush(MediaResponse(
-            MediaResponseStatus.QUEUETED,null,null, null, null
-        ) )
+        val responseJson = gson.toJson(
+            MediaResponse(MediaResponseStatus.QUEUETED,null,null, null, null)
+        )
+        response(ctx, responseJson)
+    }
+    private fun response(ctx: ChannelHandlerContext, responseJson: String){
+        //todo proect this
+        val transportData = gson.toJson(ResponseData("response", responseJson))
+        ctx.writeAndFlush(transportData)
     }
 }
 

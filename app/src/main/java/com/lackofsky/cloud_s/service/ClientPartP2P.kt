@@ -1,5 +1,6 @@
 package com.lackofsky.cloud_s.service
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -16,6 +17,7 @@ import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.model.Peer
 import com.lackofsky.cloud_s.service.model.TransportData
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

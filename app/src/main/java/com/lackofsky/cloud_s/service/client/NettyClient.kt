@@ -1,6 +1,8 @@
 package com.lackofsky.cloud_s.service.client
 
+import android.content.Context
 import android.util.Log
+import com.lackofsky.cloud_s.service.netty_media_p2p.NettyMediaClient
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
@@ -14,6 +16,7 @@ import io.netty.handler.codec.string.StringDecoder
 import io.netty.handler.codec.string.StringEncoder
 import java.net.InetSocketAddress
 import java.nio.charset.Charset
+import javax.inject.Inject
 
 /***README
  * На каждого пира вверхней иерархии будет создаваться отдельный клиент, с которым будет вестись общение на уровне выше
@@ -24,6 +27,8 @@ class NettyClient( private val host: String, private val port: Int) {//private v
     private var channel: Channel? = null
     private var group: EventLoopGroup? = null
     val TAG = "GrimBerry NettyClient"
+    @Inject
+    private lateinit var context: Context
     fun connect(addActiveUserCallback: (()->Unit)? = null ,
                 removeActiveUserCallback:(()->Unit)? = null) {
             group = NioEventLoopGroup()
