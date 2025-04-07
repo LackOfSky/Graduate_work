@@ -26,6 +26,7 @@ import com.lackofsky.cloud_s.data.storage.StorageRepository
 import com.lackofsky.cloud_s.data.storage.UserInfoStorageFolder
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.client.usecase.ChangesNotifierUseCase
+import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMediaIntend
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -138,19 +139,19 @@ class ProfileViewModel @Inject constructor(
     fun onConfirmUpdateAboutUser() = viewModelScope.launch {
         val info = userInfo.value!!.copy(about = _editUserInfo.value!!.about)
             userRepository.updateUserInfo(info)
-            changesNotifierUseCase.userInfoChangesNotifierRequest(
-                sendTo = clientPartP2P.activeFriends.value.values.toList(),
-                userInfo = info
-            )
+        changesNotifierUseCase.userInfoTextChangesNotifierRequest(
+            sendTo = clientPartP2P.activeFriends.value.values.toList(),
+            userInfo = info
+        )
     }
     @SuppressLint("SuspiciousIndentation")
     fun onConfirmUpdateUserInfo() = viewModelScope.launch {
         val info = userInfo.value!!.copy(info = _editUserInfo.value!!.info)
             userRepository.updateUserInfo(info)
-            changesNotifierUseCase.userInfoChangesNotifierRequest(
-                sendTo = clientPartP2P.activeFriends.value.values.toList(),
-                userInfo = info
-            )
+        changesNotifierUseCase.userInfoTextChangesNotifierRequest(
+            sendTo = clientPartP2P.activeFriends.value.values.toList(),
+            userInfo = info
+        )
     }
 
     fun onCancelUpdate() = viewModelScope.launch {
@@ -184,6 +185,11 @@ class ProfileViewModel @Inject constructor(
                         userInfo.value!!.copy(iconImgURI = uriToSave.toString())
                     )
                     _selectedIconUri.value = uri
+
+                    changesNotifierUseCase.userInfoMediaChangesNotifierRequest(
+                        sendTo = clientPartP2P.activeFriends.value.values.toList(),
+                        transferIntend = TransferMediaIntend.MEDIA_USER_LOGO
+                    )
                 }
 
             }
@@ -198,7 +204,12 @@ class ProfileViewModel @Inject constructor(
                     userInfo.value!!.copy(bannerImgURI = uriToSave.toString())
                 )
                 _selectedBannerUri.value = uri
+
+                changesNotifierUseCase.userInfoMediaChangesNotifierRequest(
+                    sendTo = clientPartP2P.activeFriends.value.values.toList(),
+                    transferIntend = TransferMediaIntend.MEDIA_USER_BANNER
+                )
             }
-            }
+        }
     }
 }

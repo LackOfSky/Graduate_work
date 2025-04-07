@@ -159,16 +159,16 @@ fun TopBar(modifier: Modifier = Modifier,drawerState: DrawerState,scope:Coroutin
                 //tint = Color(0xff1d1b20)
             )
         }
-        Card(
-            elevation = CardDefaults.cardElevation(1.dp),
-            colors = CardDefaults.cardColors(Color.White),
-        ) {
-            Text(text = "Main page",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier
-                    .padding(10.dp,10.dp,60.dp,10.dp)
-            )
-        }
+//        Card(
+//            elevation = CardDefaults.cardElevation(1.dp),
+//            colors = CardDefaults.cardColors(Color.White),
+//        ) {
+//            Text(text = "Main page",
+//                style = MaterialTheme.typography.titleLarge,
+//                modifier = Modifier
+//                    .padding(10.dp,10.dp,60.dp,10.dp)
+//            )
+//        }
 
         //settings
         Button(
@@ -222,12 +222,12 @@ fun DrawerContent(onMenuItemClick: (String) -> Unit) {
         Button(onClick = { onMenuItemClick("Messages") }) {
             Text(text = "Messages")
         }
-        Button(onClick = { onMenuItemClick("QR") }) {
-            Text(text = "QR")
-        }
-        Button(onClick = { onMenuItemClick("Testing") }) {
-            Text(text = "testing wifi-direct direct")
-        }
+//        Button(onClick = { onMenuItemClick("QR") }) {
+//            Text(text = "QR")
+//        }
+//        Button(onClick = { onMenuItemClick("Testing") }) {
+//            Text(text = "testing wifi-direct direct")
+//        }
         Divider(Modifier.width(100.dp))
         MySwitch()
         HostSwitch()

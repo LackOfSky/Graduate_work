@@ -27,8 +27,6 @@ class NettyClient( private val host: String, private val port: Int) {//private v
     private var channel: Channel? = null
     private var group: EventLoopGroup? = null
     val TAG = "GrimBerry NettyClient"
-    @Inject
-    private lateinit var context: Context
     fun connect(addActiveUserCallback: (()->Unit)? = null ,
                 removeActiveUserCallback:(()->Unit)? = null) {
             group = NioEventLoopGroup()

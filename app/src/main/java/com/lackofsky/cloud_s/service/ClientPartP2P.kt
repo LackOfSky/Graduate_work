@@ -16,6 +16,7 @@ import com.lackofsky.cloud_s.service.model.MessageType
 import com.lackofsky.cloud_s.service.model.Metadata
 import com.lackofsky.cloud_s.service.model.Peer
 import com.lackofsky.cloud_s.service.model.TransportData
+import com.lackofsky.cloud_s.service.netty_media_p2p.NettyMediaClient
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -154,7 +155,7 @@ class ClientPartP2P @Inject constructor(
 //    }
         fun addActiveUser(user: User) {
             CoroutineScope(Dispatchers.IO).launch {
-                val client = NettyClient(user.ipAddr, user.port)
+                val client = NettyClient(user.ipAddr, user.port)//nettyMediaClient
                 client.connect(
                     removeActiveUserCallback = {
                     removeActiveUser(
@@ -263,7 +264,7 @@ class ClientPartP2P @Inject constructor(
             }
 
         }
-
+/*** takes user and send message by user uniqueId*/
         fun sendMessage(activeFriend: User, message: Message): Boolean {
 
             val client = _activeFriends.value.entries.find { it.key.uniqueID == activeFriend.uniqueID }?.value

@@ -51,5 +51,6 @@ data class MediaResponse(val status: MediaResponseStatus,
 )
 data class MediaRequest(
                        val requestedIntend: TransferMediaIntend,
+                       val userUniqueId: String,
                        val messageId: String?/*** if intend = MEDIA_EXTERNAL  (message media)*/
 )

@@ -103,6 +103,12 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
                                 messageRepository: MessageRepository): NettyMediaServer {
         return NettyMediaServer(context, metadata,mediaDispatcher, userRepository, messageRepository)
     }
+    @Provides
+    fun provideNettyMediaClient(@ApplicationContext context: Context,
+                                userRepository: UserRepository,
+                                messageRepository: MessageRepository): NettyMediaClient{
+        return NettyMediaClient(context,userRepository, messageRepository)
+    }
     @Provides @Singleton
     fun provideMediaDispatcher(): MediaDispatcher {return MediaDispatcher()}
     @Provides

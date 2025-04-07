@@ -43,9 +43,9 @@ class ChangesNotifierUseCase @Inject constructor(val gson: Gson, val clientPartP
             Log.e("GrimBerry ChangesNotifierUseCase", "userInfoMediaChangesNotifierRequest: TransferMediaIntend.MEDIA_EXTERNAL is not allowed here")
             return false
         }
-
+        val user = clientPartP2P.userOwner.value
         val content = gson.toJson(
-            MediaRequest(transferIntend, null)
+            MediaRequest(transferIntend, userUniqueId = user!!.uniqueID, null)
         )
         return mediaNotifierRequest(sendTo, content, MessageType.REQUEST_MEDIA_SERVER)
     }

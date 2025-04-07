@@ -6,8 +6,11 @@ import android.provider.OpenableColumns
 import android.util.Log
 import androidx.core.net.toUri
 import com.google.gson.Gson
+import com.lackofsky.cloud_s.data.database.repository.MessageRepository
+import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.User
+import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.service.model.Peer
 import com.lackofsky.cloud_s.service.netty_media_p2p.model.MediaRequest
 import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMediaIntend
@@ -24,7 +27,11 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
 import java.net.InetSocketAddress
 import io.netty.handler.stream.ChunkedFile
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.FileInputStream
 import java.io.InputStream
@@ -32,10 +39,14 @@ import java.nio.charset.StandardCharsets
 
 
 class NettyMediaClient(
-    val context: Context): MediaClientInterface {
-    val TAG = "GrimBerry NettyMediaClient"
+    val context: Context,
+    val userRepository: UserRepository,
+    val messageRepository: MessageRepository): MediaClientInterface {
 
-    override fun sendMessageFile(message: Message, sender: User,
+    val TAG = "GrimBerry NettyMediaClient"
+    val userOwner: Flow<User> = userRepository.getUserOwner()
+
+    override suspend fun sendMessageFile(message: Message, sender: User,
         serverIpAddr: String, serverPort: Int): Boolean {
         val uri = message.mediaUri!!.toUri()
         val fileDetails = getFileDetails(uri)
@@ -58,28 +69,28 @@ class NettyMediaClient(
 
     }
 
-        override fun sendUserLogoFile(
+        override suspend fun sendUserLogoFile(
             uri: Uri, sender: User,
             serverIpAddr: String, serverPort: Int
         ): Boolean {
             val fileDetails = getFileDetails(uri)
             fileDetails?.let {
-                val mediaRequest = MediaRequest(
-                    fileName = fileDetails.name,
-                    mimeType = fileDetails.mimeType,
-                    fileSize = fileDetails.size,
-                    checksum = null,// TODO
-                    chunkSize = null, //TODO додавати в подальших хендлерах, в наступних версіях
-                    transferMode = TransferMode.MULTIPART, //todo
-                    senderId = sender.uniqueID,
-                    transferMediaIntend = TransferMediaIntend.MEDIA_USER_LOGO
-                )
+                    val mediaRequest = MediaRequest(
+                        fileName = fileDetails.name,
+                        mimeType = fileDetails.mimeType,
+                        fileSize = fileDetails.size,
+                        checksum = null,// TODO
+                        chunkSize = null, //TODO додавати в подальших хендлерах, в наступних версіях
+                        transferMode = TransferMode.MULTIPART, //todo
+                        senderId = userRepository.getUserOwner().first().uniqueID,//sender.uniqueID,
+                        transferMediaIntend = TransferMediaIntend.MEDIA_USER_LOGO
+                    )
                 return sendFile(uri = uri, mediaRequest = mediaRequest,
                     serverIpAddr, serverPort)
             } ?: return false
         }
 
-        override fun sendUserBannerFile(
+        override suspend fun sendUserBannerFile(
             uri: Uri, sender: User,
             serverIpAddr: String, serverPort: Int
         ): Boolean {
@@ -218,9 +229,9 @@ class NettyMediaClient(
 
 
 interface MediaClientInterface {
-    fun sendMessageFile(message: Message, sender: User,serverIpAddr: String, serverPort:Int): Boolean //sender = userOwner
-    fun sendUserLogoFile(uri: Uri, sender: User, serverIpAddr: String, serverPort:Int): Boolean
-    fun sendUserBannerFile(uri: Uri, sender: User, serverIpAddr: String, serverPort:Int): Boolean
+    suspend fun sendMessageFile(message: Message, sender: User,serverIpAddr: String, serverPort:Int): Boolean //sender = userOwner
+    suspend fun sendUserLogoFile(uri: Uri,sender: User,  serverIpAddr: String, serverPort:Int): Boolean //
+    suspend fun sendUserBannerFile(uri: Uri, sender: User, serverIpAddr: String, serverPort:Int): Boolean
 }
 
 data class FileDetails(

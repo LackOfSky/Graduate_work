@@ -15,7 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class NettyClientHandler() : SimpleChannelInboundHandler<String>() {//val sharedState:SharedState
+class NettyClientHandler : SimpleChannelInboundHandler<String>() {//val sharedState:SharedState
     val gson = GsonBuilder().create()
     override fun channelActive(ctx: ChannelHandlerContext?) {
     }
@@ -42,6 +42,9 @@ class NettyClientHandler() : SimpleChannelInboundHandler<String>() {//val shared
 //                    when(mediaResponse.requestedIntend){
 //                        TransferMediaIntend.MEDIA_USER_LOGO -> {
 //                            //TODO(открыть клиент)
+////                            nettyMediaClient.sendUserLogoFile(
+////
+////                            )
 //                            mediaResponse.msIpAddress
 //                            mediaResponse.msPort
 //                        }
