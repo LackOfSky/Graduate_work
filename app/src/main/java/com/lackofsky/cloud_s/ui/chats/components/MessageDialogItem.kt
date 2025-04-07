@@ -32,15 +32,22 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.data.model.Message
+import com.lackofsky.cloud_s.data.model.MessageContentType
 import com.lackofsky.cloud_s.ui.chats.ChatDialogViewModel
 
-
 @Composable
-fun MessageDialogItem(message: Message,viewModel: ChatDialogViewModel = hiltViewModel(),
+fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltViewModel(),
                       isFriendOnline: Boolean = false, isNotesChat: Boolean = true) {
-    //рыба
+    // рыба
     var isUserOwner by remember { mutableStateOf(viewModel.isFromOwner(message.userId)) }
     var isSelected by remember { mutableStateOf(false) }
     val isSelectingMode by viewModel.isSelectingMode.collectAsState()
@@ -57,7 +64,7 @@ fun MessageDialogItem(message: Message,viewModel: ChatDialogViewModel = hiltView
                     vertical = 8.dp
                 )
                 .padding(
-                    start = if (isUserOwner) 40.dp else 0.dp,//TODO check user
+                    start = if (isUserOwner) 40.dp else 0.dp, // TODO check user
                     end = if (isUserOwner) 0.dp else 40.dp
                 )
                 .clip(
@@ -68,16 +75,13 @@ fun MessageDialogItem(message: Message,viewModel: ChatDialogViewModel = hiltView
                         bottomEnd = 8.dp
                     )
                 )
-           // ,horizontalArrangement = if (true) Arrangement.End else Arrangement.Start
-
         ) {
-            Card(//navigate
+            Card( // navigate
                 elevation = CardDefaults.cardElevation(2.dp),
-                colors = CardDefaults.cardColors( if(isSelected) Color.LightGray else Color.White ),
-//                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(if (isSelected) Color.LightGray else Color.White),
                 modifier = Modifier
                     .padding(3.dp, 6.dp)
-                    .pointerInput(Unit) {//Clickable
+                    .pointerInput(Unit) { // Clickable
                         detectTapGestures(
                             onTap = {
                                 if (isSelectingMode) {
@@ -85,7 +89,7 @@ fun MessageDialogItem(message: Message,viewModel: ChatDialogViewModel = hiltView
                                     viewModel.selectedMessage(message, isSelected)
                                 } else {
                                     isExpandedItemMenu = true
-                                    //TODO("Логика CRUD-ОПЕРАЦИЙ")
+                                    // TODO("Логика CRUD-ОПЕРАЦИЙ")
                                 }
                             },
                             onLongPress = {
@@ -96,24 +100,46 @@ fun MessageDialogItem(message: Message,viewModel: ChatDialogViewModel = hiltView
                             }
                         )
                     }
-//                    .clip(
-//                        shape = RoundedCornerShape(
-//                            topStart = 18.dp,
-//                            topEnd = 18.dp,
-//                            bottomStart = 18.dp,
-//                            bottomEnd = 8.dp
-//                        )
-//                    )
             ) {
                 Column(modifier = Modifier.padding(8.dp)) {
-                    Text(
-                        text = message.content,
-                        color = if (false) Color.White else Color.Black,
-                        lineHeight = 1.8.em,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
+                    when (message.contentType) {
+                        MessageContentType.TEXT -> {
+                            Text(
+                                text = message.content,
+                                color = if (false) Color.White else Color.Black,
+                                lineHeight = 1.8.em,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            )
+                        }
+                        MessageContentType.IMAGE -> {
+                            message.mediaUri?.let { uri ->
+                                Box(modifier = Modifier.size(200.dp, 200.dp)) {
+                                    Image(
+                                        painter = rememberAsyncImagePainter(model = ImageRequest.Builder(context)
+                                            .data(uri)
+                                            .crossfade(true)
+                                            .build()
+                                        ),
+                                        contentDescription = "Image",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Fit
+                                    )
+                                }
+                            }
+                        }
+                        // Добавьте обработку других типов контента (AUDIO, VIDEO, LOCATION, CONTACT, DOCUMENT) по аналогии
+                        else -> {
+                            Text(
+                                text = "Unsupported content type",
+                                color = Color.Red,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            )
+                        }
+                    }
                     Text(
                         text = message.sentAt.toString(), // Дата отправки
                         style = MaterialTheme.typography.labelSmall,
@@ -126,31 +152,30 @@ fun MessageDialogItem(message: Message,viewModel: ChatDialogViewModel = hiltView
         DropdownMenu(
             expanded = isExpandedItemMenu,
             onDismissRequest = { isExpandedItemMenu = false },
-
             offset = DpOffset(80.dp, 0.dp), // Offset to adjust menu position
             modifier = Modifier
                 .padding(10.dp)
                 .background(Color.Transparent)
-                .widthIn(min=100.dp,max=180.dp)
+                .widthIn(min = 100.dp, max = 180.dp)
         ) {
-            //todo иконки под поля
-
-            DropdownMenuItem(label = "reply", onCLick = {/*TODO()*/true}, drawableIcon = R.drawable.baseline_reply_24)//baseline_reply_16
+            DropdownMenuItem(label = "reply", onCLick = { /*TODO()*/ true }, drawableIcon = R.drawable.baseline_reply_24) // baseline_reply_16
             Divider()
-            DropdownMenuItem(label = "redirect", onCLick = {/*TODO()*/true}, drawableIcon = R.drawable.baseline_redo_24)
-            DropdownMenuItem(label = "copy", onCLick = { viewModel.copyToClipboard(context = context,message.content) }, drawableIcon = R.drawable.baseline_content_copy_24)
-            if(!isNotesChat){
-                DropdownMenuItem(label = "delete for everyone", onCLick = {viewModel.deleteMessage(message)}, drawableIcon = R.drawable.baseline_clear_20)
+            DropdownMenuItem(label = "redirect", onCLick = { /*TODO()*/ true }, drawableIcon = R.drawable.baseline_redo_24)
+            DropdownMenuItem(label = "copy", onCLick = { viewModel.copyToClipboard(context = context, message.content) }, drawableIcon = R.drawable.baseline_content_copy_24)
+            if (!isNotesChat) {
+                DropdownMenuItem(label = "delete for everyone", onCLick = { viewModel.deleteMessage(message) }, drawableIcon = R.drawable.baseline_clear_20)
             }
             DropdownMenuItem(
                 label = "delete", onCLick = {
-                if (isFriendOnline && isNotesChat.not()){
-                    viewModel.deleteMessage(message, forMyself = true)
-                }else{
-                    viewModel.deleteNotedMessage(message)
-                }
-                                                                       },
-                drawableIcon = R.drawable.baseline_clear_20)
+                    if (isFriendOnline && isNotesChat.not()) {
+                        viewModel.deleteMessage(message, forMyself = true)
+                    } else {
+                        viewModel.deleteNotedMessage(message)
+                    }
+                },
+                drawableIcon = R.drawable.baseline_clear_20
+            )
+            // Добавьте дополнительные опции для медиа, если необходимо
         }
     }
 }

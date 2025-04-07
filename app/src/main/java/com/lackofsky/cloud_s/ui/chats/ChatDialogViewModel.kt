@@ -3,6 +3,7 @@ package com.lackofsky.cloud_s.ui.chats
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.LiveData
@@ -172,6 +173,15 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
             }
 
         }
+    }
+
+    private val _uriItem = MutableStateFlow<Uri?>(null)
+    val uriItem: StateFlow<Uri?> = _uriItem
+    private val _isMediaAttached = MutableStateFlow(false) //.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val isMediaAttached: StateFlow<Boolean> = _isMediaAttached
+    fun attachMedia(uriItem: Uri?){//todo for list Uri
+        _uriItem.update { uriItem }
+        _isMediaAttached.value =  (uriItem != null)
     }
     fun deleteNotedMessage(message: Message){
         CoroutineScope(Dispatchers.IO).launch {

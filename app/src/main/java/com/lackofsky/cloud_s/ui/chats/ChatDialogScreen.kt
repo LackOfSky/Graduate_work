@@ -1,6 +1,10 @@
 package com.lackofsky.cloud_s.ui.chats
 
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,9 +42,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.rememberAsyncImagePainter
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.ui.ShowToast
 import com.lackofsky.cloud_s.ui.chats.components.MessageDialogItem
@@ -67,7 +73,10 @@ fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewMo
 
         ) {
             if(!isNotesChat){
-                Row(Modifier.padding(end = 16.dp).align(Alignment.CenterHorizontally),){
+                Row(
+                    Modifier
+                        .padding(end = 16.dp)
+                        .align(Alignment.CenterHorizontally),){
                     Text(text = activeUser?.fullName.orEmpty(),style = MaterialTheme.typography.titleLarge)
                     Text(text = if (isFriendOnline) "Online" else "Offline",
                         style = MaterialTheme.typography.bodySmall,
@@ -169,9 +178,10 @@ fun MessagesList(viewModel: ChatDialogViewModel, modifier: Modifier = Modifier,
 fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel = hiltViewModel(),
                    isFriendOnline: Boolean = false, isNotesChat: Boolean = true) {
     var messageText by remember { mutableStateOf("") }
-
     var showToast by remember { mutableStateOf(false) }
 
+    val isMediaAttached by viewModel.isMediaAttached.collectAsState()
+    val uriItem by viewModel.uriItem.collectAsState()
     Row(
         horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.Start),
         verticalAlignment = Alignment.CenterVertically,
@@ -181,6 +191,27 @@ fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel
             .background(color = Color(0xfff3edf7))
             .padding(bottom = 40.dp)
     ) {
+        if (isMediaAttached){
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = modifier
+                    .requiredHeight(height = 96.dp)
+                    .background(color = Color(0xffece6f0))
+            ){
+                Text("pinned: ")
+                Image(
+                    painter = rememberAsyncImagePainter(model = uriItem),
+                    contentDescription = "User Icon",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+                Spacer(modifier = Modifier.width(40.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_clear_20),//mood
+                    contentDescription = "stash_Pinned",
+                    tint = Color(0xff1d1b20))
+            }
+        }
         Row(
             horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
             verticalAlignment = Alignment.CenterVertically,
@@ -244,14 +275,19 @@ fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel
 //                                tint = Color(0xff49454f))
                 }
             }
-            AttachButton()
+            AttachButton(viewModel)
         }
     }
 }
 @Composable
-fun AttachButton(){
+fun AttachButton(viewModel: ChatDialogViewModel){
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        viewModel.attachMedia(uri)
+    }
     IconButton(
-        onClick = { }
+        onClick = {imagePickerLauncher.launch("image/*") }
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
