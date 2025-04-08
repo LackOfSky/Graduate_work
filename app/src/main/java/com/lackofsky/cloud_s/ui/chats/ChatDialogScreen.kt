@@ -2,26 +2,34 @@ package com.lackofsky.cloud_s.ui.chats
 
 import android.net.Uri
 import android.util.Log
+import android.widget.ImageButton
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -87,6 +96,7 @@ fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewMo
             }
 
             MessagesList(viewModel, isFriendOnline = isFriendOnline, isNotesChat = isNotesChat)
+            PinnedMedia(viewModel = viewModel)
         }
     }
 }
@@ -179,9 +189,8 @@ fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel
                    isFriendOnline: Boolean = false, isNotesChat: Boolean = true) {
     var messageText by remember { mutableStateOf("") }
     var showToast by remember { mutableStateOf(false) }
-
     val isMediaAttached by viewModel.isMediaAttached.collectAsState()
-    val uriItem by viewModel.uriItem.collectAsState()
+    val context = LocalContext.current
     Row(
         horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.Start),
         verticalAlignment = Alignment.CenterVertically,
@@ -191,27 +200,7 @@ fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel
             .background(color = Color(0xfff3edf7))
             .padding(bottom = 40.dp)
     ) {
-        if (isMediaAttached){
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = modifier
-                    .requiredHeight(height = 96.dp)
-                    .background(color = Color(0xffece6f0))
-            ){
-                Text("pinned: ")
-                Image(
-                    painter = rememberAsyncImagePainter(model = uriItem),
-                    contentDescription = "User Icon",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
-                Spacer(modifier = Modifier.width(40.dp))
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_clear_20),//mood
-                    contentDescription = "stash_Pinned",
-                    tint = Color(0xff1d1b20))
-            }
-        }
+
         Row(
             horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
             verticalAlignment = Alignment.CenterVertically,
@@ -245,8 +234,8 @@ fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel
             )
             IconButton(//ButtonSend
                 onClick = { if(isFriendOnline or isNotesChat) {
-                    if (messageText.isNotBlank()) {
-                        viewModel.sendMessage(messageText)
+                    if (messageText.isNotBlank() || isMediaAttached) {
+                        viewModel.sendMessage(context, messageText)
                         messageText = ""
                     }
                 }else {
@@ -317,9 +306,64 @@ fun AttachButton(viewModel: ChatDialogViewModel){
     }
 }
 
-//@Preview(widthDp = 412, heightDp = 910)
-//@Preview(widthDp = 360, heightDp = 800)
-//@Composable
-//private fun ExamplesMessagingMobilePreview() {
-//    ExamplesMessagingMobile(Modifier)
-//}
+@Composable
+fun PinnedMedia(viewModel: ChatDialogViewModel){
+    val isMediaAttached by viewModel.isMediaAttached.collectAsState()
+    val uriItem by viewModel.uriItem.collectAsState()
+
+    if (isMediaAttached){
+        Card(//navigate
+            elevation = CardDefaults.cardElevation(10.dp),
+            colors = CardDefaults.cardColors(Color.White),
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier.requiredHeight(height = 200.dp)
+//                .height(80.dp)
+//                .padding(1.dp, 2.dp)
+//                .clickable {
+//
+//                }
+        ) {
+            Column() {
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Text("pinned: ",
+                        Modifier
+                            .height(25.dp)
+                            .padding(start = 10.dp, top = 5.dp))
+                    IconButton(
+                        onClick = { viewModel.attachMedia(null) },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .requiredSize(25.dp)
+                            .padding(end = 10.dp, top = 5.dp)
+
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_clear_20),
+                            contentDescription = "stash_Pinned",
+                            tint = Color(0xFF1D1B20)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .requiredHeight(height = 160.dp)
+                       // .background(color = Color(0xffece6f0))
+                ) {
+
+                    Image(
+                        painter = rememberAsyncImagePainter(model = uriItem),
+                        contentDescription = "User Icon",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .heightIn(max = 150.dp)
+                            .widthIn(max = 150.dp)
+                    )
+                }
+            }
+        }
+    }
+}

@@ -1,5 +1,6 @@
 package com.lackofsky.cloud_s.ui.chats.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +37,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -114,6 +116,7 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                             )
                         }
                         MessageContentType.IMAGE -> {
+                            Log.d("GrimBerry mdi",message.mediaUri +" message mediaUri")
                             message.mediaUri?.let { uri ->
                                 Box(modifier = Modifier.size(200.dp, 200.dp)) {
                                     Image(
@@ -128,12 +131,29 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                                     )
                                 }
                             }
+                            Divider(Modifier.fillMaxWidth())
+                            Text(
+                                text = message.content,
+                                color = if (false) Color.White else Color.Black,
+                                lineHeight = 1.8.em,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            )
                         }
                         // Добавьте обработку других типов контента (AUDIO, VIDEO, LOCATION, CONTACT, DOCUMENT) по аналогии
                         else -> {
                             Text(
                                 text = "Unsupported content type",
                                 color = Color.Red,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            )
+                            Text(
+                                text = message.content,
+                                color = if (false) Color.White else Color.Black,
+                                lineHeight = 1.8.em,
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier
                                     .fillMaxWidth()

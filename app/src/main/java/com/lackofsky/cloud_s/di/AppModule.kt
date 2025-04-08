@@ -139,8 +139,8 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     }
     @Provides
     @Singleton
-    fun provideStorageRepository():StorageRepository{
-        return StorageRepository()
+    fun provideStorageRepository(metadata: Metadata):StorageRepository{
+        return StorageRepository(metadata)
     }
 
     @Provides

@@ -6,6 +6,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -20,6 +21,9 @@ import com.lackofsky.cloud_s.data.database.repository.ChatRepository
 import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.ReadMessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
+import com.lackofsky.cloud_s.data.model.MessageContentType
+import com.lackofsky.cloud_s.data.storage.StorageRepository
+import com.lackofsky.cloud_s.data.storage.UserInfoStorageFolder
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.client.usecase.MessageRequestUseCase
 import com.lackofsky.cloud_s.service.model.MessageKey
@@ -45,6 +49,7 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                                               private val chatRepository: ChatRepository,
                                               private val chatMemberRepository: ChatMemberRepository,
                                               private val clientPartP2P: ClientPartP2P,
+                                              private val storageRepository: StorageRepository,
     private val messageRequestUseCase: MessageRequestUseCase
                                               //private val readMessageRepository: ReadMessageRepository
     ): ViewModel() {
@@ -134,14 +139,23 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
 
     }
 
-    fun sendMessage(text: String){//todo change to sendPrivateMessage
+    fun sendMessage(context: Context,text: String){//todo change to sendPrivateMessage
         CoroutineScope(Dispatchers.IO).launch {
-            //val chatId = _activeChat.value!!.chatId
+
             val ownId = activeUserOwner.value!!.uniqueID
-            val messageToSave = Message(
-                        userId = activeUserOwner.value!!.uniqueID,
+
+            var messageToSave = Message(
+                userId = activeUserOwner.value!!.uniqueID,
                 chatId = _activeChat.value!!.chatId ,// у власника чат айді = _activeChat.value!!.chatId, у другої сторони = айді власника
                 content = text)
+            _uriItem.value?.let{uri ->
+                val newUri = storageRepository.saveImageToGallery(context, uri, uri.lastPathSegment!!)
+                messageToSave = messageToSave.copy(
+                    mediaUri = newUri.toString(), contentType = MessageContentType.IMAGE,
+                )
+                attachMedia(null)
+
+            }
 
             Log.d("GrimBerry chatDialogVM", "chatMembers.value ${chatMembers.value.toString()} ")
             //if(chatMembers.value.isNullOrEmpty()){//TODO (СКОРЕЕ всего проверка должна быть на = 1)

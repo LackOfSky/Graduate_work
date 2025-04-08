@@ -30,7 +30,7 @@ data class Message (
     @ColumnInfo(name = "userId")
     val userId: String,//unique user ID
     @ColumnInfo(name = "messageContent")
-    val content: String,
+    val content: String = "",
     @ColumnInfo(name = "sentAt")
     val sentAt: Date = Date(),
     @ColumnInfo(name = "syncStatus")
