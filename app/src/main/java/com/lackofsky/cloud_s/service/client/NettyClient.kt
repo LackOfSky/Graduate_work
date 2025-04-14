@@ -82,9 +82,9 @@ class NettyClient( private val host: String, private val port: Int) {//private v
         }
 
     }
-    fun getIpAddress(): String? {
-        val socketAddress = channel?.remoteAddress() as InetSocketAddress
-        return socketAddress.hostName
+
+    fun getChannelIpAddress(): String{
+        return host
     }
     fun getPort(): Int {
         val socketAddress = channel?.remoteAddress() as InetSocketAddress

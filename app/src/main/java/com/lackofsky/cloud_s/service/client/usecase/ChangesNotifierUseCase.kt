@@ -70,7 +70,7 @@ class ChangesNotifierUseCase @Inject constructor(val gson: Gson, val clientPartP
                         val json = gson.toJson(transportData)
                         client.sendMessage(json)
                     }catch (e: Exception){
-                        Log.d("service $SERVICE_NAME :changesNotifierUseCase", "defaultNotifierRequest: exception $e at client ip ${client.getIpAddress()}")
+                        Log.d("service $SERVICE_NAME :changesNotifierUseCase", "defaultNotifierRequest: exception $e at client ip ${client.getChannelIpAddress()}")
                     }
                 }
             }catch (e: Exception){
@@ -95,7 +95,7 @@ class ChangesNotifierUseCase @Inject constructor(val gson: Gson, val clientPartP
                         val json = gson.toJson(transportData)
                         client.sendMessage(json)
                     }catch (e: Exception){
-                        Log.d("service $SERVICE_NAME :changesNotifierUseCase", "mediaNotifierRequest: exception $e at client ip ${client.getIpAddress()}")
+                        Log.d("service $SERVICE_NAME :changesNotifierUseCase", "mediaNotifierRequest: exception $e at client ip ${client.getChannelIpAddress()}")
                         throw e
                     }
                 }

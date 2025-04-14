@@ -2,6 +2,7 @@ package com.lackofsky.cloud_s.service
 
 import android.content.Context
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -38,7 +39,8 @@ import javax.jmdns.impl.DNSRecord.IPv6Address
 class ClientPartP2P @Inject constructor(
     private val gson: Gson,
     private val userRepository: UserRepository,
-    private val metadata: Metadata
+    private val metadata: Metadata,
+    private val mediaClient: NettyMediaClient
 ) {
     // Поток данных для обмена между компонентами
     private val TAG = "GrimBerry P2P (clientPart)"
@@ -320,6 +322,26 @@ class ClientPartP2P @Inject constructor(
                 }
             }
         }
+
+    suspend fun sendMediaLogo(userUniqueId: String, port: Int){
+        Log.d("service $SERVICE_NAME :client sendML", "sending")
+        val client  = activeFriends.value.entries.find { it.key.uniqueID == userUniqueId }
+        Log.d("service $SERVICE_NAME :client sendML", "userUniqueId = $userUniqueId, ${activeFriends.value.entries.toString()}")
+
+        client?.let {
+            val ipAddr = it.value.getChannelIpAddress()
+            val isSuccess = mediaClient.sendUserLogoFile(uri = userInfo.value!!.iconImgURI!!.toUri(),
+                sender = userOwner.value!!,
+                serverIpAddr = ipAddr,
+                serverPort = port)
+            if (isSuccess) {
+                Log.d("service $SERVICE_NAME :client sendML", "success")
+            } else {
+                Log.d("service $SERVICE_NAME :client sendML", "failed")
+            }
+        }?: Log.e("service $SERVICE_NAME :client sendML", "client is null")
+
+    }
     fun onDestroy(info: String){
         CoroutineScope(Dispatchers.IO).launch {
         _activeFriends.update { map ->

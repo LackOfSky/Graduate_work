@@ -72,7 +72,7 @@ class NettyServer @Inject constructor(
 //                            chatRepository,
 //                            clientPartP2P))
                         pipeline.addLast(MediaHandler(userRepository, mediaDispatcher,
-                            mediaClient, clientPartP2P, mediaServer))
+                             clientPartP2P, mediaServer))//mediaClient,
                         pipeline.addLast(NettyServerHandler( // Основний обробник для всіх повідомлень (на данному етапі)
                             messageRepository,
                             userRepository,
@@ -84,8 +84,10 @@ class NettyServer @Inject constructor(
 
             val channelFuture = bootstrap.bind(boundPort).sync()
                 boundPort = (channelFuture.channel().localAddress() as InetSocketAddress).port
+            mediaDispatcher.setMediaServerAddress(channelFuture.channel().localAddress().toString())
 
                 Log.d("service $serviceName", "started at port: $boundPort")//InetAddress.getLocalHost()
+            mediaServer.start()
             channelFuture.channel().closeFuture().sync()
         } finally {
             bossGroup.shutdownGracefully()
@@ -99,6 +101,7 @@ class NettyServer @Inject constructor(
         return boundPort
     }
     fun stop() {
+        mediaServer.stop()
         bossGroup.shutdownGracefully()
         workerGroup.shutdownGracefully()
     }

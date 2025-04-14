@@ -75,9 +75,9 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
     }
     @Provides
     @Singleton
-    fun provideClientPartP2P(gson: Gson, userRepository: UserRepository, metadata: Metadata
+    fun provideClientPartP2P(gson: Gson, userRepository: UserRepository, metadata: Metadata, mediaClient: NettyMediaClient
     ): ClientPartP2P {
-        return ClientPartP2P(gson, userRepository,metadata)
+        return ClientPartP2P(gson, userRepository,metadata, mediaClient)
     }
     @Provides
     fun provideNotificationManager(@ApplicationContext context: Context): NotificationManager {
@@ -100,17 +100,20 @@ fun provideDatabase(@ApplicationContext appContext: Context): AppDatabase {
                                 metadata: Metadata,
                                 mediaDispatcher: MediaDispatcher,
                                 userRepository: UserRepository,
-                                messageRepository: MessageRepository): NettyMediaServer {
-        return NettyMediaServer(context, metadata,mediaDispatcher, userRepository, messageRepository)
+                                messageRepository: MessageRepository, gson: Gson): NettyMediaServer {
+        return NettyMediaServer(context, metadata,mediaDispatcher, userRepository, messageRepository, gson)
     }
     @Provides
     fun provideNettyMediaClient(@ApplicationContext context: Context,
                                 userRepository: UserRepository,
-                                messageRepository: MessageRepository): NettyMediaClient{
-        return NettyMediaClient(context,userRepository, messageRepository)
+                                messageRepository: MessageRepository, gson: Gson): NettyMediaClient{
+        return NettyMediaClient(context,userRepository, messageRepository, gson = gson)
     }
-    @Provides @Singleton
-    fun provideMediaDispatcher(): MediaDispatcher {return MediaDispatcher()}
+    @Provides
+    @Singleton
+    fun provideMediaDispatcher(): MediaDispatcher {
+        return MediaDispatcher()
+    }
     @Provides
     @Singleton
     fun provideMetadata():Metadata{

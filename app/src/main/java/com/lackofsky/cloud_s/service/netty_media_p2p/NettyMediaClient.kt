@@ -16,6 +16,7 @@ import com.lackofsky.cloud_s.service.netty_media_p2p.model.MediaRequest
 import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMediaIntend
 import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMode
 import io.netty.bootstrap.Bootstrap
+import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
@@ -27,12 +28,14 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
 import java.net.InetSocketAddress
 import io.netty.handler.stream.ChunkedFile
+import io.netty.util.CharsetUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
@@ -41,7 +44,8 @@ import java.nio.charset.StandardCharsets
 class NettyMediaClient(
     val context: Context,
     val userRepository: UserRepository,
-    val messageRepository: MessageRepository): MediaClientInterface {
+    val messageRepository: MessageRepository,
+    val gson: Gson): MediaClientInterface {
 
     val TAG = "GrimBerry NettyMediaClient"
     val userOwner: Flow<User> = userRepository.getUserOwner()
@@ -111,29 +115,82 @@ class NettyMediaClient(
             } ?: return false
         }
 
-    private fun getFileDetails(uri: Uri): FileDetails? {
-        var fileName: String? = null
-        var fileSize: Long? = null
-        val mimeType: String? = context.contentResolver.getType(uri)
+//    private fun getFileDetails(uri: Uri): FileDetails? {
+//        var fileName: String? = null
+//        var fileSize: Long? = null
+//        val mimeType: String? = context.contentResolver.getType(uri)
+//
+//        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+//            val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+//            val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+//
+//            if (cursor.moveToFirst()) {
+//                fileName = if (nameIndex != -1) cursor.getString(nameIndex) else null
+//                fileSize = if (sizeIndex != -1) cursor.getLong(sizeIndex) else null
+//            }
+//        }
+//        Log.d(TAG, "getFileDetails: $fileName, $mimeType, $fileSize")
+//        try {
+//            return FileDetails(fileName!!, mimeType!!, fileSize!!)
+//        }catch (e: Exception){
+//            Log.d(TAG, "getFileDetails: $e. filename = ${fileName}, mimeType = ${mimeType}, fileSize = ${fileSize}")
+//            return null
+//        }
+//
+//    }
+private fun getFileDetails(uri: Uri): FileDetails? {
+    val contentResolver = context.contentResolver
+    val scheme = uri.scheme
 
-        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-            val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+    var fileName: String? = null
+    var fileSize: Long? = null
+    var mimeType: String? = null
 
-            if (cursor.moveToFirst()) {
-                fileName = if (nameIndex != -1) cursor.getString(nameIndex) else null
-                fileSize = if (sizeIndex != -1) cursor.getLong(sizeIndex) else null
+    return try {
+        when (scheme) {
+            "content" -> {
+                mimeType = contentResolver.getType(uri)
+                contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+                    if (cursor.moveToFirst()) {
+                        fileName = if (nameIndex != -1) cursor.getString(nameIndex) else null
+                        fileSize = if (sizeIndex != -1) cursor.getLong(sizeIndex) else null
+                    }
+                }
+            }
+            "file" -> {
+                val file = File(uri.path!!)
+                fileName = file.name
+                fileSize = file.length()
+                mimeType = contentResolver.getType(uri) ?: guessMimeType(file)
             }
         }
-        try {
-            return FileDetails(fileName!!, mimeType!!, fileSize!!)
-        }catch (e: Exception){
-            Log.d(TAG, "getFileDetails: $e. filename = ${fileName}, mimeType = ${mimeType}, fileSize = ${fileSize}")
-            return null
+
+        if (fileName != null && fileSize != null && mimeType != null) {
+            FileDetails(fileName!!, mimeType, fileSize!!)
+        } else {
+            Log.d(TAG, "getFileDetails: filename = ${fileName}, mimeType = ${mimeType}, fileSize = ${fileSize}")
+            Log.d(TAG, "getFileDetails: some values are null -> fileName=$fileName, mimeType=$mimeType, fileSize=$fileSize")
+            null
         }
 
+    } catch (e: Exception) {
+        Log.e(TAG, "getFileDetails error: $e")
+        Log.d(TAG, "getFileDetails: $e. filename = ${fileName}, mimeType = ${mimeType}, fileSize = ${fileSize}")
+        null
     }
-
+}
+    private fun guessMimeType(file: File): String {
+        return when (file.extension.lowercase()) {
+            "jpg", "jpeg" -> "image/jpeg"
+            "png" -> "image/png"
+            "gif" -> "image/gif"
+            "mp4" -> "video/mp4"
+            "mp3" -> "audio/mpeg"
+            else -> "application/octet-stream"
+        }
+    }
         /*** */
         private fun sendFile(
             uri: Uri, mediaRequest: MediaRequest,
@@ -148,33 +205,34 @@ class NettyMediaClient(
                     .handler(object : ChannelInitializer<Channel>() {
                         override fun initChannel(ch: Channel) {
                             ch.pipeline()
-                                .addLast(object : SimpleChannelInboundHandler<ByteArray>() {
+                                .addLast(object : SimpleChannelInboundHandler<ByteBuf>() {
                                     override fun channelActive(ctx: ChannelHandlerContext) {
                                         Log.d(
                                             TAG,
                                             "Подключено к серверу ${ctx.channel().remoteAddress()}"
                                         )
+                                        Log.d(TAG, "sendMetadata ${mediaRequest}")
                                         sendMetadata(
                                             ctx,
                                             mediaRequest
                                         ) //сделать обработчик пайплайн. отправка реквеста, передача следующему обработчику
+
                                         sendFileData(
                                             ctx,
                                             uri
                                         )//сделать следующий обработчик пайплайн. разбиваем файл на куски в список строк и отправляем пользователю кусками установленной длинны.
                                         // так же данный обработчик должен будет принимать ответы сервера: который может кидать json chunk_request, chunkId={}, и будет отвечать ему нужным куском
-
+                                        ctx.writeAndFlush(Unpooled.copiedBuffer("FILE_TRANSFER_COMPLETE\n", CharsetUtil.UTF_8))
+                                        Log.d("MediaClient", "FILE_TRANSFER_COMPLETE.")
                                     }
 
-                                    /*** TODO remake this */
-                                    override fun channelRead0(
-                                        ctx: ChannelHandlerContext,
-                                        msg: ByteArray
-                                    ) {
-                                        Log.d(TAG, "Ответ от сервера: ${String(msg)}")
 
-                                        if (String(msg).startsWith("UPLOAD_SUCCESS")) {
-                                            //TODO відповідь сервера
+
+                                    /*** TODO remake this */
+                                    override fun channelRead0(ctx: ChannelHandlerContext, msg: ByteBuf) {
+                                        val response = msg.toString(CharsetUtil.UTF_8).trim()
+                                        Log.d(TAG, "Ответ от сервера: $response")
+                                        if (response == "UPLOAD_SUCCESS") {
                                             ctx.close()
                                         }
                                     }
@@ -183,17 +241,18 @@ class NettyMediaClient(
                                         ctx: ChannelHandlerContext,
                                         cause: Throwable
                                     ) {
-                                        Log.e(TAG, "Ошибка Netty клиента: ${cause.message}")
+                                        Log.e(TAG, "Ошибка Netty клиента: ${cause.message}", cause)
                                         ctx.close()
                                     }
                                 })
                         }
                     })
-
+                Log.d(TAG, "Подключение к серверу... ${serverIpAddr}  ${serverPort}")
                 val channel = bootstrap.connect(serverIpAddr, serverPort).sync().channel()
                 channel.closeFuture().sync()
                 true
             } catch (e: Exception) {
+
                 Log.e(TAG, "Ошибка отправки файла: ${e.message}")
                 false
             } finally {
@@ -203,28 +262,77 @@ class NettyMediaClient(
 
         /*** */
         private fun sendMetadata(ctx: ChannelHandlerContext, mediaRequest: MediaRequest) {
-            val metadataJson = Gson().toJson(mediaRequest)
-            val buffer = Unpooled.wrappedBuffer(metadataJson.toByteArray(Charsets.UTF_8))
-            ctx.writeAndFlush(buffer)
+            val metadataJson = gson.toJson(mediaRequest)+ "\n"
+//            val buffer = Unpooled.wrappedBuffer(metadataJson.toByteArray(Charsets.UTF_8)) //Unpooled.wrappedBuffer()
+//            ctx.writeAndFlush(buffer)//
+//            val json = Gson().toJson(mediaRequest) + "\n"
+            ctx.writeAndFlush(Unpooled.copiedBuffer(metadataJson, CharsetUtil.UTF_8))
+
+//            val buffer: ByteBuf = Unpooled.copiedBuffer(metadataJson, CharsetUtil.UTF_8)
+//            ctx.writeAndFlush(buffer)
         }
 
         private fun sendFileData(ctx: ChannelHandlerContext, uri: Uri) {
-            val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-            if (inputStream == null) {
-                Log.e(TAG, "Не удалось открыть поток для $uri")
-                ctx.close()
-                return
-            }
-            inputStream.use { stream ->
+            context.contentResolver.openInputStream(uri)?.use { input ->
+
                 val buffer = ByteArray(8192)
+                var chunkId = 0
                 var bytesRead: Int
-                while (stream.read(buffer).also { bytesRead = it } != -1) {
-                    ctx.writeAndFlush(Unpooled.wrappedBuffer(buffer, 0, bytesRead))
+
+                while (input.read(buffer).also { bytesRead = it } != -1) {
+                    // Строим заголовок для текущего чанка
+                    val chunkSize = bytesRead
+                    val headerBytes = buildChunkHeader(chunkId, chunkSize)
+
+                    // Отправляем заголовок чанка
+                    ctx.writeAndFlush(Unpooled.copiedBuffer(headerBytes))
+
+                    // Отправляем сам чанк
+                    ctx.writeAndFlush(Unpooled.wrappedBuffer(buffer.copyOf(bytesRead)))
+
+                    // Логирование
+                    Log.d(TAG, "Отправка заголовка чанка: $headerBytes, данные: ${buffer.copyOf(bytesRead)}")
+
+                    chunkId++
                 }
-            }
+
+
+            }?: Log.e(TAG, "Не удалось открыть поток для $uri")
             Log.d(TAG, "Файл успешно отправлен: $uri")
-            ctx.close()
+
+//            val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+//            if (inputStream == null) {
+//                Log.e(TAG, "Не удалось открыть поток для $uri")
+//                ctx.close()
+//                return
+//            }
+//            inputStream.use { stream ->
+//                val buffer = ByteArray(8192)
+//                var bytesRead: Int
+//                while (stream.read(buffer).also { bytesRead = it } != -1) {
+//                    ctx.writeAndFlush(Unpooled.wrappedBuffer(buffer, 0, bytesRead))
+//                }
+//            }
+
+//            context.contentResolver.openInputStream(uri)?.use { input ->
+//                val buffer = ByteArray(8192)
+//                var bytes: Int
+//                while (input.read(buffer).also { bytes = it } != -1) {
+//                    ctx.writeAndFlush(Unpooled.wrappedBuffer(buffer.copyOf(bytes)))
+//                    Log.d(TAG, "Отправка файла: ${buffer.copyOf(bytes)}")
+//                }
+//            }?:Log.e(TAG, "Не удалось открыть поток для $uri")
+
+            //ctx.close()
         }
+
+
+    private fun buildChunkHeader(chunkId: Int, chunkSize: Int): ByteArray {
+        // Формируем заголовок чанка (например, в формате JSON)
+        val headerJson = """{"chunkId":$chunkId,"chunkSize":$chunkSize}"""
+        val headerBytes = headerJson.toByteArray(CharsetUtil.UTF_8)
+        return headerBytes
+    }
 }
 
 

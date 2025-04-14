@@ -2,6 +2,7 @@ package com.lackofsky.cloud_s.service.server
 
 
 import android.provider.MediaStore
+import android.util.Log
 import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMediaIntend
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -35,8 +36,11 @@ class MediaDispatcher {
         }
     }
 
-    fun setMediaServerAddress(ipAddress: String, port: Int) {
+    fun setMediaServerAddress(ipAddress: String) {
         _mediaServerAddress = ipAddress
+        Log.d("GrimBerry MediaServer", "IP Address: $ipAddress")
+    }
+    fun setMediaServerPort(port: Int) {
         _mediaServerPort = port
     }
 }
@@ -44,7 +48,8 @@ class MediaDispatcher {
 enum class MediaResponseStatus { QUEUETED, ACCEPTED, REJECTED }
 
 data class MediaResponse(val status: MediaResponseStatus,
-                         val msIpAddress: String?,
+                         //val msIpAddress: String?,
+                         val userUniqueId: String,
                          val msPort: Int?,
                          val requestedIntend: TransferMediaIntend?,
                          val messageId: String?/*** if intend = MEDIA_EXTERNAL  (message media)*/

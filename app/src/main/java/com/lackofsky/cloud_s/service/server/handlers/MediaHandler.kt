@@ -1,5 +1,6 @@
 package com.lackofsky.cloud_s.service.server.handlers
 
+import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
 import com.google.gson.GsonBuilder
@@ -28,7 +29,7 @@ import kotlinx.coroutines.launch
 
 class MediaHandler (private val userRepository: UserRepository,
                     private val mediaDispatcher: MediaDispatcher,
-                    private val mediaClient: NettyMediaClient,
+                    //private val mediaClient: NettyMediaClient,
                     private val clientPartP2P: ClientPartP2P,
                     private val mediaServer: NettyMediaServer
 //private val friendResponseUseCase: FriendResponseUseCase
@@ -42,14 +43,15 @@ class MediaHandler (private val userRepository: UserRepository,
             processMessage(ctx, msg!!)
         } catch (e: JsonParseException) {
             Log.e(
-                "service $SERVICE_NAME message handler",
-                "Error parsing message. non typical message: " + msg
+                "service $SERVICE_NAME media handler",
+                "Error parsing message. non typical message: $msg. " +
+                        "Error: $e"
             )
         } catch (e: IllegalStateException) {
-            Log.e("service $SERVICE_NAME message handler", "Error json syntax message: $msg")
+            Log.e("service $SERVICE_NAME media handler", "Error json syntax message: $msg")
         } catch (_: Exception) {
             Log.e(
-                "service $SERVICE_NAME message handler",
+                "service $SERVICE_NAME media handler",
                 "received unknown type of message:" + msg
             )
         }
@@ -57,7 +59,7 @@ class MediaHandler (private val userRepository: UserRepository,
     }
     private fun processMessage(ctx: ChannelHandlerContext, msg: String) {
         val data = gson.fromJson(msg, TransportData::class.java)
-        Log.d("service $SERVICE_NAME message handler", "received: $data")
+        Log.d("service $SERVICE_NAME media handler", "received: $data")
         when (data.messageType) {
             MessageType.REQUEST_MEDIA_SERVER -> {
                 val request = gson.fromJson(data.content, MediaRequest::class.java)
@@ -79,17 +81,20 @@ class MediaHandler (private val userRepository: UserRepository,
                     when(incomingResponse.requestedIntend){
                         TransferMediaIntend.MEDIA_USER_LOGO -> {
                             CoroutineScope(Dispatchers.IO).launch {
-                                mediaClient.sendUserLogoFile(clientPartP2P.userInfo.value!!.iconImgURI!!.toUri(),
-                                    clientPartP2P.userOwner.value!!,
-                                    incomingResponse.msIpAddress!!, incomingResponse.msPort!!)
+                                //TODO медиаклиент нахрен в обычный клиент. обычный клиент как раз будет выдавать ему хост
+                                //mediaClient.sendUserLogoFile(Uri.parse(clientPartP2P.userInfo.value!!.iconImgURI!!),//Запакуем в clientPartP2P
+                                    //clientPartP2P.userOwner.value!!,//Запакуем в clientPartP2P
+                                    //clientPartP2P.host, incomingResponse.msPort!!)
+                                clientPartP2P.sendMediaLogo(incomingResponse.userUniqueId,incomingResponse.msPort!!)
                             }
 
                         }
                         TransferMediaIntend.MEDIA_USER_BANNER -> {
                             CoroutineScope(Dispatchers.IO).launch {
-                                mediaClient.sendUserBannerFile(clientPartP2P.userInfo.value!!.bannerImgURI!!.toUri(),
-                                    clientPartP2P.userOwner.value!!,
-                                    incomingResponse.msIpAddress!!, incomingResponse.msPort!!)
+                                TODO()
+//                                mediaClient.sendUserBannerFile(clientPartP2P.userInfo.value!!.bannerImgURI!!.toUri(),
+//                                    clientPartP2P.userOwner.value!!,
+//                                    incomingResponse.msIpAddress!!, incomingResponse.msPort!!)
                             }
                         }
                         TransferMediaIntend.MEDIA_EXTERNAL -> TODO()
@@ -112,12 +117,14 @@ class MediaHandler (private val userRepository: UserRepository,
         CoroutineScope(Dispatchers.IO).launch {
             val sendTo = clientPartP2P.activeFriends.value.entries.find { it.key.uniqueID == response.userUniqueId }
             sendTo?.let {
-                val sender = gson.toJson( clientPartP2P.userOwner.value!! )
+                val sender = clientPartP2P.userOwner.value!!
+                Log.d("GrimBerry MediaHandler","addr: ${ctx.channel().localAddress().toString()}")
+                ctx.channel().localAddress().toString()
                 val responseJson = gson.toJson(
                     MediaResponse(
                         MediaResponseStatus.ACCEPTED,
-                        mediaDispatcher.mediaServerAddress!!,
-                        mediaDispatcher.mediaServerPort!!,
+                        sender.uniqueID,//mediaDispatcher.mediaServerAddress!!,
+                        mediaServer.getPort(),
                         response.requestedIntend,
                         response.messageId)
                 )
@@ -125,13 +132,12 @@ class MediaHandler (private val userRepository: UserRepository,
                 val transportData = gson.toJson(TransportData(
                     messageType = MessageType.RESPONSE_MEDIA_SERVER,
                     senderId = clientPartP2P.userOwner.value!!.uniqueID,
-                    sender = sender,
+                    sender =  gson.toJson( sender ),
                     content = responseJson
                     )
                 )
-                val json = gson.toJson(transportData)
 
-                sendTo.value.sendMessage(json)
+                sendTo.value.sendMessage(transportData)
             }?: Log.e("GrimBerry MediaHandler","responseAccept error: sendTo is null")
 
 
@@ -144,15 +150,16 @@ class MediaHandler (private val userRepository: UserRepository,
         CoroutineScope(Dispatchers.IO).launch {
             val sendTo = clientPartP2P.activeFriends.value.entries.find { it.key.uniqueID == response.userUniqueId }
             sendTo?.let {
-                val sender = gson.toJson(clientPartP2P.userOwner.value!!)
+                val sender = clientPartP2P.userOwner.value!!
+                //val sender = gson.toJson(clientPartP2P.userOwner.value!!)
                 val responseJson = gson.toJson(MediaResponse(
-                        MediaResponseStatus.QUEUETED,null,null, null, null
+                        MediaResponseStatus.QUEUETED,sender.uniqueID,null, null, null
                     )
                 )
                 val transportData = gson.toJson(TransportData(
                     messageType = MessageType.RESPONSE_MEDIA_SERVER,
                     senderId = clientPartP2P.userOwner.value!!.uniqueID,
-                    sender = sender,
+                    sender = gson.toJson(sender),
                     content = responseJson
                 )
                 )

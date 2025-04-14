@@ -10,11 +10,13 @@ import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
 import com.lackofsky.cloud_s.data.storage.UserInfoStorageFolder
+import com.lackofsky.cloud_s.service.netty_media_p2p.NettyMediaServer
 import com.lackofsky.cloud_s.service.netty_media_p2p.model.MediaRequest
 import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMediaIntend
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
+import io.netty.util.CharsetUtil
 import io.netty.util.ReferenceCountUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,8 +29,9 @@ import java.io.OutputStream
 
 class MediaHandler(private val context: Context,
                    private val userRepository: UserRepository,
-                   private val messageRepository: MessageRepository
-) : SimpleChannelInboundHandler<ByteBuf>() {
+                   private val messageRepository: MessageRepository,
+    private val gson: Gson
+) : SimpleChannelInboundHandler<Any>() {
     private val TAG = "GrimBerry mediahandler NMserver"
     private val APPLICATION_NAME = "cLoud_s"
 
@@ -36,7 +39,6 @@ class MediaHandler(private val context: Context,
     private var fileUri: Uri? = null
 
     private var totalBytesReceived: Long = 0
-    private var isReceivingFile = false
     private var mediaRequest: MediaRequest? = null
     private var isTransferSuccess = true
 
@@ -45,91 +47,149 @@ class MediaHandler(private val context: Context,
         totalBytesReceived = 0
     }
 
-    override fun channelRead0(ctx: ChannelHandlerContext, msg: ByteBuf) {
-        val bytes = ByteArray(msg.readableBytes())
-        msg.readBytes(bytes)
-
+    override fun channelRead0(ctx: ChannelHandlerContext, msg: Any) {
+        Log.d(TAG, "channelRead0 media handler: $msg")
+        //val line = msg.toString(CharsetUtil.UTF_8).trim()
         try {
-            if (!isReceivingFile) {
-                //Першим повідомленням отримуємо метаданні до файлу
-                mediaRequest =
-                    Gson().fromJson(msg.toString(Charsets.UTF_8), MediaRequest::class.java)
-                Log.d(TAG, "Отримано метадані: ${mediaRequest}")
+            when(msg){
+                is ByteBuf -> {
+                    val buffer = ByteArray(msg.readableBytes())
+                    msg.readBytes(buffer)
+                    outputStream?.write(buffer)
+                    totalBytesReceived += buffer.size
+                }
+                is MediaRequest->{
+                    Log.d(TAG, "Отримано метадані: $msg")
+                    mediaRequest = msg
 
-                // Генеруємо шлях до файлу у MediaStore
-
-                when (mediaRequest!!.transferMediaIntend) {
-                    TransferMediaIntend.MEDIA_USER_LOGO, TransferMediaIntend.MEDIA_USER_BANNER -> {
-                        fileUri = saveToInternalStore(mediaRequest!!)
+                    fileUri = when (msg.transferMediaIntend) {
+                        TransferMediaIntend.MEDIA_USER_LOGO,
+                        TransferMediaIntend.MEDIA_USER_BANNER -> saveToInternalStore(msg)
+                        TransferMediaIntend.MEDIA_EXTERNAL -> saveToMediaStore(msg)
                     }
 
-                    TransferMediaIntend.MEDIA_EXTERNAL -> {
-                        fileUri = saveToMediaStore(mediaRequest!!)
+                    fileUri?.let { uri ->
+                        outputStream = context.contentResolver.openOutputStream(uri)
+                    } ?: throw Exception("Не вдалося отримати URI для збереження файлу")
+                }
+                is String->{
+                    if (msg.trim() == "FILE_TRANSFER_COMPLETE") {
+                        Log.d(TAG, "Передача завершена.")
+                        outputStream?.close()
+                        ctx.close()
                     }
                 }
-
-                fileUri?.let { uri ->
-                    outputStream = context.contentResolver.openOutputStream(uri)
-                }
-                isReceivingFile = true
-            } else {
-                // Якщо отримуємо файл, пишемо його у OutputStream
-                outputStream?.let { stream ->
-                    msg.readBytes(bytes)
-                    stream.write(bytes)
-                    totalBytesReceived += bytes.size
-                }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "nettyMediaServer media handler error: " + e.printStackTrace().toString())
-            ctx.close()
-            outputStream?.close()
-            fileUri?.let { uri ->
-                context.contentResolver.delete(uri, null, null)
-            }
-            isReceivingFile = false
-            totalBytesReceived = 0L
-            fileUri = null
-            isTransferSuccess = false
-        } finally {
-            ReferenceCountUtil.release(msg)
+        }catch (e:Exception){
+            Log.e(TAG, "Помилка обробки повідомлення: ${e.message}", e)
+            cleanupOnError(ctx)
         }
+//        try {
+//            if (!isReceivingFile) {
+//                //Першим повідомленням отримуємо метаданні до файлу
+//                Log.d(TAG, "Отримано метадані: ${msg.toString(CharsetUtil.UTF_8)}")
+//                mediaRequest =
+//                    gson.fromJson(line, MediaRequest::class.java)
+//                // Генеруємо шлях до файлу у MediaStore
+//                when (mediaRequest!!.transferMediaIntend) {
+//                    TransferMediaIntend.MEDIA_USER_LOGO, TransferMediaIntend.MEDIA_USER_BANNER -> {
+//                        fileUri = saveToInternalStore(mediaRequest!!)
+//                    }
+//
+//                    TransferMediaIntend.MEDIA_EXTERNAL -> {
+//                        fileUri = saveToMediaStore(mediaRequest!!)
+//                    }
+//                }
+//
+//                fileUri?.let { uri ->
+//                    outputStream = context.contentResolver.openOutputStream(uri)
+//                }
+//                isReceivingFile = true
+//                return
+//            }
+//            // Якщо отримуємо файл, пишемо його у OutputStream
+//
+//            if (line == "FILE_TRANSFER_COMPLETE") {
+//                Log.d(TAG, "Отримано повідомлення про завершення передачі файлу")
+//                outputStream?.close()
+//                isReceivingFile = false
+//                // Обробка завершення передачі файлу
+//                ctx.close()
+//            } else {
+//                outputStream?.let { stream ->
+//                    val bytes = ByteArray(msg.readableBytes())
+//                    stream.write(bytes)
+//                    totalBytesReceived += msg.readableBytes()
+//                    Log.d(TAG, "Отримано дані: ${bytes.decodeToString()}")
+////                    val bytes = ByteArray(msg.readableBytes())
+////                    msg.readBytes(bytes)
+////                    stream.write(bytes)
+//                }
+//            }
+//
+//        } catch (e: Exception) {
+//            Log.e(TAG, "nettyMediaServer media handler error: " + e.printStackTrace().toString())
+//            ctx.close()
+//            outputStream?.close()
+//            fileUri?.let { uri ->
+//                context.contentResolver.delete(uri, null, null)
+//            }
+//            isReceivingFile = false
+//            totalBytesReceived = 0L
+//            fileUri = null
+//            isTransferSuccess = false
+//        }
         // Обробка отриманих даних у фоновому потоці
     }
+    private fun cleanupOnError(ctx: ChannelHandlerContext) {
+        ctx.close()
+        outputStream?.close()
+        fileUri?.let { context.contentResolver.delete(it, null, null) }
 
+        outputStream = null
+        fileUri = null
+        mediaRequest = null
+        totalBytesReceived = 0
+        isTransferSuccess = false
+    }
     override fun channelInactive(ctx: ChannelHandlerContext) {
         outputStream?.close()
         Log.d(TAG, "Файл отримано: $fileUri, Розмір: $totalBytesReceived байтів")
-        if (isTransferSuccess) {
+        if (isTransferSuccess && fileUri != null) {
             //перевірка перед доданням до бд: mediaRequest.checksum
-            mediaRequest!!.let { request ->
-                CoroutineScope(Dispatchers.IO).launch {
-                    when (request.transferMediaIntend) {
-                        TransferMediaIntend.MEDIA_USER_LOGO -> {
-                            val userInfo = userRepository.getUserInfoById(request.senderId).first()
-                            userRepository.updateUserInfo(userInfo.copy(iconImgURI = fileUri.toString()))
-                            Log.d(TAG, "user ${request.senderId} logo updated ")
-                        }
-
-                        TransferMediaIntend.MEDIA_USER_BANNER -> {
-                            val userInfo = userRepository.getUserInfoById(request.senderId).first()
-                            userRepository.updateUserInfo(userInfo.copy(bannerImgURI = fileUri.toString()))
-                            Log.d(TAG, "user ${request.senderId} banner updated to $fileUri")
-                        }
-
-                        TransferMediaIntend.MEDIA_EXTERNAL -> {
-                            val message =
-                                messageRepository.getMessageByUniqueId(request.messageId).first()
-                            messageRepository.insertMessage(message.copy())
-                            Log.d(
-                                TAG,
-                                "user ${request.senderId} message media added. messageId: ${request.messageId}"
-                            )
+            CoroutineScope(Dispatchers.IO).launch {
+                try{
+                    mediaRequest?.let { request ->
+                        when (request.transferMediaIntend) {
+                            TransferMediaIntend.MEDIA_USER_LOGO -> {
+                                val userInfo = userRepository.getUserInfoById(request.senderId).first()
+                                Log.d(TAG, "user ${request.senderId} ${userInfo.userId}")
+                                userRepository.updateUserInfo(userInfo.copy(iconImgURI = fileUri.toString()))
+                                Log.d(TAG, "user ${request.senderId} logo updated ")
+                            }
+                            TransferMediaIntend.MEDIA_USER_BANNER -> {
+                                val userInfo = userRepository.getUserInfoById(request.senderId).first()
+                                userRepository.updateUserInfo(userInfo.copy(bannerImgURI = fileUri.toString()))
+                                Log.d(TAG, "user ${request.senderId} banner updated to $fileUri")
+                            }
+                            TransferMediaIntend.MEDIA_EXTERNAL -> {
+                                val message =
+                                    messageRepository.getMessageByUniqueId(request.messageId).first()
+                                messageRepository.insertMessage(message.copy())
+                                Log.d(
+                                    TAG,
+                                    "user ${request.senderId} message media added. messageId: ${request.messageId}"
+                                )
+                            }
                         }
                     }
+
+                    ctx.writeAndFlush("UPLOAD_SUCCESS:${mediaRequest!!.fileName} \n")
+                }catch (e: Exception) {
+                    Log.e(TAG, "Помилка при оновленні БД: ${e.message}")
                 }
+
             }
-            ctx.writeAndFlush("UPLOAD_SUCCESS:${mediaRequest!!.fileName} \n")
         }
 
     }
