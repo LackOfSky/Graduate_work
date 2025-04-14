@@ -48,7 +48,6 @@ class MediaHandler(private val context: Context,
     }
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: Any) {
-        Log.d(TAG, "channelRead0 media handler: $msg")
         //val line = msg.toString(CharsetUtil.UTF_8).trim()
         try {
             when(msg){
@@ -69,8 +68,11 @@ class MediaHandler(private val context: Context,
                 is ByteArray -> {
 //                    val buffer = ByteArray(msg.readableBytes())
 //                    msg.readBytes(buffer)
+                    Log.d(TAG, "channelRead0 media handler: ${msg}")
                     outputStream?.write(msg)
                     totalBytesReceived += msg.size
+                    Log.d(TAG, "Отримано дані: ${msg.size}")
+                    Log.d(TAG, "Отримано дані: ${msg.lastIndex}")
                 }
                 is String->{
                     if (msg.trim() == "FILE_TRANSFER_COMPLETE") {
@@ -163,9 +165,12 @@ class MediaHandler(private val context: Context,
                     mediaRequest?.let { request ->
                         when (request.transferMediaIntend) {
                             TransferMediaIntend.MEDIA_USER_LOGO -> {
-                                val userInfo = userRepository.getUserInfoById(request.senderId).first()
-                                Log.d(TAG, "user ${request.senderId} ${userInfo.userId}")
-                                userRepository.updateUserInfo(userInfo.copy(iconImgURI = fileUri.toString()))
+                                Log.d(TAG, "user ${request.senderId}")
+
+                                val userInfo = userRepository.getUserInfoById(request.senderId)
+                                userRepository.getUserInfoById(request.senderId)
+                                Log.d(TAG, "user ${request.senderId} ${userInfo.first().userId}")
+                                userRepository.updateUserInfo(userInfo.first().copy(iconImgURI = fileUri.toString()))
                                 Log.d(TAG, "user ${request.senderId} logo updated ")
                             }
                             TransferMediaIntend.MEDIA_USER_BANNER -> {
@@ -185,14 +190,19 @@ class MediaHandler(private val context: Context,
                         }
                     }
 
-                    ctx.writeAndFlush("UPLOAD_SUCCESS:${mediaRequest!!.fileName} \n")
+                    //ctx.writeAndFlush("UPLOAD_SUCCESS:${mediaRequest!!.fileName} \n")
                 }catch (e: Exception) {
-                    Log.e(TAG, "Помилка при оновленні БД: ${e.message}")
+                    Log.e(TAG, "Помилка при оновленні БД: ${e.message}", e)
                 }
 
             }
         }
-
+        ctx.close()
+        outputStream = null
+        fileUri = null
+        mediaRequest = null
+        totalBytesReceived = 0
+        isTransferSuccess = false
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {

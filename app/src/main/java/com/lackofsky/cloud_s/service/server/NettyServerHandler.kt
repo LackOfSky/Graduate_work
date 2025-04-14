@@ -22,6 +22,7 @@ import io.netty.channel.SimpleChannelInboundHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
@@ -174,9 +175,11 @@ class NettyServerHandler(
                         Request.APPROVE -> { //+зеркало
                             /*** approving a requested stranger*/
                             userRepository.insertUser(sender)
+                            Log.d("service $SERVICE_NAME server handler", "approving a requested stranger ${sender.uniqueID}")
                             userRepository.insertUserInfo(UserInfo(sender.uniqueID,
                                 iconImgURI = null,
                                 bannerImgURI = null))
+
                             clientPartP2P.removeRequestedStranger(sender)
 
                             clientPartP2P.addStrangerToFriend(sender.uniqueID)
