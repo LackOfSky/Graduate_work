@@ -222,7 +222,10 @@ private fun getFileDetails(uri: Uri): FileDetails? {
                                             uri
                                         )//сделать следующий обработчик пайплайн. разбиваем файл на куски в список строк и отправляем пользователю кусками установленной длинны.
                                         // так же данный обработчик должен будет принимать ответы сервера: который может кидать json chunk_request, chunkId={}, и будет отвечать ему нужным куском
-                                        ctx.writeAndFlush(Unpooled.copiedBuffer("FILE_TRANSFER_COMPLETE\n", CharsetUtil.UTF_8))
+                                        val bufEnd = Unpooled.buffer()
+                                        bufEnd.writeByte(0x03) // Конец
+                                        bufEnd.writeInt(0)
+                                        ctx.writeAndFlush(bufEnd)
                                         Log.d("MediaClient", "FILE_TRANSFER_COMPLETE.")
                                     }
 
@@ -262,14 +265,12 @@ private fun getFileDetails(uri: Uri): FileDetails? {
 
         /*** */
         private fun sendMetadata(ctx: ChannelHandlerContext, mediaRequest: MediaRequest) {
-            val metadataJson = gson.toJson(mediaRequest)+ "\n"
-//            val buffer = Unpooled.wrappedBuffer(metadataJson.toByteArray(Charsets.UTF_8)) //Unpooled.wrappedBuffer()
-//            ctx.writeAndFlush(buffer)//
-//            val json = Gson().toJson(mediaRequest) + "\n"
-            ctx.writeAndFlush(Unpooled.copiedBuffer(metadataJson, CharsetUtil.UTF_8))
-
-//            val buffer: ByteBuf = Unpooled.copiedBuffer(metadataJson, CharsetUtil.UTF_8)
-//            ctx.writeAndFlush(buffer)
+            val metadataJsonBytes = gson.toJson(mediaRequest).toByteArray()
+            val bufJson = Unpooled.buffer()
+            bufJson.writeByte(0x01) // JSON
+            bufJson.writeInt(metadataJsonBytes.size)
+            bufJson.writeBytes(metadataJsonBytes)
+            ctx.writeAndFlush(bufJson)
         }
 
         private fun sendFileData(ctx: ChannelHandlerContext, uri: Uri) {
@@ -281,58 +282,21 @@ private fun getFileDetails(uri: Uri): FileDetails? {
 
                 while (input.read(buffer).also { bytesRead = it } != -1) {
                     // Строим заголовок для текущего чанка
+                    val bufFile = Unpooled.buffer()
+                    bufFile.writeByte(0x02) // Файл
+
                     val chunkSize = bytesRead
-                    val headerBytes = buildChunkHeader(chunkId, chunkSize)
-
-                    // Отправляем заголовок чанка
-                    ctx.writeAndFlush(Unpooled.copiedBuffer(headerBytes))
-
-                    // Отправляем сам чанк
-                    ctx.writeAndFlush(Unpooled.wrappedBuffer(buffer.copyOf(bytesRead)))
-
-                    // Логирование
-                    Log.d(TAG, "Отправка заголовка чанка: $headerBytes, данные: ${buffer.copyOf(bytesRead)}")
-
+                    bufFile.writeInt(chunkSize)
+                    bufFile.writeBytes(buffer.copyOf(bytesRead))
+                    ctx.writeAndFlush(bufFile)
                     chunkId++
+                    Log.d(TAG, "Отправка чанка: $chunkId, данные: ${buffer.copyOf(bytesRead)}")
                 }
-
 
             }?: Log.e(TAG, "Не удалось открыть поток для $uri")
             Log.d(TAG, "Файл успешно отправлен: $uri")
-
-//            val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-//            if (inputStream == null) {
-//                Log.e(TAG, "Не удалось открыть поток для $uri")
-//                ctx.close()
-//                return
-//            }
-//            inputStream.use { stream ->
-//                val buffer = ByteArray(8192)
-//                var bytesRead: Int
-//                while (stream.read(buffer).also { bytesRead = it } != -1) {
-//                    ctx.writeAndFlush(Unpooled.wrappedBuffer(buffer, 0, bytesRead))
-//                }
-//            }
-
-//            context.contentResolver.openInputStream(uri)?.use { input ->
-//                val buffer = ByteArray(8192)
-//                var bytes: Int
-//                while (input.read(buffer).also { bytes = it } != -1) {
-//                    ctx.writeAndFlush(Unpooled.wrappedBuffer(buffer.copyOf(bytes)))
-//                    Log.d(TAG, "Отправка файла: ${buffer.copyOf(bytes)}")
-//                }
-//            }?:Log.e(TAG, "Не удалось открыть поток для $uri")
-
-            //ctx.close()
         }
 
-
-    private fun buildChunkHeader(chunkId: Int, chunkSize: Int): ByteArray {
-        // Формируем заголовок чанка (например, в формате JSON)
-        val headerJson = """{"chunkId":$chunkId,"chunkSize":$chunkSize}"""
-        val headerBytes = headerJson.toByteArray(CharsetUtil.UTF_8)
-        return headerBytes
-    }
 }
 
 

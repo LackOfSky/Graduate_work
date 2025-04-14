@@ -51,7 +51,7 @@ class NettyMediaServer @Inject constructor(
                         Log.i("service $serviceName media server", "Netty media server. Connected as server to " + ch.pipeline().channel().remoteAddress())
                         //pipeline.addLast(GlobalTrafficShapingHandler(workerGroup, 5_000_000, 5_000_000))
                         //pipeline.addLast(ChunkedWriteHandler()) // Потокова передача
-                        pipeline.addLast(FileTransferDecoder())
+                        pipeline.addLast(FileTransferDecoder(gson))
                         pipeline.addLast(MediaHandler(context,
                             userRepository = userRepository,
                             messageRepository = messageRepository, gson = gson)) // Обробник медіафайлів

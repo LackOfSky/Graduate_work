@@ -52,12 +52,6 @@ class MediaHandler(private val context: Context,
         //val line = msg.toString(CharsetUtil.UTF_8).trim()
         try {
             when(msg){
-                is ByteBuf -> {
-                    val buffer = ByteArray(msg.readableBytes())
-                    msg.readBytes(buffer)
-                    outputStream?.write(buffer)
-                    totalBytesReceived += buffer.size
-                }
                 is MediaRequest->{
                     Log.d(TAG, "Отримано метадані: $msg")
                     mediaRequest = msg
@@ -72,6 +66,12 @@ class MediaHandler(private val context: Context,
                         outputStream = context.contentResolver.openOutputStream(uri)
                     } ?: throw Exception("Не вдалося отримати URI для збереження файлу")
                 }
+                is ByteArray -> {
+//                    val buffer = ByteArray(msg.readableBytes())
+//                    msg.readBytes(buffer)
+                    outputStream?.write(msg)
+                    totalBytesReceived += msg.size
+                }
                 is String->{
                     if (msg.trim() == "FILE_TRANSFER_COMPLETE") {
                         Log.d(TAG, "Передача завершена.")
@@ -79,6 +79,7 @@ class MediaHandler(private val context: Context,
                         ctx.close()
                     }
                 }
+                else->{Log.e(TAG, "nettyMediaServer media handler error: ${msg.toString()}")}
             }
         }catch (e:Exception){
             Log.e(TAG, "Помилка обробки повідомлення: ${e.message}", e)
