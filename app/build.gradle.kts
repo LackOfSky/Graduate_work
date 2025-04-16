@@ -112,7 +112,9 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
 
-
+    //mediaplayer
+    implementation("androidx.media3:media3-exoplayer:1.2.0")
+    implementation("androidx.media3:media3-ui:1.2.0")
     //adding image
     implementation("io.coil-kt:coil-compose:2.4.0")
     //datastore

@@ -39,12 +39,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.layout.ContentScale
+import androidx.core.net.toUri
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.MessageContentType
 import com.lackofsky.cloud_s.ui.chats.ChatDialogViewModel
+import java.io.File
 
 @Composable
 fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltViewModel(),
@@ -106,14 +108,15 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                 Column(modifier = Modifier.padding(8.dp)) {
                     when (message.contentType) {
                         MessageContentType.TEXT -> {
-                            Text(
-                                text = message.content,
-                                color = if (false) Color.White else Color.Black,
-                                lineHeight = 1.8.em,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
+                            //migrated down from condition message.contentType
+//                            Text(
+//                                text = message.content,
+//                                color = if (false) Color.White else Color.Black,
+//                                lineHeight = 1.8.em,
+//                                style = MaterialTheme.typography.bodyLarge,
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                            )
                         }
                         MessageContentType.IMAGE -> {
                             Log.d("GrimBerry mdi",message.mediaUri +" message mediaUri")
@@ -130,16 +133,42 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                                         contentScale = ContentScale.Fit
                                     )
                                 }
+                                Divider(Modifier.fillMaxWidth())
+                            }
+//                            Divider(Modifier.fillMaxWidth())
+//                            Text(
+//                                text = message.content,
+//                                color = if (false) Color.White else Color.Black,
+//                                lineHeight = 1.8.em,
+//                                style = MaterialTheme.typography.bodyLarge,
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                            )
+                        }
+                        MessageContentType.VIDEO->{
+                            message.mediaUri?.let { uri->
+                                if(File(uri).exists()){
+                                    Box(modifier = Modifier.size(200.dp, 200.dp)) {
+                                        VideoPlayerCard(uri = uri.toUri())
+                                    }
+                                }
+
                             }
                             Divider(Modifier.fillMaxWidth())
-                            Text(
-                                text = message.content,
-                                color = if (false) Color.White else Color.Black,
-                                lineHeight = 1.8.em,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
+                        }
+                        MessageContentType.AUDIO->{
+                            message.mediaUri?.let { uri->
+                                if(File(uri).exists()){
+                                    Box(modifier = Modifier.size(200.dp, 80.dp)) {
+                                        AudioPlayerCard(uri = uri.toUri())
+                                    }
+                                }
+
+                            }
+                            Divider(Modifier.fillMaxWidth())
+                        }
+                        MessageContentType.DOCUMENT->{
+
                         }
                         // Добавьте обработку других типов контента (AUDIO, VIDEO, LOCATION, CONTACT, DOCUMENT) по аналогии
                         else -> {
@@ -150,16 +179,25 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                                 modifier = Modifier
                                     .fillMaxWidth()
                             )
-                            Text(
-                                text = message.content,
-                                color = if (false) Color.White else Color.Black,
-                                lineHeight = 1.8.em,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
+                            Divider(Modifier.fillMaxWidth())
+//                            Text(
+//                                text = message.content,
+//                                color = if (false) Color.White else Color.Black,
+//                                lineHeight = 1.8.em,
+//                                style = MaterialTheme.typography.bodyLarge,
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                            )
                         }
                     }
+                    Text(
+                        text = message.content,
+                        color = Color.Black,//if (false) Color.White else Color.Black,
+                        lineHeight = 1.8.em,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
                     Text(
                         text = message.sentAt.toString(), // Дата отправки
                         style = MaterialTheme.typography.labelSmall,

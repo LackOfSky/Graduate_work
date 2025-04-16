@@ -1,8 +1,10 @@
 package com.lackofsky.cloud_s.ui.chats
 
+import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -274,5 +276,18 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
     fun isFromOwner(userId: String):Boolean{
         return activeUserOwner.value!!.uniqueID == userId
 
+    }
+    fun openDocumentWithIntent(context: Context, uri: Uri) {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, context.contentResolver.getType(uri))
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        val chooser = Intent.createChooser(intent, "Open file with...")
+        try {
+            context.startActivity(chooser)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(context, "Seems you don`t have application to open this file", Toast.LENGTH_SHORT).show()
+        }
     }
 }

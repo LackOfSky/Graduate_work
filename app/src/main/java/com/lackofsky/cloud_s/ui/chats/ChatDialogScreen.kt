@@ -31,6 +31,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -270,40 +272,88 @@ fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel
 }
 @Composable
 fun AttachButton(viewModel: ChatDialogViewModel){
+    var showMenu by remember { mutableStateOf(false) }
+
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         viewModel.attachMedia(uri)
     }
-    IconButton(
-        onClick = {imagePickerLauncher.launch("image/*") }
-    ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .requiredSize(size = 48.dp)
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(100.dp))
+
+    Box {
+        IconButton(onClick = { showMenu = true }) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.requiredSize(size = 48.dp)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(all = 8.dp)
+                    modifier = Modifier.clip(shape = RoundedCornerShape(100.dp))
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_add_circle_24),
-                        contentDescription = "mood",
-                        tint = Color(0xff1d1b20))
+                        contentDescription = "add media",
+                        tint = Color(0xff1d1b20),
+                        modifier = Modifier.padding(8.dp)
+                    )
                 }
             }
         }
+
+        DropdownMenu(
+            expanded = showMenu,
+            onDismissRequest = { showMenu = false }
+        ) {
+            DropdownMenuItem(text = { Text("Image") }, onClick = {
+                showMenu = false
+                imagePickerLauncher.launch("image/*")
+            })
+            DropdownMenuItem(text = { Text("Video") }, onClick = {
+                showMenu = false
+                imagePickerLauncher.launch("video/*")
+            })
+            DropdownMenuItem(text = { Text("Audio") }, onClick = {
+                showMenu = false
+                imagePickerLauncher.launch("audio/*")
+            })
+            DropdownMenuItem(text = { Text("Document") }, onClick = {
+                showMenu = false
+                imagePickerLauncher.launch("*/*") // или application/pdf, application/msword и т.п.
+            })
+        }
     }
+
+//    IconButton(
+//        onClick = {imagePickerLauncher.launch("image/*") }
+//    ) {
+//        Column(
+//            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
+//            horizontalAlignment = Alignment.CenterHorizontally,
+//            modifier = Modifier
+//                .requiredSize(size = 48.dp)
+//        ) {
+//            Row(
+//                horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
+//                verticalAlignment = Alignment.CenterVertically,
+//                modifier = Modifier
+//                    .clip(shape = RoundedCornerShape(100.dp))
+//            ) {
+//                Row(
+//                    horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier
+//                        .padding(all = 8.dp)
+//                ) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.baseline_add_circle_24),
+//                        contentDescription = "mood",
+//                        tint = Color(0xff1d1b20))
+//                }
+//            }
+//        }
+//    }
 }
 
 @Composable
@@ -353,7 +403,7 @@ fun PinnedMedia(viewModel: ChatDialogViewModel){
                         .requiredHeight(height = 160.dp)
                        // .background(color = Color(0xffece6f0))
                 ) {
-
+                    //TODO TODODODO
                     Image(
                         painter = rememberAsyncImagePainter(model = uriItem),
                         contentDescription = "User Icon",

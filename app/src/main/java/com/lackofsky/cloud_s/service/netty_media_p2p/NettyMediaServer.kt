@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.lackofsky.cloud_s.data.database.repository.MessageRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
+import com.lackofsky.cloud_s.data.storage.StorageRepository
 import com.lackofsky.cloud_s.service.netty_media_p2p.handlers.MediaHandler
 import javax.inject.Inject
 import com.lackofsky.cloud_s.service.model.Metadata
@@ -26,6 +27,7 @@ class NettyMediaServer @Inject constructor(
     private val mediaDispatcher: MediaDispatcher,
     private val userRepository: UserRepository,
     private val messageRepository: MessageRepository,
+    private val storageRepository: StorageRepository,
     private val gson: Gson
 ) {
     private val serviceName = metadata.serviceName
@@ -54,7 +56,9 @@ class NettyMediaServer @Inject constructor(
                         pipeline.addLast(FileTransferDecoder(gson))
                         pipeline.addLast(MediaHandler(context,
                             userRepository = userRepository,
-                            messageRepository = messageRepository, gson = gson)) // Обробник медіафайлів
+                            messageRepository = messageRepository,
+                            storageRepository = storageRepository,
+                            gson = gson)) // Обробник медіафайлів
                     }
                 })
 
