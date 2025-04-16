@@ -91,14 +91,14 @@ class MediaHandler (private val userRepository: UserRepository,
                         }
                         TransferMediaIntend.MEDIA_USER_BANNER -> {
                             CoroutineScope(Dispatchers.IO).launch {
-                                TODO()
-//                                mediaClient.sendUserBannerFile(clientPartP2P.userInfo.value!!.bannerImgURI!!.toUri(),
-//                                    clientPartP2P.userOwner.value!!,
-//                                    incomingResponse.msIpAddress!!, incomingResponse.msPort!!)
+                                clientPartP2P.sendMediaBanner(incomingResponse.userUniqueId,incomingResponse.msPort!!)
                             }
                         }
                         TransferMediaIntend.MEDIA_EXTERNAL -> TODO()
-                        null -> TODO()
+                        null -> {
+                            ctx.close()
+                            Log.e("service $SERVICE_NAME media handler", "unknown media request intend. skipped. channel closed")
+                        }
                     }
 
                     // Тут логіка передачіфайлу через мережу (наприклад, через SocketChannel)

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -45,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -57,12 +59,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.ui.ShowToast
 import com.lackofsky.cloud_s.ui.chats.ChatRoutes
 import com.lackofsky.cloud_s.ui.friends.FriendsViewModel
 import com.lackofsky.cloud_s.ui.friends.UserRoutes
+import com.lackofsky.cloud_s.ui.profile.DefaultBanner
 import com.lackofsky.cloud_s.ui.profile.EditHeaderUserInfo
 import com.lackofsky.cloud_s.ui.profile.HeaderUserInfo
 import com.lackofsky.cloud_s.ui.profile.ProfileViewModel
@@ -70,13 +74,14 @@ import com.lackofsky.cloud_s.ui.profile.UserProfileFeachures
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 
 @Composable
 fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(),
                navController: NavHostController,
                isOnline:Boolean = false){
     var isExpandedItemMenu by remember { mutableStateOf(false) }
-
+    val friendInfo by viewModel.getUserInfo(userFriend).collectAsState(null)
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
@@ -87,7 +92,38 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(),
                         vertical = 8.dp
                     )
             ) {
-                Image(
+                friendInfo?.let{
+                    it.iconImgURI?.let { uri ->
+                        if(File(uri).exists()){
+                            Image(
+                                painter = rememberAsyncImagePainter(model = uri),
+                                contentDescription = "User Banner",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
+                            )
+                        }else{
+                            Image(
+                                painter = painterResource(id = R.drawable.clouds_night_angle20),
+                                contentDescription = "Image",
+                                modifier = Modifier
+                                    .align(alignment = Alignment.Top)
+                                    .width(width = 70.dp)
+                                    .height(height = 70.dp)
+                                    .weight(weight = 2f)
+                                    .clip(shape = RoundedCornerShape(28.dp))
+                            )
+                        }
+                    } ?: Image(
+                        painter = painterResource(id = R.drawable.clouds_night_angle20),
+                        contentDescription = "Image",
+                        modifier = Modifier
+                            .align(alignment = Alignment.Top)
+                            .width(width = 70.dp)
+                            .height(height = 70.dp)
+                            .weight(weight = 2f)
+                            .clip(shape = RoundedCornerShape(28.dp))
+                    )
+                } ?: Image(
                     painter = painterResource(id = R.drawable.clouds_night_angle20),
                     contentDescription = "Image",
                     modifier = Modifier
@@ -97,6 +133,8 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(),
                         .weight(weight = 2f)
                         .clip(shape = RoundedCornerShape(28.dp))
                 )
+
+
                 Column(
                     verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
                     modifier = Modifier
@@ -254,6 +292,7 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(),
                     }
                     Divider()
                     TextButton(
+                        enabled = !isOnline,
                         onClick = {
                             viewModel.deleteFriend(userFriend)
                         },
@@ -265,7 +304,7 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(),
                         modifier = Modifier.background(Color.Transparent, RectangleShape)
 
                     ) {
-                        Text("delete",
+                        Text("delete (when user is offline)",
                             fontSize = 18.sp,color = Color.Black)
                     }
                     TextButton(

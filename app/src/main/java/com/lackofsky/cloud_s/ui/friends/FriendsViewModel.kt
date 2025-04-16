@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.database.repository.ChatRepository
 import com.lackofsky.cloud_s.data.database.repository.UserRepository
+import com.lackofsky.cloud_s.data.model.UserInfo
 import com.lackofsky.cloud_s.service.ClientPartP2P
 import com.lackofsky.cloud_s.service.P2PServer.Companion.SERVICE_NAME
 import com.lackofsky.cloud_s.service.client.NettyClient
@@ -16,6 +17,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -90,6 +92,11 @@ class FriendsViewModel @Inject constructor(
             CoroutineScope(Dispatchers.IO).launch{
                 Log.d("GrimBerry friends view model", "approveFriendRequest 2")
                 userRepository.insertUser(stranger)
+                userRepository.insertUserInfo(
+                    UserInfo(stranger.uniqueID,
+                    iconImgURI = null,
+                    bannerImgURI = null)
+                )
                 clientPartP2P.removePendingStranger(stranger)
                 clientPartP2P.addStrangerToFriend(stranger.uniqueID)
             }
@@ -136,6 +143,9 @@ class FriendsViewModel @Inject constructor(
             return false
         }
         return true
+    }
+    fun getUserInfo(userFriend: User): Flow<UserInfo> {
+        return userRepository.getUserInfoById(userFriend.uniqueID)
     }
     suspend fun getPrivateChatId(userId: String):String{
         var chatId = ""

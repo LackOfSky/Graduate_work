@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,16 +39,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.rememberAsyncImagePainter
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.data.model.User
 import com.lackofsky.cloud_s.data.model.UserInfo
+import com.lackofsky.cloud_s.ui.profile.DefaultBanner
+import com.lackofsky.cloud_s.ui.profile.DefaultIcon
 import com.lackofsky.cloud_s.ui.profile.UserProfileFeachures
+import java.io.File
 
 @Composable
 fun FriendProfile(modifier: Modifier = Modifier,userId: Int,
                   viewModel: FriendViewModel = hiltViewModel()){
-    val user = viewModel.getFriend(userId).collectAsState(null)
-    val userInfo = viewModel.getFriendInfo(user.value?.uniqueID.orEmpty()).collectAsState(null)
+    val user by viewModel.getFriend(userId).collectAsState(null)
+    val userInfo by viewModel.getFriendInfo(user?.uniqueID.orEmpty()).collectAsState(null)
 //    viewModel.setCurrentFriend(userId)
 //    //TODO USERSERVICE GET BY USER ID
 //    val selectedUser by viewModel.getCurrentUser(userId).collectAsState()
@@ -59,10 +64,23 @@ fun FriendProfile(modifier: Modifier = Modifier,userId: Int,
                 colors = CardDefaults.cardColors(Color.White),
                 modifier = modifier.height(150.dp)
             ) {
-                Image(
-                    bitmap = ImageBitmap.imageResource(R.drawable.banner),
-                    contentScale = ContentScale.FillWidth,
-                    contentDescription = "BANNER")
+                userInfo?.let {
+                    it.bannerImgURI?.let { uri ->
+                        if(File(uri).exists()){
+                            Image(
+                                painter = rememberAsyncImagePainter(model = uri),
+                                contentDescription = "User Banner",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(shape = RoundedCornerShape(0.dp)),
+                                contentScale = ContentScale.FillBounds
+                            )
+                        }else{
+                            DefaultBanner(userInfo = userInfo)
+                        }
+                    }?: DefaultBanner(userInfo = userInfo)
+                } ?: DefaultBanner(userInfo = userInfo)
+
             }
         }
         item{
@@ -84,16 +102,22 @@ fun FriendProfile(modifier: Modifier = Modifier,userId: Int,
                             vertical = 8.dp
                         )
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.atom_ico),
-                        contentDescription = "Image",
-                        modifier = Modifier
-                            .align(alignment = Alignment.Top)
-                            .width(width = 70.dp)
-                            .height(height = 70.dp)
-                            .weight(weight = 2f)
-                            .clip(shape = RoundedCornerShape(28.dp))
-                    )
+
+                    userInfo?.let{
+                        it.iconImgURI?.let { uri ->
+                            if(File(uri).exists()){
+                                Image(
+                                    painter = rememberAsyncImagePainter(model = uri),
+                                    contentDescription = "User Ico",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }else{
+                                DefaultIcon(userInfo = userInfo)
+                            }
+                        } ?: DefaultIcon(userInfo = userInfo)
+                    } ?: DefaultIcon(userInfo = null)
+
                     Column(
                         verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
                         modifier = Modifier
@@ -113,7 +137,7 @@ fun FriendProfile(modifier: Modifier = Modifier,userId: Int,
 }
 
 @Composable
-fun HeaderFriendInfo(modifier: Modifier = Modifier, selectedUser: State<User?>) {
+fun HeaderFriendInfo(modifier: Modifier = Modifier, selectedUser: User?) {
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.Top),
         modifier = modifier
@@ -122,7 +146,7 @@ fun HeaderFriendInfo(modifier: Modifier = Modifier, selectedUser: State<User?>) 
     ) {
         Box(){
             Text(
-                text = selectedUser.value?.fullName.orEmpty(),
+                text = selectedUser?.fullName.orEmpty(),
                 color = Color(0xff1d1b20),
                 textAlign = TextAlign.Left,
                 lineHeight = 1.33.em,
@@ -133,7 +157,7 @@ fun HeaderFriendInfo(modifier: Modifier = Modifier, selectedUser: State<User?>) 
                     .wrapContentHeight(align = Alignment.CenterVertically))
         }
         Text(
-            text = selectedUser.value?.login.orEmpty(),
+            text = selectedUser?.login.orEmpty(),
             color = Color(0xff49454f),
             textAlign = TextAlign.Left,
             lineHeight = 1.5.em,
@@ -148,7 +172,7 @@ fun HeaderFriendInfo(modifier: Modifier = Modifier, selectedUser: State<User?>) 
 }
 
 @Composable
-fun FriendInfoContent( userInfo: State<UserInfo?>) {
+fun FriendInfoContent( userInfo: UserInfo?) {
     Column(
         verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
         modifier = Modifier
@@ -163,7 +187,7 @@ fun FriendInfoContent( userInfo: State<UserInfo?>) {
 }
 
 @Composable
-fun AboutFriend( userInfo: State<UserInfo?>){
+fun AboutFriend( userInfo: UserInfo?){
     Column {
         Row(){
             Text(
@@ -180,7 +204,7 @@ fun AboutFriend( userInfo: State<UserInfo?>){
             )
         }
         Text(
-            text = userInfo.value?.about.orEmpty() ,
+            text = userInfo?.about.orEmpty() ,
             color = Color(0xff1d1b20),
             lineHeight = 1.33.em,
             fontSize = 14.sp,
@@ -195,7 +219,7 @@ fun AboutFriend( userInfo: State<UserInfo?>){
 }
 
 @Composable
-fun FriendInfo( userInfo: State<UserInfo?>){
+fun FriendInfo( userInfo: UserInfo?){
     Column {
         Row(){
             Text(
@@ -212,7 +236,7 @@ fun FriendInfo( userInfo: State<UserInfo?>){
             )
         }
         Text(
-            text = userInfo.value?.info.orEmpty(),
+            text = userInfo?.info.orEmpty(),
             color = Color(0xff1d1b20),
             lineHeight = 1.33.em,
             fontSize = 14.sp,

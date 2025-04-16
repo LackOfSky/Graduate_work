@@ -9,6 +9,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.net.toUri
 import com.lackofsky.cloud_s.service.model.Metadata
+import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMediaIntend
 import java.io.File
 
 class StorageRepository(val metadata: Metadata) {
@@ -36,7 +37,9 @@ class StorageRepository(val metadata: Metadata) {
 
 
     // ====== Specific Types ======
+     fun isMediaExist(fileName: String,fileIntend:TransferMediaIntend,fileSize: Long){
 
+     }
      fun saveImageToGallery(context: Context, uri: Uri, fileName: String): Uri? {
         val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
         return saveToMediaStore(
