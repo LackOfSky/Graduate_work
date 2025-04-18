@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -60,7 +61,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.ui.ShowToast
+import com.lackofsky.cloud_s.ui.chats.components.AudioPlayerCard
+import com.lackofsky.cloud_s.ui.chats.components.DocumentFileCard
+import com.lackofsky.cloud_s.ui.chats.components.ImageFileCard
 import com.lackofsky.cloud_s.ui.chats.components.MessageDialogItem
+import com.lackofsky.cloud_s.ui.chats.components.VideoPlayerCard
 
 @Composable
 fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewModel()){
@@ -274,7 +279,7 @@ fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel
 fun AttachButton(viewModel: ChatDialogViewModel){
     var showMenu by remember { mutableStateOf(false) }
 
-    val imagePickerLauncher = rememberLauncherForActivityResult(
+    val pickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         viewModel.attachMedia(uri)
@@ -308,19 +313,19 @@ fun AttachButton(viewModel: ChatDialogViewModel){
         ) {
             DropdownMenuItem(text = { Text("Image") }, onClick = {
                 showMenu = false
-                imagePickerLauncher.launch("image/*")
+                pickerLauncher.launch("image/*")
             })
             DropdownMenuItem(text = { Text("Video") }, onClick = {
                 showMenu = false
-                imagePickerLauncher.launch("video/*")
+                pickerLauncher.launch("video/*")
             })
             DropdownMenuItem(text = { Text("Audio") }, onClick = {
                 showMenu = false
-                imagePickerLauncher.launch("audio/*")
+                pickerLauncher.launch("audio/*")
             })
             DropdownMenuItem(text = { Text("Document") }, onClick = {
                 showMenu = false
-                imagePickerLauncher.launch("*/*") // или application/pdf, application/msword и т.п.
+                pickerLauncher.launch("*/*") // или application/pdf, application/msword и т.п.
             })
         }
     }
@@ -357,63 +362,122 @@ fun AttachButton(viewModel: ChatDialogViewModel){
 }
 
 @Composable
-fun PinnedMedia(viewModel: ChatDialogViewModel){
+fun PinnedMedia(viewModel: ChatDialogViewModel) {
     val isMediaAttached by viewModel.isMediaAttached.collectAsState()
     val uriItem by viewModel.uriItem.collectAsState()
 
-    if (isMediaAttached){
-        Card(//navigate
+    if (isMediaAttached && uriItem != null) {
+        val context = LocalContext.current
+        val mimeType = remember(uriItem) {
+            context.contentResolver.getType(uriItem!!)
+        }
+
+        Card(
             elevation = CardDefaults.cardElevation(10.dp),
             colors = CardDefaults.cardColors(Color.White),
             shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.requiredHeight(height = 200.dp)
-//                .height(80.dp)
-//                .padding(1.dp, 2.dp)
-//                .clickable {
-//
-//                }
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth()
+                .wrapContentHeight()
         ) {
-            Column() {
+            Column(modifier = Modifier.padding(10.dp)) {
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    Text("pinned: ",
-                        Modifier
-                            .height(25.dp)
-                            .padding(start = 10.dp, top = 5.dp))
+                    Text("Pinned media", modifier = Modifier.padding(start = 5.dp))
                     IconButton(
                         onClick = { viewModel.attachMedia(null) },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .requiredSize(25.dp)
-                            .padding(end = 10.dp, top = 5.dp)
-
+                        modifier = Modifier.align(Alignment.TopEnd)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_clear_20),
-                            contentDescription = "stash_Pinned",
-                            tint = Color(0xFF1D1B20)
+                            contentDescription = "Clear",
+                            tint = Color.Black
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .requiredHeight(height = 160.dp)
-                       // .background(color = Color(0xffece6f0))
-                ) {
-                    //TODO TODODODO
-                    Image(
-                        painter = rememberAsyncImagePainter(model = uriItem),
-                        contentDescription = "User Icon",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .heightIn(max = 150.dp)
-                            .widthIn(max = 150.dp)
-                    )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                when {
+                    mimeType?.startsWith("image/") == true -> {
+                        ImageFileCard(uri = uriItem!!)
+                    }
+
+                    mimeType?.startsWith("video/") == true -> {
+                        VideoPlayerCard(uri = uriItem!!)
+                    }
+
+                    mimeType?.startsWith("audio/") == true -> {
+                        AudioPlayerCard(uri = uriItem!!)
+                    }
+
+                    else -> {
+                        DocumentFileCard(uri = uriItem!!)
+                    }
                 }
             }
         }
     }
 }
+
+//@Composable
+//fun PinnedMedia(viewModel: ChatDialogViewModel){
+//    val isMediaAttached by viewModel.isMediaAttached.collectAsState()
+//    val uriItem by viewModel.uriItem.collectAsState()
+//
+//    if (isMediaAttached){
+//        Card(//navigate
+//            elevation = CardDefaults.cardElevation(10.dp),
+//            colors = CardDefaults.cardColors(Color.White),
+//            shape = RoundedCornerShape(20.dp),
+//            modifier = Modifier.requiredHeight(height = 200.dp)
+////                .height(80.dp)
+////                .padding(1.dp, 2.dp)
+////                .clickable {
+////
+////                }
+//        ) {
+//            Column() {
+//                Box(modifier = Modifier.fillMaxWidth()) {
+//                    Text("pinned: ",
+//                        Modifier
+//                            .height(25.dp)
+//                            .padding(start = 10.dp, top = 5.dp))
+//                    IconButton(
+//                        onClick = { viewModel.attachMedia(null) },
+//                        modifier = Modifier
+//                            .align(Alignment.TopEnd)
+//                            .requiredSize(25.dp)
+//                            .padding(end = 10.dp, top = 5.dp)
+//
+//                    ) {
+//                        Icon(
+//                            painter = painterResource(id = R.drawable.baseline_clear_20),
+//                            contentDescription = "stash_Pinned",
+//                            tint = Color(0xFF1D1B20)
+//                        )
+//                    }
+//                }
+//                Spacer(modifier = Modifier.height(4.dp))
+//                Row(
+//                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier
+//                        .padding(10.dp)
+//                        .requiredHeight(height = 160.dp)
+//                       // .background(color = Color(0xffece6f0))
+//                ) {
+//                    //TODO TODODODO
+//                    Image(
+//                        painter = rememberAsyncImagePainter(model = uriItem),
+//                        contentDescription = "User Icon",
+//                        contentScale = ContentScale.Fit,
+//                        modifier = Modifier
+//                            .heightIn(max = 150.dp)
+//                            .widthIn(max = 150.dp)
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}

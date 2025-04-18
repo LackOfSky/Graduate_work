@@ -69,7 +69,7 @@ fun AudioPlayerCard(
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
-                    text = uri.lastPathSegment ?: "audio",
+                    text = uri.lastPathSegment ?: "Unknown",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )

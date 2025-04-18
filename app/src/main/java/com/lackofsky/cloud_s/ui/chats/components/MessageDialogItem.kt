@@ -121,18 +121,7 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                         MessageContentType.IMAGE -> {
                             Log.d("GrimBerry mdi",message.mediaUri +" message mediaUri")
                             message.mediaUri?.let { uri ->
-                                Box(modifier = Modifier.size(200.dp, 200.dp)) {
-                                    Image(
-                                        painter = rememberAsyncImagePainter(model = ImageRequest.Builder(context)
-                                            .data(uri)
-                                            .crossfade(true)
-                                            .build()
-                                        ),
-                                        contentDescription = "Image",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Fit
-                                    )
-                                }
+                                ImageFileCard(uri.toUri())
                                 Divider(Modifier.fillMaxWidth())
                             }
 //                            Divider(Modifier.fillMaxWidth())
@@ -168,6 +157,11 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                             Divider(Modifier.fillMaxWidth())
                         }
                         MessageContentType.DOCUMENT->{
+                            message.mediaUri?.let { uri->
+                                if(File(uri).exists()){
+                                    DocumentFileCard(uri = uri.toUri())
+                                }
+                            }
 
                         }
                         // Добавьте обработку других типов контента (AUDIO, VIDEO, LOCATION, CONTACT, DOCUMENT) по аналогии
