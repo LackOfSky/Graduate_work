@@ -15,9 +15,9 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 
 @Composable
-fun ImageFileCard(uri: Uri) {
+fun ImageFileCard(uri: Uri, modifier: Modifier = Modifier.size(200.dp, 200.dp)) {
     val context = LocalContext.current
-    Box(modifier = Modifier.size(200.dp, 200.dp)) {
+    Box(modifier = modifier.size(200.dp, 200.dp)) {
         Image(
             painter = rememberAsyncImagePainter(model = ImageRequest.Builder(context)
                 .data(uri)

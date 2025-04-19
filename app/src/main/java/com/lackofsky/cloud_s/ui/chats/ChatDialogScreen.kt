@@ -365,46 +365,46 @@ fun AttachButton(viewModel: ChatDialogViewModel){
 fun PinnedMedia(viewModel: ChatDialogViewModel) {
     val isMediaAttached by viewModel.isMediaAttached.collectAsState()
     val uriItem by viewModel.uriItem.collectAsState()
-
-    if (isMediaAttached && uriItem != null) {
+    Log.d("GrimBerry", "uriItem: $uriItem")
+    if (isMediaAttached ) {//&& uriItem != null
         val context = LocalContext.current
         val mimeType = remember(uriItem) {
             context.contentResolver.getType(uriItem!!)
         }
-
         Card(
             elevation = CardDefaults.cardElevation(10.dp),
             colors = CardDefaults.cardColors(Color.White),
             shape = RoundedCornerShape(20.dp),
             modifier = Modifier
-                .padding(8.dp)
+//                .padding(8.dp)
                 .fillMaxWidth()
-                .wrapContentHeight()
+                .requiredHeight(height = 320.dp)
+                .padding(1.dp, 2.dp)
         ) {
-            Column(modifier = Modifier.padding(10.dp)) {
-                Box(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(10.dp,0.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
                     Text("Pinned media", modifier = Modifier.padding(start = 5.dp))
                     IconButton(
                         onClick = { viewModel.attachMedia(null) },
-                        modifier = Modifier.align(Alignment.TopEnd)
-                    ) {
-                        Icon(
+                        content = {
+                            Icon(
                             painter = painterResource(id = R.drawable.baseline_clear_20),
                             contentDescription = "Clear",
-                            tint = Color.Black
-                        )
-                    }
+                            tint = Color.Black)
+                        }
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 when {
                     mimeType?.startsWith("image/") == true -> {
-                        ImageFileCard(uri = uriItem!!)
+                        Log.d("GrimBerry", "mimeType: $mimeType")
+                        ImageFileCard(uri = uriItem!!, modifier = Modifier.size(80.dp, 80.dp))
                     }
 
                     mimeType?.startsWith("video/") == true -> {
-                        VideoPlayerCard(uri = uriItem!!)
+                        VideoPlayerCard(uri = uriItem!!, modifier = Modifier.size(80.dp, 80.dp))
                     }
 
                     mimeType?.startsWith("audio/") == true -> {

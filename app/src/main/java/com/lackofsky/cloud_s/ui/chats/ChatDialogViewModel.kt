@@ -151,10 +151,8 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                 chatId = _activeChat.value!!.chatId ,// у власника чат айді = _activeChat.value!!.chatId, у другої сторони = айді власника
                 content = text)
             _uriItem.value?.let{uri ->
-                val newUri = storageRepository.saveImageToGallery(context, uri, uri.lastPathSegment!!)
-                messageToSave = messageToSave.copy(
-                    mediaUri = newUri.toString(), contentType = MessageContentType.IMAGE,
-                )
+                messageToSave = saveMessageFile(context, uri, uri.lastPathSegment!!, messageToSave)
+
                 attachMedia(null)
 
             }
@@ -188,6 +186,48 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                 }
             }
 
+        }
+    }
+    private fun saveMessageFile(context: Context, uri: Uri, fileName: String, messageToSave: Message): Message {
+        val mimeType = context.contentResolver.getType(uri) ?: throw Exception("chatDialogViewModel saveMessageFile. cannot get mimeType")
+
+        return when {
+            mimeType.startsWith("image/") -> {
+                messageToSave.copy(
+                    mediaUri =  storageRepository.saveImageToGallery(context, uri, fileName).toString(),
+                    contentType = MessageContentType.IMAGE
+                )
+            }
+            mimeType.startsWith("video/") -> {
+                messageToSave.copy(
+                    mediaUri =  storageRepository.saveVideoToGallery(context, uri, fileName).toString(),
+                    contentType = MessageContentType.VIDEO
+                )
+
+            }
+            mimeType.startsWith("audio/") -> {
+                messageToSave.copy(
+                    mediaUri =  storageRepository.saveAudioToMusic(context, uri, fileName).toString(),
+                    contentType = MessageContentType.AUDIO
+                )
+
+            }
+            mimeType == "application/pdf" || mimeType.startsWith("text/") ||
+                    mimeType == "application/msword" || mimeType == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                    mimeType == "application/vnd.ms-excel" || mimeType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> {
+
+                messageToSave.copy(
+                    mediaUri =  storageRepository.saveDocumentToDocuments(context, uri, fileName).toString(),
+                    contentType = MessageContentType.DOCUMENT
+                )
+            }
+            else -> {
+                messageToSave.copy(
+                    mediaUri =  storageRepository.saveFileToDownloads(context, uri, fileName).toString(),
+                    contentType = MessageContentType.DOCUMENT
+                )
+
+            }
         }
     }
 

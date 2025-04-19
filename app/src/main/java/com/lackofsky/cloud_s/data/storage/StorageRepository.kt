@@ -40,7 +40,30 @@ class StorageRepository(val metadata: Metadata) {
      fun isMediaExist(fileName: String,fileIntend:TransferMediaIntend,fileSize: Long){
 
      }
-     fun saveImageToGallery(context: Context, uri: Uri, fileName: String): Uri? {
+//    fun saveMessageFile(context: Context, uri: Uri, fileName: String): Uri? {
+//        val mimeType = context.contentResolver.getType(uri) ?: return null
+//
+//        return when {
+//            mimeType.startsWith("image/") -> {
+//                saveImageToGallery(context, uri, fileName)
+//            }
+//            mimeType.startsWith("video/") -> {
+//                saveVideoToGallery(context, uri, fileName)
+//            }
+//            mimeType.startsWith("audio/") -> {
+//                saveAudioToMusic(context, uri, fileName)
+//            }
+//            mimeType == "application/pdf" || mimeType.startsWith("text/") ||
+//                    mimeType == "application/msword" || mimeType == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+//                    mimeType == "application/vnd.ms-excel" || mimeType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> {
+//                saveDocumentToDocuments(context, uri, fileName)
+//            }
+//            else -> {
+//                saveFileToDownloads(context, uri, fileName)
+//            }
+//        }
+//    }
+    fun saveImageToGallery(context: Context, uri: Uri, fileName: String): Uri? {
         val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
         return saveToMediaStore(
             context,
@@ -51,8 +74,19 @@ class StorageRepository(val metadata: Metadata) {
             MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         )
      }
+    fun saveVideoToGallery(context: Context, uri: Uri, fileName: String): Uri? {
+        val mimeType = context.contentResolver.getType(uri) ?: "video/mp4"
+        return saveToMediaStore(
+            context = context,
+            sourceUri = uri,
+            fileName = fileName,
+            mimeType = mimeType,
+            relativePath = "Movies/cLoud_s",
+            mediaCollectionUri = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        )
+    }
 
-     fun saveAudioToMusic(context: Context, uri: Uri, fileName: String): Uri? {
+    fun saveAudioToMusic(context: Context, uri: Uri, fileName: String): Uri? {
         val mimeType = context.contentResolver.getType(uri) ?: "audio/mpeg"
         return saveToMediaStore(
             context,
@@ -64,7 +98,7 @@ class StorageRepository(val metadata: Metadata) {
         )
     }
 
-     fun saveDocumentToDocuments(context: Context, uri: Uri, fileName: String): Uri? {
+    fun saveDocumentToDocuments(context: Context, uri: Uri, fileName: String): Uri? {
         val mimeType = context.contentResolver.getType(uri) ?: "application/pdf"
         return saveToMediaStore(
             context,
@@ -76,7 +110,7 @@ class StorageRepository(val metadata: Metadata) {
         )
     }
 
-     fun saveFileToDownloads(context: Context, uri: Uri, fileName: String): Uri? {
+    fun saveFileToDownloads(context: Context, uri: Uri, fileName: String): Uri? {
         val mimeType = context.contentResolver.getType(uri) ?: "application/octet-stream"
         return saveToMediaStore(
             context,

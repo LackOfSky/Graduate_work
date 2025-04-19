@@ -119,7 +119,7 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
 //                            )
                         }
                         MessageContentType.IMAGE -> {
-                            Log.d("GrimBerry mdi",message.mediaUri +" message mediaUri")
+                            Log.d("GrimBerry mdi"," message mediaUri"+ message.mediaUri )
                             message.mediaUri?.let { uri ->
                                 ImageFileCard(uri.toUri())
                                 Divider(Modifier.fillMaxWidth())
@@ -135,33 +135,31 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
 //                            )
                         }
                         MessageContentType.VIDEO->{
-                            message.mediaUri?.let { uri->
-                                if(File(uri).exists()){
-                                    Box(modifier = Modifier.size(200.dp, 200.dp)) {
-                                        VideoPlayerCard(uri = uri.toUri())
-                                    }
+                            message.mediaUri?.let { uri ->
+                                Log.d("GrimBerry mdi", " message mediaUri vid " + message.mediaUri)
+                                Box(modifier = Modifier.size(200.dp, 200.dp)) {
+                                    VideoPlayerCard(uri = uri.toUri())
                                 }
-
                             }
                             Divider(Modifier.fillMaxWidth())
                         }
                         MessageContentType.AUDIO->{
                             message.mediaUri?.let { uri->
-                                if(File(uri).exists()){
+//                                if(File(uri).exists()){
                                     Box(modifier = Modifier.size(200.dp, 80.dp)) {
                                         AudioPlayerCard(uri = uri.toUri())
                                     }
-                                }
+//                                }
 
                             }
                             Divider(Modifier.fillMaxWidth())
                         }
                         MessageContentType.DOCUMENT->{
                             message.mediaUri?.let { uri->
-                                if(File(uri).exists()){
+//                                if(File(uri).exists()){
                                     DocumentFileCard(uri = uri.toUri())
                                 }
-                            }
+//                            }
 
                         }
                         // Добавьте обработку других типов контента (AUDIO, VIDEO, LOCATION, CONTACT, DOCUMENT) по аналогии
