@@ -374,7 +374,10 @@ fun DefaultIcon(userInfo: UserInfo?){
                 Image(
                     painter = rememberAsyncImagePainter(model = it),
                     contentDescription = "User Icon",
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .width(width = 70.dp)
+                        .height(height = 70.dp)
+                        .clip(shape = RoundedCornerShape(28.dp)),
                     contentScale = ContentScale.Fit
                 )
             } ?: Image(

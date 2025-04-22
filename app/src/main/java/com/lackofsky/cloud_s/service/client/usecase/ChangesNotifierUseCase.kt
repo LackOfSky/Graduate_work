@@ -28,7 +28,7 @@ class ChangesNotifierUseCase @Inject constructor(val gson: Gson, val clientPartP
         val info = userInfo.copy(bannerImgURI = "", iconImgURI = "")
         val content = gson.toJson(info)
         //TODO SEND MEDIA REQUEST
-        return defaultNotifierRequest(sendTo, content, MessageType.USER_UPDATE)
+        return defaultNotifierRequest(sendTo, content, MessageType.USER_INFO_UPDATE)
     }
 
     /*** !ONLY TransferMediaIntend.MEDIA_USER_BANNER, TransferMediaIntend.MEDIA_USER_LOGO

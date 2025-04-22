@@ -109,7 +109,10 @@ fun FriendProfile(modifier: Modifier = Modifier,userId: Int,
                                 Image(
                                     painter = rememberAsyncImagePainter(model = uri),
                                     contentDescription = "User Ico",
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier =
+                                        Modifier.width(width = 70.dp)
+                                                .height(height = 70.dp)
+                                                .clip(shape = RoundedCornerShape(28.dp)),
                                     contentScale = ContentScale.Fit
                                 )
                             }else{

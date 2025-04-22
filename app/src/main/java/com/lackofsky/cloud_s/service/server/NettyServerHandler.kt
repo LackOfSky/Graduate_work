@@ -128,7 +128,12 @@ class NettyServerHandler(
                 MessageType.USER_INFO_UPDATE -> {
                     //todo обработка ошибок
                     val userInfo = gson.fromJson(data.content, UserInfo::class.java)
-                    userRepository.updateUserInfo(userInfo)
+                    Log.d("service $SERVICE_NAME server handler", "sender: ${data.senderId}")
+                    val oldUserInfo = userRepository.getUserInfoById(data.senderId).first()
+                    userRepository.updateUserInfo(
+                        oldUserInfo.copy(info = userInfo.info,
+                            about = userInfo.about)
+                    )
                 }
                 MessageType.USER_FRIEND_DELETE ->{
                     val userToDelete = gson.fromJson(data.sender, User::class.java)

@@ -67,7 +67,6 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: Pair<Cha
                 )
         ) {
         chatListItem.first.userIcon?.let { uri->
-            if(File(uri).exists()){
                 Image(
                     painter = rememberAsyncImagePainter(model = uri),
                     contentDescription = "User Ico",
@@ -80,18 +79,6 @@ fun ChatItem(viewModel: ChatsViewModel = hiltViewModel(), chatListItem: Pair<Cha
                         .weight(weight = 2f)
                         .clip(shape = RoundedCornerShape(28.dp))
                 )
-            }else{
-                Image(
-                    painter = painterResource(id = R.drawable.clouds_night_angle20),
-                    contentDescription = "Image",
-                    modifier = Modifier
-                        .align(alignment = Alignment.Top)
-                        .width(width = 70.dp)
-                        .height(height = 70.dp)
-                        .weight(weight = 2f)
-                        .clip(shape = RoundedCornerShape(28.dp))
-                )
-            }
         } ?: Image(
             painter = painterResource(id = R.drawable.clouds_night_angle20),
             contentDescription = "Image",

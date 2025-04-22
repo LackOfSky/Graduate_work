@@ -1,5 +1,6 @@
 package com.lackofsky.cloud_s.ui.friends.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -76,12 +77,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(),
                navController: NavHostController,
                isOnline:Boolean = false){
     var isExpandedItemMenu by remember { mutableStateOf(false) }
-    val friendInfo by viewModel.getUserInfo(userFriend).collectAsState(null)
+    val friendInfo by viewModel.getUserInfo(userFriend.uniqueID).collectAsState(null)//"SuspiciousIndentation"
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
@@ -94,25 +96,17 @@ fun FriendItem(userFriend: User,viewModel: FriendsViewModel = hiltViewModel(),
             ) {
                 friendInfo?.let{
                     it.iconImgURI?.let { uri ->
-                        if(File(uri).exists()){
                             Image(
                                 painter = rememberAsyncImagePainter(model = uri),
                                 contentDescription = "User Banner",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Fit
-                            )
-                        }else{
-                            Image(
-                                painter = painterResource(id = R.drawable.clouds_night_angle20),
-                                contentDescription = "Image",
                                 modifier = Modifier
                                     .align(alignment = Alignment.Top)
                                     .width(width = 70.dp)
                                     .height(height = 70.dp)
                                     .weight(weight = 2f)
-                                    .clip(shape = RoundedCornerShape(28.dp))
+                                    .clip(shape = RoundedCornerShape(28.dp)),
+                                contentScale = ContentScale.Fit
                             )
-                        }
                     } ?: Image(
                         painter = painterResource(id = R.drawable.clouds_night_angle20),
                         contentDescription = "Image",

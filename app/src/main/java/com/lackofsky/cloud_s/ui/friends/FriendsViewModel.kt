@@ -144,8 +144,8 @@ class FriendsViewModel @Inject constructor(
         }
         return true
     }
-    fun getUserInfo(userFriend: User): Flow<UserInfo> {
-        return userRepository.getUserInfoById(userFriend.uniqueID)
+    fun getUserInfo(userFriendID: String?): Flow<UserInfo> {
+        return userRepository.getUserInfoById(userFriendID)
     }
     suspend fun getPrivateChatId(userId: String):String{
         var chatId = ""

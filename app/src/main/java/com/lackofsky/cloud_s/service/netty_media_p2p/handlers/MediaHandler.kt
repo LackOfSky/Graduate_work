@@ -72,11 +72,9 @@ class MediaHandler(private val context: Context,
                 is ByteArray -> {
 //                    val buffer = ByteArray(msg.readableBytes())
 //                    msg.readBytes(buffer)
-                    Log.d(TAG, "channelRead0 media handler: ${msg}")
                     outputStream?.write(msg)
                     totalBytesReceived += msg.size
-                    Log.d(TAG, "Отримано дані: ${msg.size}")
-                    Log.d(TAG, "Отримано дані: ${msg.lastIndex}")
+//                    Log.d(TAG, "Отримано дані: ${msg.size}")
                 }
                 is String->{
                     if (msg.trim() == "FILE_TRANSFER_COMPLETE") {
@@ -106,10 +104,11 @@ class MediaHandler(private val context: Context,
     override fun channelInactive(ctx: ChannelHandlerContext) {
         outputStream?.close()
         Log.d(TAG, "Файл отримано: $fileUri, Розмір: $totalBytesReceived байтів")
+        CoroutineScope(Dispatchers.IO).launch {
         if (isTransferSuccess && fileUri != null) {
             //перевірка перед доданням до бд: mediaRequest.checksum
-            CoroutineScope(Dispatchers.IO).launch {
                 try{
+                    Log.d(TAG, "Файл отримано: трансфер $isTransferSuccess  ")
                     mediaRequest?.let { request ->
                         when (request.transferMediaIntend) {
                             TransferMediaIntend.MEDIA_USER_LOGO -> {
@@ -120,6 +119,7 @@ class MediaHandler(private val context: Context,
                                 Log.d(TAG, "user ${request.senderId} ${userInfo.first().userId}")
                                 userRepository.updateUserInfo(userInfo.first().copy(iconImgURI = fileUri.toString()))
                                 Log.d(TAG, "user ${request.senderId} logo updated ")
+                                Log.d(TAG, "user updated: ${userRepository.getUserInfoById(request.senderId)}")
                             }
                             TransferMediaIntend.MEDIA_USER_BANNER -> {
                                 val userInfo = userRepository.getUserInfoById(request.senderId).first()
@@ -144,13 +144,14 @@ class MediaHandler(private val context: Context,
                 }
 
             }
+            ctx.close()
+            outputStream = null
+            fileUri = null
+            mediaRequest = null
+            totalBytesReceived = 0
+            isTransferSuccess = false
         }
-        ctx.close()
-        outputStream = null
-        fileUri = null
-        mediaRequest = null
-        totalBytesReceived = 0
-        isTransferSuccess = false
+
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
