@@ -56,8 +56,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.extractor.text.webvtt.WebvttCssStyle.FontSizeUnit
 import coil.compose.rememberAsyncImagePainter
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.ui.ShowToast
@@ -103,7 +105,10 @@ fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewMo
             }
 
             MessagesList(viewModel, isFriendOnline = isFriendOnline, isNotesChat = isNotesChat)
+
+
             PinnedMedia(viewModel = viewModel)
+            AttachedReply(viewModel = viewModel, modifier = Modifier.height(60.dp))
         }
     }
 }
@@ -420,64 +425,30 @@ fun PinnedMedia(viewModel: ChatDialogViewModel) {
     }
 }
 
-//@Composable
-//fun PinnedMedia(viewModel: ChatDialogViewModel){
-//    val isMediaAttached by viewModel.isMediaAttached.collectAsState()
-//    val uriItem by viewModel.uriItem.collectAsState()
-//
-//    if (isMediaAttached){
-//        Card(//navigate
-//            elevation = CardDefaults.cardElevation(10.dp),
-//            colors = CardDefaults.cardColors(Color.White),
-//            shape = RoundedCornerShape(20.dp),
-//            modifier = Modifier.requiredHeight(height = 200.dp)
-////                .height(80.dp)
-////                .padding(1.dp, 2.dp)
-////                .clickable {
-////
-////                }
-//        ) {
-//            Column() {
-//                Box(modifier = Modifier.fillMaxWidth()) {
-//                    Text("pinned: ",
-//                        Modifier
-//                            .height(25.dp)
-//                            .padding(start = 10.dp, top = 5.dp))
-//                    IconButton(
-//                        onClick = { viewModel.attachMedia(null) },
-//                        modifier = Modifier
-//                            .align(Alignment.TopEnd)
-//                            .requiredSize(25.dp)
-//                            .padding(end = 10.dp, top = 5.dp)
-//
-//                    ) {
-//                        Icon(
-//                            painter = painterResource(id = R.drawable.baseline_clear_20),
-//                            contentDescription = "stash_Pinned",
-//                            tint = Color(0xFF1D1B20)
-//                        )
-//                    }
-//                }
-//                Spacer(modifier = Modifier.height(4.dp))
-//                Row(
-//                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    modifier = Modifier
-//                        .padding(10.dp)
-//                        .requiredHeight(height = 160.dp)
-//                       // .background(color = Color(0xffece6f0))
-//                ) {
-//                    //TODO TODODODO
-//                    Image(
-//                        painter = rememberAsyncImagePainter(model = uriItem),
-//                        contentDescription = "User Icon",
-//                        contentScale = ContentScale.Fit,
-//                        modifier = Modifier
-//                            .heightIn(max = 150.dp)
-//                            .widthIn(max = 150.dp)
-//                    )
-//                }
-//            }
-//        }
-//    }
-//}
+@Composable
+ fun AttachedReply(viewModel: ChatDialogViewModel,modifier: Modifier){
+    val attachedMessageReply by viewModel.attachedMessageReply.collectAsState()
+    val isReplyAttached by viewModel.isReplyAttached.collectAsState()
+    Log.d("GrimBerry", "attachedMessageReply1: $attachedMessageReply")
+    if (isReplyAttached){
+        Log.d("GrimBerry", "attachedMessageReply2: $attachedMessageReply")
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .requiredHeight(120.dp)
+            .padding(8.dp, 8.dp, 8.dp, 60.dp)
+            .background(color = Color.White),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(painter = painterResource(R.drawable.baseline_reply_24), contentDescription = "reply to message")
+            Text(text = attachedMessageReply?.content.orEmpty(),Modifier.padding(horizontal = 8.dp),maxLines = 1,
+                overflow = TextOverflow.Ellipsis)//TODO
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(onClick = {viewModel.attachReply(null) }) {
+                Icon(painter = painterResource(R.drawable.baseline_clear_20), contentDescription = "clear reply")
+            }
+            Spacer(modifier = Modifier.width(5.dp))
+        }
+        Spacer(modifier = Modifier.requiredHeight(60.dp))
+    }
+ }

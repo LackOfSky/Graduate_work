@@ -13,14 +13,20 @@ import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMediaIntend
 import java.io.File
 
 class StorageRepository(val metadata: Metadata) {
-    fun saveFileFromUri(context: Context, uri: Uri, fileName: String,folder: UserInfoStorageFolder): Uri? {
-        val directory = File(context.filesDir,  folder.folderName).apply { mkdirs() }
+    fun saveFileFromUri(
+        context: Context,
+        uri: Uri,
+        fileName: String,
+        folder: UserInfoStorageFolder
+    ): Uri? {
+        val directory = File(context.filesDir, folder.folderName).apply { mkdirs() }
         try {
             // Создаём файл в приватной директории приложения
-            val mimeType: String = context.contentResolver.getType(uri)?.substringAfter("/")?:"img"
+            val mimeType: String =
+                context.contentResolver.getType(uri)?.substringAfter("/") ?: "img"
             val file = File(directory, "${folder.folderName}_$fileName.$mimeType")
 
-            if(file.exists()) file.delete()
+            if (file.exists()) file.delete()
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 file.outputStream().use { outputStream ->
                     inputStream.copyTo(outputStream)
@@ -35,12 +41,12 @@ class StorageRepository(val metadata: Metadata) {
     }
 
 
-
     // ====== Specific Types ======
-     fun isMediaExist(fileName: String,fileIntend:TransferMediaIntend,fileSize: Long){
+    fun isMediaExist(fileName: String, fileIntend: TransferMediaIntend, fileSize: Long) {
 
-     }
-//    fun saveMessageFile(context: Context, uri: Uri, fileName: String): Uri? {
+    }
+
+    //    fun saveMessageFile(context: Context, uri: Uri, fileName: String): Uri? {
 //        val mimeType = context.contentResolver.getType(uri) ?: return null
 //
 //        return when {
@@ -73,7 +79,8 @@ class StorageRepository(val metadata: Metadata) {
             "Pictures/cLoud_s",
             MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         )
-     }
+    }
+
     fun saveVideoToGallery(context: Context, uri: Uri, fileName: String): Uri? {
         val mimeType = context.contentResolver.getType(uri) ?: "video/mp4"
         return saveToMediaStore(
@@ -121,7 +128,8 @@ class StorageRepository(val metadata: Metadata) {
             MediaStore.Downloads.EXTERNAL_CONTENT_URI
         )
     }
-    private fun saveToMediaStore(
+
+        private fun saveToMediaStore(
         context: Context,
         sourceUri: Uri,
         fileName: String,
@@ -132,8 +140,10 @@ class StorageRepository(val metadata: Metadata) {
         val resolver = context.contentResolver
 
         val extension = mimeType.substringAfter("/", "bin")
+        val displayName = "$fileName.$extension"
+
         val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, "$fileName.$extension")
+            put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
             put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
             put(MediaStore.MediaColumns.IS_PENDING, 1)
@@ -160,6 +170,8 @@ class StorageRepository(val metadata: Metadata) {
             null
         }
     }
+
+
 }
 
 enum class UserInfoStorageFolder(val folderName: String){

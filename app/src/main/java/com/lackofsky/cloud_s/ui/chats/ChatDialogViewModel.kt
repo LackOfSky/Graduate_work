@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -149,6 +150,7 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
             var messageToSave = Message(
                 userId = activeUserOwner.value!!.uniqueID,
                 chatId = _activeChat.value!!.chatId ,// у власника чат айді = _activeChat.value!!.chatId, у другої сторони = айді власника
+                replyMessageId = attachedMessageReply.value?.uniqueId,
                 content = text)
             _uriItem.value?.let{uri ->
                 messageToSave = saveMessageFile(context, uri, uri.lastPathSegment!!, messageToSave)
@@ -235,6 +237,15 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
     val uriItem: StateFlow<Uri?> = _uriItem
     private val _isMediaAttached = MutableStateFlow(false) //.stateIn(viewModelScope, SharingStarted.Eagerly, false)
     val isMediaAttached: StateFlow<Boolean> = _isMediaAttached
+
+    private val _attachedMessageReply = MutableStateFlow<Message?>(null)
+    val attachedMessageReply: StateFlow<Message?> = _attachedMessageReply
+    private val _isReplyAttached = MutableStateFlow(false)
+    val isReplyAttached: StateFlow<Boolean> = _isReplyAttached
+    fun attachReply(message: Message?){
+        _attachedMessageReply.update { message }
+        _isReplyAttached.value = (_attachedMessageReply.value != null)
+    }
     fun attachMedia(uriItem: Uri?){//todo for list Uri
         _uriItem.update { uriItem }
         _isMediaAttached.value =  (uriItem != null)
@@ -328,6 +339,23 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
             context.startActivity(chooser)
         } catch (e: ActivityNotFoundException) {
             Toast.makeText(context, "Seems you don`t have application to open this file", Toast.LENGTH_SHORT).show()
+        }
+    }
+    fun getAudioMetadata(context: Context, uri: Uri): Pair<String?, String?> {
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(context, uri)
+
+            // Получаем название и исполнителя
+            val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+            val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+
+            return title to artist
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null to null
+        } finally {
+            retriever.release()
         }
     }
 }

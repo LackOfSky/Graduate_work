@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.ui.layout.ContentScale
 import androidx.core.net.toUri
 import coil.compose.rememberAsyncImagePainter
@@ -45,6 +46,7 @@ import coil.request.ImageRequest
 import com.lackofsky.cloud_s.R
 import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.MessageContentType
+import com.lackofsky.cloud_s.ui.chats.AttachedReply
 import com.lackofsky.cloud_s.ui.chats.ChatDialogViewModel
 import java.io.File
 
@@ -57,6 +59,7 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
     val isSelectingMode by viewModel.isSelectingMode.collectAsState()
     val context = LocalContext.current
     var isExpandedItemMenu by remember { mutableStateOf(false) }
+    AttachedReply(viewModel,Modifier)
     Row(modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -146,7 +149,7 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                         MessageContentType.AUDIO->{
                             message.mediaUri?.let { uri->
 //                                if(File(uri).exists()){
-                                    Box(modifier = Modifier.size(200.dp, 80.dp)) {
+                                    Box(modifier = Modifier.wrapContentSize()) {
                                         AudioPlayerCard(uri = uri.toUri())
                                     }
 //                                }
@@ -208,7 +211,9 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                 .background(Color.Transparent)
                 .widthIn(min = 100.dp, max = 180.dp)
         ) {
-            DropdownMenuItem(label = "reply", onCLick = { /*TODO()*/ true }, drawableIcon = R.drawable.baseline_reply_24) // baseline_reply_16
+            DropdownMenuItem(label = "reply", onCLick = {
+                viewModel.attachReply(message)
+            }, drawableIcon = R.drawable.baseline_reply_24) // baseline_reply_16
             Divider()
             DropdownMenuItem(label = "redirect", onCLick = { /*TODO()*/ true }, drawableIcon = R.drawable.baseline_redo_24)
             DropdownMenuItem(label = "copy", onCLick = { viewModel.copyToClipboard(context = context, message.content) }, drawableIcon = R.drawable.baseline_content_copy_24)

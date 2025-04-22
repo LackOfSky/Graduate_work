@@ -46,6 +46,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.Dispatchers
@@ -84,7 +85,7 @@ import kotlinx.coroutines.withContext
             }
         }
 
-        var isPlaying by remember { mutableStateOf(false) }
+
 
         Card(
             modifier = modifier,
@@ -109,26 +110,54 @@ import kotlinx.coroutines.withContext
                     modifier = Modifier.fillMaxHeight()
                 )
 
-                IconButton(
-                    onClick = {
-                        isPlaying = !isPlaying
-                        if (isPlaying) {
-                            exoPlayer.playWhenReady = true
-                        } else {
-                            exoPlayer.pause()
+//                IconButton(
+//                    onClick = {
+//                        isPlaying = !isPlaying
+//                        if (isPlaying) {
+//                            exoPlayer.playWhenReady = true
+//                        } else {
+//                            exoPlayer.pause()
+//                        }
+//                    },
+//                    modifier = Modifier
+//                        .align(Alignment.Center)
+//                        .size(64.dp)
+//                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+//                ) {
+//                    Icon(
+//                        imageVector = if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
+//                        contentDescription = if (isPlaying) "Pause" else "Play",
+//                        tint = Color.White,
+//                        modifier = Modifier.size(40.dp)
+//                    )
+//                }
+                var isPlaying by remember { mutableStateOf(false) }
+
+                LaunchedEffect(exoPlayer) {
+                    exoPlayer.addListener(object : Player.Listener {
+                        override fun onIsPlayingChanged(isPlayingNow: Boolean) {
+                            isPlaying = isPlayingNow
                         }
-                    },
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(64.dp)
-                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                ) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Play",
-                        tint = Color.White,
-                        modifier = Modifier.size(40.dp)
-                    )
+                    })
+                }
+                if (!isPlaying) {
+                    IconButton(
+                        onClick = {
+                            isPlaying = true
+                            exoPlayer.playWhenReady = true
+                        },
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(64.dp)
+                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = "Play",
+                            tint = Color.White,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
                 }
             }
         }
