@@ -264,6 +264,7 @@ class MediaHandler(private val context: Context,
         val mimeType: String = mediaRequest.mimeType.substringAfter("/")
         val file =
             File(directory, mediaRequest.fileName ?: "user_icon_${System.currentTimeMillis()}.${mimeType}")
+        Log.d(TAG, "mediaRequest.fileName: ${mediaRequest.fileName}, ${file.name}")
         try {
             FileOutputStream(file).also { outputStream = it }
         } catch (e: Exception) {

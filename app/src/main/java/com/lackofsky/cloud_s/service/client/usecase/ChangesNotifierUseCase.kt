@@ -89,7 +89,7 @@ class ChangesNotifierUseCase @Inject constructor(val gson: Gson, val clientPartP
                         val transportData = TransportData(
                             messageType = messageType,
                             senderId = clientPartP2P.userOwner.value!!.uniqueID,
-                            sender =sender,
+                            sender = sender,
                             content = content
                         )
                         val json = gson.toJson(transportData)

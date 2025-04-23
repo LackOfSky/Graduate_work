@@ -179,7 +179,7 @@ class ProfileViewModel @Inject constructor(
     fun setImageUri(uri: Uri?,context: Context) {
             CoroutineScope(Dispatchers.IO).launch {
                 uri?.let {
-                    val uriToSave = storageRepository.saveFileFromUri(context, it, uri.lastPathSegment!!,
+                    val uriToSave = storageRepository.saveFileFromUri(context, it, uri.lastPathSegment!!,//
                         folder=UserInfoStorageFolder.USER_ICONS)
                     userRepository.updateUserInfo(
                         userInfo.value!!.copy(iconImgURI = uriToSave.toString())

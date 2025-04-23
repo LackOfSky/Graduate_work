@@ -89,6 +89,7 @@ class NettyMediaClient(
                         senderId = userRepository.getUserOwner().first().uniqueID,//sender.uniqueID,
                         transferMediaIntend = TransferMediaIntend.MEDIA_USER_LOGO
                     )
+                Log.d(TAG, "sendUserLogoFile fileDetails.name: ${fileDetails.name}")
                 return sendFile(uri = uri, mediaRequest = mediaRequest,
                     serverIpAddr, serverPort)
             } ?: return false
