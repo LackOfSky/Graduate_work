@@ -1,6 +1,8 @@
 package com.lackofsky.cloud_s.ui.chats.components
 
 import android.util.Log
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -35,11 +37,21 @@ import androidx.compose.ui.unit.em
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.core.net.toUri
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -48,19 +60,28 @@ import com.lackofsky.cloud_s.data.model.Message
 import com.lackofsky.cloud_s.data.model.MessageContentType
 import com.lackofsky.cloud_s.ui.chats.AttachedReply
 import com.lackofsky.cloud_s.ui.chats.ChatDialogViewModel
+import com.lackofsky.cloud_s.ui.chats.ReplyItem
 import java.io.File
 
 @Composable
 fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltViewModel(),
-                      isFriendOnline: Boolean = false, isNotesChat: Boolean = true) {
+                      isFriendOnline: Boolean = false, isNotesChat: Boolean = true
+) {
     // рыба
-    var isUserOwner by remember { mutableStateOf(viewModel.isFromOwner(message.userId)) }
+    val isUserOwner by remember { mutableStateOf(viewModel.isFromOwner(message.userId)) }
     var isSelected by remember { mutableStateOf(false) }
     val isSelectingMode by viewModel.isSelectingMode.collectAsState()
     val context = LocalContext.current
     var isExpandedItemMenu by remember { mutableStateOf(false) }
-    AttachedReply(viewModel,Modifier)
-    Row(modifier = Modifier.fillMaxWidth()
+
+    val animateScrollID by viewModel.animateScrollID.collectAsState()
+
+    val backgroundColor by animateColorAsState(
+        targetValue = if (animateScrollID == message.uniqueId) Color.LightGray else Color.Transparent,
+        animationSpec = tween(durationMillis = 1500) // Анімація зміни кольору
+    )
+
+    Row(modifier = Modifier.fillMaxWidth().background(backgroundColor)
     ) {
         Row(
             horizontalArrangement = Arrangement.End,
@@ -83,11 +104,14 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                     )
                 )
         ) {
+            Column {
+                ReplyItem(message = message, viewModel = viewModel)
+
             Card( // navigate
                 elevation = CardDefaults.cardElevation(2.dp),
                 colors = CardDefaults.cardColors(if (isSelected) Color.LightGray else Color.White),
                 modifier = Modifier
-                    .padding(3.dp, 6.dp)
+                    .padding(start = 3.dp, end = 3.dp, top = 0.dp, bottom =  6.dp)
                     .pointerInput(Unit) { // Clickable
                         detectTapGestures(
                             onTap = {
@@ -200,6 +224,7 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                         modifier = Modifier.align(Alignment.End)
                     )
                 }
+            }
             }
         }
         DropdownMenu(

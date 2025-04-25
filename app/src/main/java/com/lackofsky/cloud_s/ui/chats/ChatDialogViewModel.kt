@@ -33,6 +33,7 @@ import com.lackofsky.cloud_s.service.model.MessageKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -88,26 +89,6 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
             it.uniqueID == _activeChat.value?.name && _activeChat.value?.type == ChatType.PRIVATE}
     }.stateIn(viewModelScope, SharingStarted.Lazily, false)//_isFriendOnline
 
-//    val _isFriendOffline: StateFlow<Boolean> = clientPartP2P.friendsOnline.combine(_activeChat){
-//        friends, chat -> friends.any{chat!!.name == it.uniqueID && ChatType.PRIVATE}
-//    }
-
-    init {
-//        CoroutineScope(Dispatchers.IO).launch {
-//            clientPartP2P.friendsOnline.collect{ friends ->
-//                //Log.d("GrimBerry chatDialogVM", "friendsOnline: $it")
-//                _isFriendOnline.update { friends.any { it.uniqueID == _activeChat.value!!.name && _activeChat.value!!.type == ChatType.PRIVATE} }
-//            }
-//        }
-
-    }
-//    fun setMessagesList(chatId: String){
-//        CoroutineScope(Dispatchers.IO).launch {
-//            val chat = chatRepository.getChatById(chatId)
-//        }
-//
-//        messages = messageRepository.getMessagesByChat(chatId)
-//    }
 
     fun setChatId(chatId:String){
         viewModelScope.launch {
@@ -133,13 +114,6 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                 }
             }
         }
-
-
-//            chatMemberRepository.getMembersByChat(chatId).observeForever {
-//                chatMembers.value = it
-//            }
-
-
     }
 
     fun sendMessage(context: Context,text: String){//todo change to sendPrivateMessage
@@ -152,6 +126,7 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                 chatId = _activeChat.value!!.chatId ,// у власника чат айді = _activeChat.value!!.chatId, у другої сторони = айді власника
                 replyMessageId = attachedMessageReply.value?.uniqueId,
                 content = text)
+            attachReply(null)
             _uriItem.value?.let{uri ->
                 messageToSave = saveMessageFile(context, uri, uri.lastPathSegment!!, messageToSave)
 
@@ -357,5 +332,20 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
         } finally {
             retriever.release()
         }
+    }
+
+    fun getMessage(messageId: String): Flow<Message> {
+        return messageRepository.getMessageByUniqueId(messageId)
+    }
+
+
+    private val _animateScrollID = MutableStateFlow<String?>(null)
+    val animateScrollID: StateFlow<String?> = _animateScrollID
+    fun findMessageScrollingIndex(messageUniqueId: String):Int? {
+        return messages.value?.indexOfFirst { it.uniqueId == messageUniqueId}
+
+    }
+    fun setAnimateScrollingID(messageUniqueId: String?){
+        _animateScrollID.update { messageUniqueId }
     }
 }
