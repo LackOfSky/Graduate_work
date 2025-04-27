@@ -25,6 +25,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MediaHandler (private val userRepository: UserRepository,
@@ -80,11 +81,14 @@ class MediaHandler (private val userRepository: UserRepository,
 
                     when(incomingResponse.requestedIntend){
                         TransferMediaIntend.MEDIA_USER_LOGO -> {
+
                             CoroutineScope(Dispatchers.IO).launch {
+                                delay(1000)
                                 //TODO медиаклиент нахрен в обычный клиент. обычный клиент как раз будет выдавать ему хост
                                 //mediaClient.sendUserLogoFile(Uri.parse(clientPartP2P.userInfo.value!!.iconImgURI!!),//Запакуем в clientPartP2P
                                     //clientPartP2P.userOwner.value!!,//Запакуем в clientPartP2P
                                     //clientPartP2P.host, incomingResponse.msPort!!)
+                                Log.d("service $SERVICE_NAME media handler", "sendUserLogoFile ${clientPartP2P.userInfo.value!!.iconImgURI}")
                                 clientPartP2P.sendMediaLogo(incomingResponse.userUniqueId,incomingResponse.msPort!!)
                             }
 

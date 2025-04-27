@@ -127,10 +127,9 @@ class ClientPartP2P @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             userRepository.getUserOwner().collect { user ->
                 _userOwner.value = user
-                user.let {
-                    val info = userRepository.getUserInfoById(it.uniqueID).firstOrNull()
-                    _userInfo.value = info
-                }
+                    val info = userRepository.getUserInfoById(user.uniqueID).collect{userInfo ->
+                        _userInfo.value = userInfo
+                    }
             }
         }
         CoroutineScope(Dispatchers.IO).launch { /***_friendsOnline, _friendsOffline hot stream */
@@ -327,19 +326,22 @@ class ClientPartP2P @Inject constructor(
         Log.d("service $SERVICE_NAME :client sendML", "sending")
         val client  = activeFriends.value.entries.find { it.key.uniqueID == userUniqueId }
         Log.d("service $SERVICE_NAME :client sendML", "userUniqueId = $userUniqueId, ${activeFriends.value.entries.toString()}")
+        delay(1000)
+        Log.d("service $SERVICE_NAME :client sendML", "sendMediaLogo ${userInfo.value!!.iconImgURI!!}")
+                client?.let {
+                    val ipAddr = it.value.getChannelIpAddress()
+                    val isSuccess = mediaClient.sendUserLogoFile(uri = userInfo.value!!.iconImgURI!!.toUri(),
+                        sender = userOwner.value!!,
+                        serverIpAddr = ipAddr,
+                        serverPort = port)
+                    Log.d("service $SERVICE_NAME :client sendML", "sendMediaLogo ${userInfo.value!!.iconImgURI!!}")
+                    if (isSuccess) {
+                        Log.d("service $SERVICE_NAME :client sendML", "success")
+                    } else {
+                        Log.d("service $SERVICE_NAME :client sendML", "failed")
+                    }
+                }?: Log.e("service $SERVICE_NAME :client sendML", "client is null")
 
-        client?.let {
-            val ipAddr = it.value.getChannelIpAddress()
-            val isSuccess = mediaClient.sendUserLogoFile(uri = userInfo.value!!.iconImgURI!!.toUri(),
-                sender = userOwner.value!!,
-                serverIpAddr = ipAddr,
-                serverPort = port)
-            if (isSuccess) {
-                Log.d("service $SERVICE_NAME :client sendML", "success")
-            } else {
-                Log.d("service $SERVICE_NAME :client sendML", "failed")
-            }
-        }?: Log.e("service $SERVICE_NAME :client sendML", "client is null")
 
     }
     suspend fun sendMediaBanner(userUniqueId: String, port: Int){

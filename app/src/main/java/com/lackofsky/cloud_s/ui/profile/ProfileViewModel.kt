@@ -64,6 +64,8 @@ class ProfileViewModel @Inject constructor(
         started = SharingStarted.Eagerly,
         initialValue = null)//get() = _user
     private val _userInfo = MutableStateFlow<UserInfo?>(null)
+//    private val _userInfo = clientPartP2P.userInfo
+//        .stateIn(scope = viewModelScope,started = SharingStarted.Eagerly, initialValue = null)
     val userInfo: StateFlow<UserInfo?> = _userInfo
 
 
@@ -184,8 +186,10 @@ class ProfileViewModel @Inject constructor(
                     userRepository.updateUserInfo(
                         userInfo.value!!.copy(iconImgURI = uriToSave.toString())
                     )
-                    _selectedIconUri.value = uri
+//                    val refreshedInfo = userRepository.getUserInfoById(user.value!!.uniqueID).first()
+//                    _userInfo.value = refreshedInfo
 
+                    _selectedIconUri.value = uri
                     changesNotifierUseCase.userInfoMediaChangesNotifierRequest(
                         sendTo = clientPartP2P.activeFriends.value.values.toList(),
                         transferIntend = TransferMediaIntend.MEDIA_USER_LOGO
