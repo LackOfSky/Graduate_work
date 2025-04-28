@@ -50,8 +50,9 @@ class NettyMediaClient(
     val TAG = "GrimBerry NettyMediaClient"
     val userOwner: Flow<User> = userRepository.getUserOwner()
 
-    override suspend fun sendMessageFile(message: Message, sender: User,
+    override suspend fun sendMessageFile(messageUniqueId: String, sender: User,
         serverIpAddr: String, serverPort: Int): Boolean {
+        val message = messageRepository.getMessageByUniqueId(messageUniqueId).first()
         val uri = message.mediaUri!!.toUri()
         val fileDetails = getFileDetails(uri)
         fileDetails?.let {
@@ -302,7 +303,7 @@ private fun getFileDetails(uri: Uri): FileDetails? {
 
 
 interface MediaClientInterface {
-    suspend fun sendMessageFile(message: Message, sender: User,serverIpAddr: String, serverPort:Int): Boolean //sender = userOwner
+    suspend fun sendMessageFile(messageUniqueId: String, sender: User,serverIpAddr: String, serverPort:Int): Boolean //sender = userOwner
     suspend fun sendUserLogoFile(uri: Uri,sender: User,  serverIpAddr: String, serverPort:Int): Boolean //
     suspend fun sendUserBannerFile(uri: Uri, sender: User, serverIpAddr: String, serverPort:Int): Boolean
 }

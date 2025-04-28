@@ -135,9 +135,7 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
             }
 
             Log.d("GrimBerry chatDialogVM", "chatMembers.value ${chatMembers.value.toString()} ")
-            //if(chatMembers.value.isNullOrEmpty()){//TODO (СКОРЕЕ всего проверка должна быть на = 1)
             if(chatMembers.value.size == 1){
-                Log.d("GrimBerry chatDialogVM", "chatMembers.value ${chatMembers.value.toString()} ")
                 messageRepository.insertAndUpdateMessage(messageToSave)
             }else{
                 try{
@@ -153,6 +151,7 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                                     it.key.uniqueID == activeChat.name && activeChat.type == ChatType.PRIVATE
                                 }?.value!!
                             messageRequestUseCase.sendMessageRequest(client, messageToSend)
+                            messageRequestUseCase.sendMediaMessageRequest(sendTo = client, messageToSend)
                             Log.d("GrimBerry chatDialogVM", "send message")
                         }
                     }

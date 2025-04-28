@@ -11,6 +11,12 @@ import com.lackofsky.cloud_s.service.client.NettyClient
 import com.lackofsky.cloud_s.service.model.MessageKey
 import com.lackofsky.cloud_s.service.model.MessageType
 import com.lackofsky.cloud_s.service.model.TransportData
+import com.lackofsky.cloud_s.service.netty_media_p2p.model.TransferMediaIntend
+import com.lackofsky.cloud_s.service.server.MediaRequest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MessageRequestUseCase @Inject constructor(
@@ -37,9 +43,23 @@ class MessageRequestUseCase @Inject constructor(
         val contentJSON = gson.toJson(message)
         return defaultMessageRequest(sendTo, contentJSON, MessageType.MESSAGE)
     }
+    fun sendMediaMessageRequest(sendTo: NettyClient, message: Message):Boolean{
+                    Log.e("GrimBerry ChangesNotifierUseCase", "userInfoMediaChangesNotifierRequest: TransferMediaIntend.MEDIA_EXTERNAL is not allowed here")
+                    val user = clientPartP2P.userOwner.value
+                    val content = gson.toJson(
+                        MediaRequest(TransferMediaIntend.MEDIA_EXTERNAL, userUniqueId = user!!.uniqueID, message.uniqueId)
+                    )
 
-    override fun deleteMessageOne2OneRequest(sendTo: NettyClient, messageId: String): Boolean {
-        return defaultMessageRequest(sendTo = sendTo, content = messageId, messageType = MessageType.MESSAGE_DELETE)
+                    return mediaNotifierRequest(sendTo, content, MessageType.REQUEST_MEDIA_SERVER)
+
+
+                //return mediaNotifierRequest(sendTo, content, MessageType.REQUEST_MEDIA_SERVER)
+
+        }
+
+
+    override fun deleteMessageOne2OneRequest(sendTo: NettyClient, messageUniqueId: String): Boolean {
+        return defaultMessageRequest(sendTo = sendTo, content = messageUniqueId, messageType = MessageType.MESSAGE_DELETE)
     }
     private fun defaultMessageRequest(sendTo: NettyClient, content: String, messageType: MessageType): Boolean {
         try {
@@ -58,5 +78,28 @@ class MessageRequestUseCase @Inject constructor(
             return false
         }
         return true
+    }
+
+    private fun mediaNotifierRequest(sendTo: NettyClient, content: String, messageType: MessageType): Boolean {
+        CoroutineScope(Dispatchers.IO).launch {
+            val sender = gson.toJson(clientPartP2P.userOwner.value)
+//            try{
+//                sendTo.forEach { client ->
+                    try{
+                        val transportData = TransportData(
+                            messageType = messageType,
+                            senderId = clientPartP2P.userOwner.value!!.uniqueID,
+                            sender = sender,
+                            content = content
+                        )
+                        val json = gson.toJson(transportData)
+                        sendTo.sendMessage(json)
+                    }catch (e: Exception){
+                        Log.d("service $SERVICE_NAME :changesNotifierUseCase", "mediaNotifierRequest: exception $e at client ip ${sendTo.getChannelIpAddress()}")
+                        throw e
+//                    }
+                }
+        }
+        return true //TODO
     }
 }

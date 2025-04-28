@@ -129,7 +129,7 @@ class MediaHandler(private val context: Context,
                             TransferMediaIntend.MEDIA_EXTERNAL -> {
                                 val message =
                                     messageRepository.getMessageByUniqueId(request.messageId).first()
-                                messageRepository.insertMessage(message.copy())
+                                messageRepository.insertMessage(message.copy(mediaUri = fileUri.toString()))
                                 Log.d(
                                     TAG,
                                     "user ${request.senderId} message media added. messageId: ${request.messageId}"

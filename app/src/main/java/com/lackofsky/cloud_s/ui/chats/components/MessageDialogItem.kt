@@ -133,24 +133,18 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                     }
             ) {
                 Column(modifier = Modifier.padding(8.dp)) {
+                    message.mediaUri?.let { uri ->
                     when (message.contentType) {
                         MessageContentType.TEXT -> {
-                            //migrated down from condition message.contentType
-//                            Text(
-//                                text = message.content,
-//                                color = if (false) Color.White else Color.Black,
-//                                lineHeight = 1.8.em,
-//                                style = MaterialTheme.typography.bodyLarge,
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                            )
+                            Log.e("GrimBerry mdi", "Message content error. existing mediaUri when MessageContentType.TEXT")
                         }
+
                         MessageContentType.IMAGE -> {
-                            Log.d("GrimBerry mdi"," message mediaUri"+ message.mediaUri )
-                            message.mediaUri?.let { uri ->
-                                ImageFileCard(uri.toUri())
-                                Divider(Modifier.fillMaxWidth())
-                            }
+                            Log.d("GrimBerry mdi", " message mediaUri" + message.mediaUri)
+//                            message.mediaUri?.let { uri ->
+                            ImageFileCard(uri.toUri())
+                            Divider(Modifier.fillMaxWidth())
+//                            }
 //                            Divider(Modifier.fillMaxWidth())
 //                            Text(
 //                                text = message.content,
@@ -161,31 +155,34 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
 //                                    .fillMaxWidth()
 //                            )
                         }
-                        MessageContentType.VIDEO->{
-                            message.mediaUri?.let { uri ->
-                                Log.d("GrimBerry mdi", " message mediaUri vid " + message.mediaUri)
-                                Box(modifier = Modifier.size(200.dp, 200.dp)) {
-                                    VideoPlayerCard(uri = uri.toUri())
-                                }
+
+                        MessageContentType.VIDEO -> {
+//                            message.mediaUri?.let { uri ->
+                            Log.d("GrimBerry mdi", " message mediaUri vid " + message.mediaUri)
+                            Box(modifier = Modifier.size(200.dp, 200.dp)) {
+                                VideoPlayerCard(uri = uri.toUri())
                             }
+//                            }
                             Divider(Modifier.fillMaxWidth())
                         }
-                        MessageContentType.AUDIO->{
-                            message.mediaUri?.let { uri->
+
+                        MessageContentType.AUDIO -> {
+//                            message.mediaUri?.let { uri->
 //                                if(File(uri).exists()){
-                                    Box(modifier = Modifier.wrapContentSize()) {
-                                        AudioPlayerCard(uri = uri.toUri())
-                                    }
+                            Box(modifier = Modifier.wrapContentSize()) {
+                                AudioPlayerCard(uri = uri.toUri())
+                            }
 //                                }
 
-                            }
+//                            }
                             Divider(Modifier.fillMaxWidth())
                         }
-                        MessageContentType.DOCUMENT->{
-                            message.mediaUri?.let { uri->
+
+                        MessageContentType.DOCUMENT -> {
+//                            message.mediaUri?.let { uri->
 //                                if(File(uri).exists()){
-                                    DocumentFileCard(uri = uri.toUri())
-                                }
+                            DocumentFileCard(uri = uri.toUri())
+//                                }
 //                            }
 
                         }
@@ -196,7 +193,7 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                                 color = Color.Red,
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier
-                                    .fillMaxWidth()
+                                    .size(200.dp, 200.dp)//.fillMaxWidth()
                             )
                             Divider(Modifier.fillMaxWidth())
 //                            Text(
@@ -209,6 +206,18 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
 //                            )
                         }
                     }
+                    }
+                    if(message.contentType != MessageContentType.TEXT && message.mediaUri == null){
+                        Text(
+                            text = "File is downloading or damaged",
+                            color = Color.Black,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
+                        Divider(Modifier.fillMaxWidth())
+                    }
+
                     Text(
                         text = message.content,
                         color = Color.Black,//if (false) Color.White else Color.Black,

@@ -98,7 +98,11 @@ class MediaHandler (private val userRepository: UserRepository,
                                 clientPartP2P.sendMediaBanner(incomingResponse.userUniqueId,incomingResponse.msPort!!)
                             }
                         }
-                        TransferMediaIntend.MEDIA_EXTERNAL -> TODO()
+                        TransferMediaIntend.MEDIA_EXTERNAL -> {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                clientPartP2P.sendMediaMessage(incomingResponse.userUniqueId,incomingResponse.msPort!!, incomingResponse.messageId!!)
+                            }
+                        }
                         null -> {
                             ctx.close()
                             Log.e("service $SERVICE_NAME media handler", "unknown media request intend. skipped. channel closed")

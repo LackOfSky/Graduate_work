@@ -11,12 +11,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,6 +33,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
@@ -42,6 +42,8 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -57,12 +59,14 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -80,7 +84,9 @@ import com.lackofsky.cloud_s.ui.chats.components.DocumentFileCard
 import com.lackofsky.cloud_s.ui.chats.components.ImageFileCard
 import com.lackofsky.cloud_s.ui.chats.components.MessageDialogItem
 import com.lackofsky.cloud_s.ui.chats.components.VideoPlayerCard
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewModel()){
@@ -116,10 +122,12 @@ fun ChatDialogScreen(chatId: String, viewModel: ChatDialogViewModel = hiltViewMo
                 }
                 Divider()
             }
-
-            MessagesList(viewModel, isFriendOnline = isFriendOnline, isNotesChat = isNotesChat)
-
-
+            Box(){
+                val fabModifier = Modifier.absoluteOffset(x = 0.dp, y = (-80).dp) // смещение от нижнего края экрана
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 16.dp)
+                MessagesList(viewModel, isFriendOnline = isFriendOnline, isNotesChat = isNotesChat, modifier = fabModifier)
+            }
             PinnedMedia(viewModel = viewModel)
             AttachedReply(viewModel = viewModel, modifier = Modifier.height(60.dp))
         }
@@ -147,12 +155,16 @@ fun MessagesList(viewModel: ChatDialogViewModel, modifier: Modifier = Modifier,
     messagesList?.let {messages ->
         LaunchedEffect(isKeyboardOpen) {
             if (isKeyboardOpen && wasAtBottom.value) {
-                delay(100) // зачекай, поки UI адаптується до клавіатури
-                listState.animateScrollToItem(messages.lastIndex)
+                delay(100)
+                if(!messagesList.isNullOrEmpty()) {
+                    listState.animateScrollToItem(messages.lastIndex)
+                }
             }
         }
         LaunchedEffect(Unit) {
-            listState.scrollToItem(messages.size - 1)
+            if(!messagesList.isNullOrEmpty()){
+                listState.scrollToItem(messages.size - 1)
+            }
         }
     }
 
@@ -187,8 +199,10 @@ fun MessagesList(viewModel: ChatDialogViewModel, modifier: Modifier = Modifier,
         if (isAtBottom && !messagesList.isNullOrEmpty()) {
             listState.animateScrollToItem(messagesList!!.size -1)
         }
-
     }
+    val coroutineScope = rememberCoroutineScope()
+
+
     LazyColumn(modifier = Modifier
         .fillMaxSize(),
         state = listState,
@@ -197,6 +211,24 @@ fun MessagesList(viewModel: ChatDialogViewModel, modifier: Modifier = Modifier,
             items(it) { message ->
                 MessageDialogItem(message = message, isFriendOnline = isFriendOnline, isNotesChat = isNotesChat)
             }
+        }
+    }
+    if (!isAtBottom && !messagesList.isNullOrEmpty()) {
+        FloatingActionButton(
+            onClick = {
+                coroutineScope.launch {
+                    listState.animateScrollToItem(messagesList!!.size - 1)
+                }
+            },
+            containerColor =  Color(0xffece6f0),
+            elevation = FloatingActionButtonDefaults.elevation(8.dp),
+            modifier = modifier
+
+        ) {
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = "Scroll to bottom"
+            )
         }
     }
 }
@@ -284,6 +316,7 @@ fun BottomLineSend(modifier: Modifier = Modifier, viewModel: ChatDialogViewModel
             AttachButton(viewModel)
         }
     }
+
 }
 @Composable
 fun AttachButton(viewModel: ChatDialogViewModel){

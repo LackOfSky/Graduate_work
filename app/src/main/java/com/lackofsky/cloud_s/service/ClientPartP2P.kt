@@ -359,7 +359,21 @@ class ClientPartP2P @Inject constructor(
             }
         }?: Log.e("service $SERVICE_NAME :client sendML", "client is null")
     }
-    suspend fun sendMediaMessage(userUniqueId: String, port: Int){TODO()}
+    suspend fun sendMediaMessage(userUniqueId: String, port: Int, messageUniqueId: String){
+        val client  = activeFriends.value.entries.find { it.key.uniqueID == userUniqueId }
+        client?.let {
+            val ipAddr = it.value.getChannelIpAddress()
+            val isSuccess = mediaClient.sendMessageFile(messageUniqueId = messageUniqueId,
+                sender = userOwner.value!!,
+                serverIpAddr = ipAddr,
+                serverPort = port)
+            if (isSuccess) {
+                Log.d("service $SERVICE_NAME :client sendML", "success")
+            } else {
+                Log.d("service $SERVICE_NAME :client sendML", "failed")
+            }
+        }?: Log.e("service $SERVICE_NAME :client sendML", "client is null")
+    }
     fun onDestroy(info: String){
         CoroutineScope(Dispatchers.IO).launch {
         _activeFriends.update { map ->
