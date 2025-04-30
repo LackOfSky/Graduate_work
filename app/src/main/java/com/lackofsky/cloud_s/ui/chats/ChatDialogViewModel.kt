@@ -127,12 +127,13 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                 replyMessageId = attachedMessageReply.value?.uniqueId,
                 content = text)
             attachReply(null)
-            _uriItem.value?.let{uri ->
-                messageToSave = saveMessageFile(context, uri, uri.lastPathSegment!!, messageToSave)
+            val uriItem = _uriItem.value
+            uriItem?.let{uri ->
+                    messageToSave = saveMessageFile(context, uri, uri.lastPathSegment!!, messageToSave)
+                    Log.d("GrimBerry chatDialogVM", "sendMessage: ${messageToSave.toString()}")
+                    attachMedia(null)
+                }
 
-                attachMedia(null)
-
-            }
 
             Log.d("GrimBerry chatDialogVM", "chatMembers.value ${chatMembers.value.toString()} ")
             if(chatMembers.value.size == 1){
@@ -151,7 +152,10 @@ class ChatDialogViewModel @Inject constructor(private val userRepository: UserRe
                                     it.key.uniqueID == activeChat.name && activeChat.type == ChatType.PRIVATE
                                 }?.value!!
                             messageRequestUseCase.sendMessageRequest(client, messageToSend)
-                            messageRequestUseCase.sendMediaMessageRequest(sendTo = client, messageToSend)
+                            uriItem?.let { uri ->
+                                messageRequestUseCase.sendMediaMessageRequest(sendTo = client, messageToSend)
+                            }
+
                             Log.d("GrimBerry chatDialogVM", "send message")
                         }
                     }

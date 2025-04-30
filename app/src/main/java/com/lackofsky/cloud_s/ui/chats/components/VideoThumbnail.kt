@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -61,11 +62,12 @@ import kotlinx.coroutines.withContext
     ) {
         val context = LocalContext.current
         val exoPlayer = remember(uri) {
-            ExoPlayer.Builder(context).build().apply {
-                setMediaItem(MediaItem.fromUri(uri))
-                prepare()
-            }
+            ExoPlayer.Builder(context).build()
         }
+    LaunchedEffect(uri) {
+        exoPlayer.setMediaItem(MediaItem.fromUri(uri))
+        exoPlayer.prepare()
+    }
 
         val lifecycleOwner = LocalLifecycleOwner.current
         val lifecycle = lifecycleOwner.lifecycle
@@ -96,41 +98,21 @@ import kotlinx.coroutines.withContext
                 //.aspectRatio(16 / 9f)
                 .background(Color.Black)
             ) {
-                AndroidView(
-                    factory = {
-                        PlayerView(it).apply {
-                            player = exoPlayer
-                            useController = true
-                            layoutParams = FrameLayout.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxHeight()
-                )
-
-//                IconButton(
-//                    onClick = {
-//                        isPlaying = !isPlaying
-//                        if (isPlaying) {
-//                            exoPlayer.playWhenReady = true
-//                        } else {
-//                            exoPlayer.pause()
-//                        }
-//                    },
-//                    modifier = Modifier
-//                        .align(Alignment.Center)
-//                        .size(64.dp)
-//                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-//                ) {
-//                    Icon(
-//                        imageVector = if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
-//                        contentDescription = if (isPlaying) "Pause" else "Play",
-//                        tint = Color.White,
-//                        modifier = Modifier.size(40.dp)
-//                    )
-//                }
+                key(uri) {
+                    AndroidView(
+                        factory = {
+                            PlayerView(it).apply {
+                                player = exoPlayer
+                                useController = true
+                                layoutParams = FrameLayout.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.MATCH_PARENT
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxHeight()
+                    )
+                }
                 var isPlaying by remember { mutableStateOf(false) }
 
                 LaunchedEffect(exoPlayer) {
@@ -162,52 +144,4 @@ import kotlinx.coroutines.withContext
             }
         }
     }
-//    val context = LocalContext.current
-//    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-//
-//    LaunchedEffect(uri) {
-//        withContext(Dispatchers.IO) {
-//            val retriever = MediaMetadataRetriever()
-//            try {
-//                retriever.setDataSource(context, uri)
-//                val frame = retriever.getFrameAtTime(1_000_000, MediaMetadataRetriever.OPTION_CLOSEST) // 1 секунда
-//                bitmap = frame
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            } finally {
-//                retriever.release()
-//            }
-//        }
-//    }
-//
-//    bitmap?.let {
-//        Box {
-//            Image(
-//                bitmap = it.asImageBitmap(),
-//                contentDescription = "Video thumbnail",
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(200.dp)
-//                    .clip(RoundedCornerShape(12.dp)),
-//                contentScale = ContentScale.Crop
-//            )
-//            Icon(
-//                imageVector = Icons.Default.PlayArrow,
-//                contentDescription = "Play",
-//                tint = Color.White,
-//                modifier = Modifier
-//                    .align(Alignment.Center)
-//                    .size(48.dp)
-//            )
-//        }
-//    } ?:
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(200.dp)
-//                .background(Color.Gray),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Text("Unable to load video...")
-//        }
 

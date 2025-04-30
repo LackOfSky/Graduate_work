@@ -68,6 +68,7 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                       isFriendOnline: Boolean = false, isNotesChat: Boolean = true
 ) {
     // рыба
+    val flowMessage:Message? by viewModel.getMessage(message.uniqueId!!).collectAsState(message)
     val isUserOwner by remember { mutableStateOf(viewModel.isFromOwner(message.userId)) }
     var isSelected by remember { mutableStateOf(false) }
     val isSelectingMode by viewModel.isSelectingMode.collectAsState()
@@ -133,7 +134,8 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                     }
             ) {
                 Column(modifier = Modifier.padding(8.dp)) {
-                    message.mediaUri?.let { uri ->
+                    Log.d("GrimBerry mdi", " message sss " + flowMessage)
+                    flowMessage?.mediaUri?.let { uri ->
                     when (message.contentType) {
                         MessageContentType.TEXT -> {
                             Log.e("GrimBerry mdi", "Message content error. existing mediaUri when MessageContentType.TEXT")
@@ -141,24 +143,13 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
 
                         MessageContentType.IMAGE -> {
                             Log.d("GrimBerry mdi", " message mediaUri" + message.mediaUri)
-//                            message.mediaUri?.let { uri ->
                             ImageFileCard(uri.toUri())
                             Divider(Modifier.fillMaxWidth())
-//                            }
-//                            Divider(Modifier.fillMaxWidth())
-//                            Text(
-//                                text = message.content,
-//                                color = if (false) Color.White else Color.Black,
-//                                lineHeight = 1.8.em,
-//                                style = MaterialTheme.typography.bodyLarge,
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                            )
                         }
 
                         MessageContentType.VIDEO -> {
 //                            message.mediaUri?.let { uri ->
-                            Log.d("GrimBerry mdi", " message mediaUri vid " + message.mediaUri)
+                            Log.d("GrimBerry mdi", " message mediaUri vid " + flowMessage?.mediaUri.orEmpty())
                             Box(modifier = Modifier.size(200.dp, 200.dp)) {
                                 VideoPlayerCard(uri = uri.toUri())
                             }
@@ -213,7 +204,7 @@ fun MessageDialogItem(message: Message, viewModel: ChatDialogViewModel = hiltVie
                             color = Color.Black,
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier
-                                .fillMaxWidth()
+                                .size(200.dp,200.dp)
                         )
                         Divider(Modifier.fillMaxWidth())
                     }
