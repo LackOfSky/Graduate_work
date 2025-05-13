@@ -26,25 +26,3 @@ data class UserInfo (
     @ColumnInfo(name = "userBanner")
     var bannerImgURI: String?
 )
-
-//data class UserInfoDTO(
-//    val base: UserInfo,
-//    val bannerImg: ByteArray
-//) {
-//    val userId: String get() = base.userId
-//    var about: String
-//        get() = base.about
-//        set(value) {
-//            base.about = value
-//        }
-//    var info: String
-//        get() = base.info
-//        set(value) {
-//            base.info = value
-//        }
-//    var iconImg: ByteArray
-//        get() = base.iconImg
-//        set(value) {
-//            base.iconImg = value
-//        }
-//}
